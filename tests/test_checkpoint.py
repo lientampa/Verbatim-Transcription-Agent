@@ -199,6 +199,8 @@ def test_idempotency_detection(tmp_path: Path):
 # Test 9: End-to-End Pipeline Execution (Mocked Gemini)
 # ---------------------------------------------------------------------------
 def test_end_to_end_pipeline_mock(tmp_path: Path, monkeypatch):
+    # Fake media has no decodable audio; these tests model an explicitly silent tail.
+    monkeypatch.setattr("src.coverage_validator.TailActivityAnalyzer.analyze", lambda self, *args: 0.0)
     from unittest.mock import MagicMock, PropertyMock
     from src.main import run_pipeline
 

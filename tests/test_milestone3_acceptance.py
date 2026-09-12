@@ -474,6 +474,8 @@ def test_16_retry_idempotency_no_duplicate():
 # TEST PHASE 20: End-to-End Test (15 segments pipeline)
 # ---------------------------------------------------------------------------
 def test_phase20_end_to_end_15_segments(tmp_path, monkeypatch):
+    # Fake media has no decodable audio; these tests model an explicitly silent tail.
+    monkeypatch.setattr("src.coverage_validator.TailActivityAnalyzer.analyze", lambda self, *args: 0.0)
     audio_dir = tmp_path / "audio"
     audio_dir.mkdir(parents=True, exist_ok=True)
     (audio_dir / "full_meeting.mp3").write_bytes(b"mock_audio_bytes")

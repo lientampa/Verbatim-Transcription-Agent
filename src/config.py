@@ -61,9 +61,18 @@ class AppConfig:
     model_fallback_enabled: bool = True
     # Tail timestamps are segment starts: allow pauses and a final utterance.
     coverage_tail_gap_threshold_sec: float = 120.0
+    coverage_small_gap_max_ratio: float = 0.1
     coverage_active_tail_min_sec: float = 30.0
     coverage_silence_threshold_db: float = -40.0
     coverage_shrink_factor: float = 0.5
+    coverage_max_generations: int = 4
+    coverage_growth_factor: float = 1.1
+    coverage_growth_passes: int = 3
+    coverage_growth_headroom_sec: float = 30.0
+    unknown_model_duration_sec: float = 300.0
+    provider_fallback_policy: str = "PREFER_WAIT"
+    max_provider_backoff_seconds: float = 30.0
+    fallback_models: tuple[str, ...] = ("gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash")
 
 
 
@@ -190,7 +199,16 @@ def load_config(base_dir: Path | None = None) -> AppConfig:
         max_duration_seconds=max_duration_seconds,
         model_fallback_enabled=os.getenv("MODEL_FALLBACK_ENABLED", "true").lower() in ("true", "1", "yes"),
         coverage_tail_gap_threshold_sec=float(os.getenv("COVERAGE_TAIL_GAP_THRESHOLD_SEC", "120")),
+        coverage_small_gap_max_ratio=float(os.getenv("COVERAGE_SMALL_GAP_MAX_RATIO", "0.1")),
         coverage_active_tail_min_sec=float(os.getenv("COVERAGE_ACTIVE_TAIL_MIN_SEC", "30")),
         coverage_silence_threshold_db=float(os.getenv("COVERAGE_SILENCE_THRESHOLD_DB", "-40")),
         coverage_shrink_factor=float(os.getenv("COVERAGE_SHRINK_FACTOR", "0.5")),
+        coverage_max_generations=int(os.getenv("COVERAGE_MAX_GENERATIONS", "4")),
+        coverage_growth_factor=float(os.getenv("COVERAGE_GROWTH_FACTOR", "1.1")),
+        coverage_growth_passes=int(os.getenv("COVERAGE_GROWTH_PASSES", "3")),
+        coverage_growth_headroom_sec=float(os.getenv("COVERAGE_GROWTH_HEADROOM_SEC", "30")),
+        unknown_model_duration_sec=float(os.getenv("UNKNOWN_MODEL_DURATION_SEC", "300")),
+        provider_fallback_policy=os.getenv("PROVIDER_FALLBACK_POLICY", "PREFER_WAIT").upper(),
+        max_provider_backoff_seconds=float(os.getenv("MAX_PROVIDER_BACKOFF_SECONDS", "30")),
+        fallback_models=tuple(m.strip() for m in os.getenv("FALLBACK_MODELS", "gemini-3.6-flash,gemini-3.8-flash,gemini-3.5-flash-lite,gemini-3.5-flash").split(",") if m.strip()),
     )

@@ -27,6 +27,8 @@ class CoverageResult:
     tail_activity: str
     active_tail_seconds: float | None = None
     reason: str = ""
+    tail_gap_ratio: float | None = None
+    physical_duration_seconds: float | None = None
 
     @property
     def allows_confirmation(self):
@@ -64,6 +66,9 @@ class CoverageValidator:
     def __init__(self, config, analyzer=None):
         self.config = config
         self.analyzer = analyzer or TailActivityAnalyzer()
+        self.max_ratio = getattr(config, "coverage_small_gap_max_ratio", 0.1)
+        if not math.isfinite(self.max_ratio) or not 0 < self.max_ratio < 1:
+            raise ValueError("Coverage small-gap ratio must be between zero and one")
         values = (config.coverage_tail_gap_threshold_sec, config.coverage_active_tail_min_sec,
                   config.coverage_silence_threshold_db, config.coverage_shrink_factor)
         if not all(math.isfinite(v) for v in values) or values[0] <= 0 or values[1] <= 0 or not 0 < values[3] < 1:
@@ -78,16 +83,21 @@ class CoverageValidator:
                 timestamps.append((seconds, segment.timestamp))
         last, original = max(timestamps) if timestamps else (block.start_time_seconds, None)
         gap = max(0.0, block.end_time_seconds - last)
-        if original is not None and gap <= self.config.coverage_tail_gap_threshold_sec:
-            return CoverageResult(CoverageDecision.PASS, original, gap, "NOT_ANALYZED_SMALL_GAP")
+        duration = block.end_time_seconds - block.start_time_seconds
+        if not math.isfinite(duration) or duration <= 0:
+            return CoverageResult(CoverageDecision.FAIL, original, gap, "UNKNOWN", reason="Invalid physical duration")
+        ratio = gap / duration
+        metrics = dict(tail_gap_ratio=ratio, physical_duration_seconds=duration)
+        if original is not None and gap <= self.config.coverage_tail_gap_threshold_sec and ratio <= self.max_ratio:
+            return CoverageResult(CoverageDecision.PASS, original, gap, "NOT_ANALYZED_SMALL_GAP", **metrics)
         try:
             active = self.analyzer.analyze(block.file_path, max(0, last - block.start_time_seconds),
                                            gap, self.config.coverage_silence_threshold_db)
             if not math.isfinite(active) or not 0 <= active <= gap:
                 raise ValueError("Invalid activity measurement")
         except Exception as exc:
-            return CoverageResult(CoverageDecision.FAIL, original, gap, "UNKNOWN", reason=str(exc))
+            return CoverageResult(CoverageDecision.FAIL, original, gap, "UNKNOWN", reason=str(exc), **metrics)
         if active >= self.config.coverage_active_tail_min_sec:
             return CoverageResult(CoverageDecision.RETRY, original, gap, "ACTIVE", active,
-                                  "Substantial activity after last timestamp; not proof of speech")
-        return CoverageResult(CoverageDecision.WARNING, original, gap, "MOSTLY_SILENT_OR_SPARSE", active)
+                                  "Substantial activity after last timestamp; not proof of speech", **metrics)
+        return CoverageResult(CoverageDecision.WARNING, original, gap, "MOSTLY_SILENT_OR_SPARSE", active, **metrics)

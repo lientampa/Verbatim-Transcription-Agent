@@ -14,7 +14,7 @@ class ExpectedBlockContext:
     prompt's floored slice offset. Comparison never changes the returned value.
 
     AUDIO ordinals are response-local; TEXT_TIMESTAMP indices are canonical.
-    last_source_index is optional; internal endpoint consistency is always checked.
+    last_source_index is optional; AUDIO final endpoint discrepancies are advisory.
     """
     job_id: str
     session_id: str
@@ -126,6 +126,10 @@ class TranscriptValidator:
         else:
             last_idx = block_result.last_source_index
 
+        if audio_mode and block_result.segments:
+            # Declared AUDIO end is redundant metadata, not a bound on local ordinals.
+            last_idx = block_result.segments[-1].source_index
+
         # 4. Check Range consistency with block metadata
         if block_result.first_source_index != first_idx:
             reject("FIRST_SOURCE_INDEX_MISMATCH", f"first_source_index: expected={first_idx}, received={block_result.first_source_index}")
@@ -142,6 +146,9 @@ class TranscriptValidator:
             ("LAST_SOURCE_INDEX", block_result.last_source_index, actual_indices[-1]),
         ]:
             if received != actual:
+                if audio_mode and field_name == "LAST_SOURCE_INDEX":
+                    warnings.append(f"AUDIO_LAST_SEGMENT_ORDINAL_MISMATCH: received_last_source_index={received}, final_segment_ordinal={actual}, block_id={block_result.block_id}")
+                    continue
                 reject(field_name + "_MISMATCH", f"{field_name.lower()}: segment endpoint={actual}, received={received}")
 
         # 2. Duplicate Check

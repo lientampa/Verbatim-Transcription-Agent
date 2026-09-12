@@ -22,7 +22,7 @@ def run_audio_case(tmp_path, monkeypatch, failure="output limit", attempts=3, mi
     (tmp_path / ".env").write_text("GEMINI_API_KEY=mock-key\n", encoding="utf-8")
     config = replace(load_config(tmp_path), initial_target_input_tokens=1500,
                      min_block_tokens=10, min_duration_seconds=minimum,
-                     max_duration_seconds=900, validator_max_retries=attempts,
+                     max_duration_seconds=900, validator_max_retries=attempts, coverage_max_generations=attempts,
                      block_shrink_factor=0.6, retry_initial_delay_seconds=0)
     monkeypatch.setattr("src.main.load_config", lambda **kwargs: config)
     monkeypatch.setattr("src.block_builder._find_binary", lambda name: name)

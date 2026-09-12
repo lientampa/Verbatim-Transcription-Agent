@@ -351,6 +351,14 @@ class DabbAudioOrchestrator:
         self._slice_paths: set[Path] = set()
         self.source_identity: SourceIdentity | None = None
         self.next_block_number = 1
+        self.active_model = config.gemini_model
+        self.model_profiles = {self.active_model: dict(target=config.max_duration_seconds,
+            safe_duration=None, streak=0, coverage_failures=0, size_failures=0, dabb=self.dabb)}
+        if (config.coverage_max_generations < 1 or config.coverage_growth_passes < 1
+                or not 1 < config.coverage_growth_factor <= 1.25
+                or not 0 <= config.coverage_growth_headroom_sec <= config.coverage_tail_gap_threshold_sec
+                or not 0 < config.unknown_model_duration_sec <= config.max_duration_seconds):
+            raise BlockBuilderError("Invalid coverage adaptation configuration")
 
         # Compute tokens/second from density constants
         self._tokens_per_second: float = (
@@ -410,7 +418,7 @@ class DabbAudioOrchestrator:
 
             # Ask DABB for current token target → convert to duration
             target_tokens = self.dabb.current_target_tokens
-            duration_sec = self._target_tokens_to_seconds(target_tokens)
+            duration_sec = self.current_block_duration_seconds
             block_size = duration_sec
 
             current_end = min(total_duration, to_us(current_start + block_size) / UNITS_PER_SECOND)
@@ -529,9 +537,48 @@ class DabbAudioOrchestrator:
             last_source_index=0,
             segments=[],
         )
+        if failure_type == FailureType.SIZE_FAILURE:
+            self.model_profiles[self.active_model]["size_failures"] += 1
+            self.model_profiles[self.active_model]["streak"] = 0
         return self.dabb.on_block_failure(block=proxy, failure_type=failure_type)
 
     @property
     def current_block_duration_seconds(self) -> float:
         """Current DABB-recommended block duration in seconds."""
-        return self._target_tokens_to_seconds(self.dabb.current_target_tokens)
+        return min(self._target_tokens_to_seconds(self.dabb.current_target_tokens),
+                   self.model_profiles[self.active_model]["target"])
+
+    def select_model(self, model: str, reason=None) -> float:
+        if model != self.active_model:
+            previous, target = self.active_model, self.current_block_duration_seconds
+            if model not in self.model_profiles:
+                self.model_profiles[model] = dict(target=max(self.config.min_duration_seconds,
+                    min(target, self.config.unknown_model_duration_sec)), safe_duration=None,
+                    streak=0, coverage_failures=0, size_failures=0,
+                    dabb=DynamicAdaptiveBlockBuilder(source_segments=None, config=self.config,
+                                                     system_prompt=self.system_prompt))
+            self.active_model = model
+            self.dabb = self.model_profiles[model]["dabb"]
+            print(f" [MODEL_SWITCH from={previous} to={model} reason={reason} profile_target={self.current_block_duration_seconds}]", flush=True)
+        return self.current_block_duration_seconds
+
+    def on_coverage_failure(self, duration: float) -> None:
+        profile = self.model_profiles[self.active_model]
+        profile["target"] = max(self.config.min_duration_seconds,
+            min(profile["target"], duration * self.config.coverage_shrink_factor))
+        profile["streak"] = 0
+        profile["coverage_failures"] += 1
+        print(f" [COVERAGE_FAIL actual_model={self.active_model} duration={duration} next_target={self.current_block_duration_seconds}]", flush=True)
+
+    def on_coverage_success(self, duration: float, coverage) -> None:
+        profile = self.model_profiles[self.active_model]
+        profile["safe_duration"] = duration
+        profile["target"] = min(profile["target"], max(self.config.min_duration_seconds, duration))
+        strong = coverage.decision.value == "COVERAGE_PASS" and coverage.tail_gap_seconds <= self.config.coverage_growth_headroom_sec
+        profile["streak"] = profile["streak"] + 1 if strong else 0
+        reason = "accepted_physical_duration"
+        if profile["streak"] >= self.config.coverage_growth_passes:
+            profile["target"] = min(self.config.max_duration_seconds, profile["target"] * self.config.coverage_growth_factor)
+            profile["streak"] = 0
+            reason = "coverage_headroom_growth"
+        print(f" [COVERAGE_ACCEPT actual_model={self.active_model} safe_duration={duration} next_target={self.current_block_duration_seconds} reason={reason}]", flush=True)

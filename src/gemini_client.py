@@ -39,6 +39,40 @@ def _extract_retry_delay(exc: Exception, fallback_delay: float) -> float:
     return fallback_delay
 
 
+def structured_retry_after(exc: Exception) -> float | None:
+    """Read google.rpc.RetryInfo from the installed SDK's structured details."""
+    import math
+    def walk(value):
+        if isinstance(value, dict):
+            if str(value.get("@type", "")).endswith("google.rpc.RetryInfo"):
+                delay = value.get("retryDelay", value.get("retry_delay"))
+                try:
+                    seconds = (float(delay.get("seconds", 0)) + float(delay.get("nanos", 0)) / 1e9
+                               if isinstance(delay, dict) else float(str(delay).removesuffix("s")))
+                    if math.isfinite(seconds) and seconds >= 0:
+                        return seconds
+                except (ValueError, TypeError):
+                    pass
+            for child in value.values():
+                result = walk(child)
+                if result is not None:
+                    return result
+        elif isinstance(value, list):
+            for child in value:
+                result = walk(child)
+                if result is not None:
+                    return result
+        return None
+    return walk(getattr(exc, "details", None))
+
+
+class ModelReplanRequired(Exception):
+    """Selected model needs a smaller physical asset before any provider call."""
+    def __init__(self, target):
+        self.target = target
+        super().__init__(f"MODEL_REPLAN target={target}")
+
+
 class GeminiClientError(Exception):
     """Base exception for Gemini client errors."""
     pass
@@ -76,12 +110,20 @@ class GeminiClient:
         initial_delay_seconds: float = 2.0,
         timeout_seconds: int = 300,
         fallback_enabled: bool = True,
+        fallback_policy: str = "PREFER_WAIT",
+        max_backoff_seconds: float = 30.0,
+        fallback_models: tuple[str, ...] = ("gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash"),
     ) -> None:
         if not api_key:
             raise GeminiClientError("API key must be provided to initialize GeminiClient.")
         self.model_name = model_name
         self.requested_model = model_name
         self.fallback_enabled = fallback_enabled
+        if fallback_policy not in ("PREFER_WAIT", "PREFER_FALLBACK", "LOCK_MODEL") or not 0 <= max_backoff_seconds <= 60:
+            raise GeminiClientError("Invalid fallback policy or maximum backoff (0..60 seconds)")
+        self.fallback_policy = fallback_policy
+        self.max_backoff_seconds = max_backoff_seconds
+        self.fallback_models = fallback_models
         self.max_retries = max(1, max_retries)
         self.initial_delay_seconds = max(0.1, initial_delay_seconds)
         self.timeout_seconds = timeout_seconds
@@ -127,7 +169,10 @@ class GeminiClient:
                 last_err = exc
                 if attempt < self.max_retries:
                     base_delay = self.initial_delay_seconds * (2 ** (attempt - 1))
-                    delay = _extract_retry_delay(exc, base_delay)
+                    retry_after = structured_retry_after(exc)
+                    delay = retry_after if retry_after is not None else _extract_retry_delay(exc, base_delay)
+                    if delay > getattr(self, "max_backoff_seconds", 30.0):
+                        break
                     logger.warning(
                         f"[GeminiClient] Upload failed (attempt {attempt}/{self.max_retries}). "
                         f"Retrying in {delay:.1f}s... Error: {exc}"
@@ -147,10 +192,12 @@ class GeminiClient:
         self.last_response_metadata = {
             "requested_model": requested, "actual_model": model,
             "fallback_used": model != requested,
+            "backoff_before_call_seconds": getattr(self, "_backoff_before_call", 0.0),
             "fallback_reason": (getattr(self, "_fallback_reason", None) or
                                 getattr(self, "_sticky_fallback_reason", None)) if model != requested else None,
-            "attempt": attempt, "block_id": block_match.group(1) if block_match else None,
+            "attempt": attempt, "provider_attempt": attempt, "retry_after_seconds": None, "block_id": block_match.group(1) if block_match else None,
         }
+        self._backoff_before_call = 0.0
         if not hasattr(self, "call_history"):
             self.call_history = []
         self.call_history.append(self.last_response_metadata)
@@ -160,7 +207,7 @@ class GeminiClient:
                 model=model, contents=[gemini_file, user_prompt], config=config)
         except Exception as exc:
             self.last_response_metadata.update(provider_error_code=getattr(exc, "code", None),
-                                               provider_error_message=str(exc))
+                                               provider_error_message=str(exc), retry_after_seconds=structured_retry_after(exc))
             if classify_failure(exc) == FailureType.SIZE_FAILURE:
                 raise GeminiSizeError(str(exc), self.last_response_metadata) from exc
             raise
@@ -202,8 +249,7 @@ class GeminiClient:
     ) -> str:
         """Call Gemini to transcribe audio using the provided system instruction.
 
-        Includes automatic fallback to gemini-3.5-flash if the primary model is
-        unavailable (503) or blocked (BlockedReason.OTHER).
+        Uses bounded same-model retries followed by a deterministic fallback plan.
 
         Args:
             gemini_file: The uploaded Gemini File object.
@@ -223,72 +269,52 @@ class GeminiClient:
             response_mime_type=response_mime_type,
         )
 
-        last_err: Exception | None = None
-        self._provider_attempt = 0
-        self._fallback_reason = None
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                transcript = self._call_model(self.model_name, gemini_file, user_prompt, config)
-                if transcript:
-                    return transcript
-
-                # If primary model returned empty response and is not the fallback model, try fallback
-                if getattr(self, "fallback_enabled", True) and self.model_name != self.FALLBACK_MODEL:
-                    self._fallback_reason = "Primary model returned empty response"
-                    logger.warning(
-                        f"[GeminiClient] Model '{self.model_name}' returned empty response. "
-                        f"Attempting fallback to '{self.FALLBACK_MODEL}'..."
-                    )
-                    fallback_transcript = self._call_model(self.FALLBACK_MODEL, gemini_file, user_prompt, config)
-                    if fallback_transcript:
-                        return fallback_transcript
-
-                raise GeminiTranscribeError("Gemini returned an empty response or no text was generated.")
-
-            except GeminiSizeError:
-                raise
-            except (APIError, ConnectionError, TimeoutError) as exc:
-                last_err = exc
-                err_str = str(exc)
-
-                # If quota exhausted (429) or unavailable (503), try alternative models from pool
-                if getattr(self, "fallback_enabled", True) and ("429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "503" in err_str):
-                    self._fallback_reason = err_str
-                    alternative_models = [m for m in ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite"] if m != self.model_name]
-                    for alt_m in alternative_models:
-                        try:
-                            print(f"\n  [Quota Fallback] Đang chuyển sang model dự phòng '{alt_m}'...", end="", flush=True)
-                            alt_transcript = self._call_model(alt_m, gemini_file, user_prompt, config)
-                            if alt_transcript:
-                                self.model_name = alt_m  # Persist the working model for remaining blocks
-                                self._sticky_fallback_reason = err_str
-                                return alt_transcript
-                        except GeminiSizeError:
-                            raise
-                        except Exception:
-                            continue
-
-                if attempt < self.max_retries:
-                    base_delay = self.initial_delay_seconds * (2 ** (attempt - 1))
-                    delay = _extract_retry_delay(exc, base_delay)
-                    print(f" [Rate Limit] Đang đợi {delay:.1f}s trước khi thử lại ({attempt}/{self.max_retries})...", end="", flush=True)
-                    time.sleep(delay)
-                else:
+        # One ordered plan per client/job. Once advanced, a candidate is never
+        # reinserted; explicit same-model retries happen only before advancing.
+        requested = getattr(self, "requested_model", self.model_name)
+        policy = getattr(self, "fallback_policy", "PREFER_WAIT")
+        locked = not getattr(self, "fallback_enabled", True) or policy == "LOCK_MODEL"
+        fallbacks = getattr(self, "fallback_models", ("gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash"))
+        plan = list(dict.fromkeys([requested] + ([] if locked else list(fallbacks))))
+        current = self.model_name if self.model_name in plan and not locked else requested
+        start = plan.index(current)
+        last_err = None
+        block_match = re.search(r'- block_id: "([^"]+)"', user_prompt)
+        block_key = block_match.group(1) if block_match else None
+        if block_key is None or block_key != getattr(self, "_attempt_block", None):
+            self._provider_attempt = 0
+        self._attempt_block = block_key
+        self._fallback_reason = getattr(self, "_sticky_fallback_reason", None)
+        if not hasattr(self, "_selection_reasons"):
+            self._selection_reasons = {}
+        for index, model in enumerate(plan[start:]):
+            self._fallback_reason = str(last_err) if index else self._selection_reasons.get(model, self._fallback_reason)
+            self._selection_reasons[model] = self._fallback_reason
+            self._sticky_fallback_reason = self._fallback_reason
+            self._backoff_before_call = 0.0
+            self.model_name = model
+            hook = getattr(self, "on_model_selected", None)
+            if hook:
+                hook(model, self._fallback_reason)
+            for attempt in range(1, self.max_retries + 1):
+                try:
+                    transcript = self._call_model(model, gemini_file, user_prompt, config)
+                    if transcript:
+                        return transcript
+                    raise GeminiTranscribeError("Gemini returned empty response")
+                except GeminiSizeError:
+                    raise
+                except Exception as exc:
+                    last_err = exc
+                    retry_after = structured_retry_after(exc)
+                    text = str(exc)
+                    transient = isinstance(exc, (ConnectionError, TimeoutError)) or getattr(exc, "code", None) in (429, 503) or "429" in text or "503" in text
+                    delay = retry_after if retry_after is not None else _extract_retry_delay(exc, self.initial_delay_seconds * 2 ** (attempt - 1))
+                    maximum = getattr(self, "max_backoff_seconds", 30.0)
+                    if transient and policy != "PREFER_FALLBACK" and attempt < self.max_retries and delay <= maximum:
+                        print(f" [RETRY_SAME_MODEL model={model} provider_attempt={self._provider_attempt} retry_after_seconds={delay}]", flush=True)
+                        time.sleep(delay)
+                        self._backoff_before_call = delay
+                        continue
                     break
-            except Exception as exc:
-                # If error occurred with primary model, try fallback before failing
-                if getattr(self, "fallback_enabled", True) and self.model_name != self.FALLBACK_MODEL:
-                    self._fallback_reason = str(exc)
-                    try:
-                        fallback_transcript = self._call_model(self.FALLBACK_MODEL, gemini_file, user_prompt, config)
-                        if fallback_transcript:
-                            return fallback_transcript
-                    except GeminiSizeError:
-                        raise
-                    except Exception:
-                        pass
-                raise GeminiTranscribeError(f"Transcription failed: {exc}") from exc
-
-        raise GeminiTranscribeError(
-            f"Failed to obtain transcript from Gemini after {self.max_retries} attempts: {last_err}"
-        ) from last_err
+        raise GeminiTranscribeError(f"Provider attempt plan exhausted: {last_err}") from last_err

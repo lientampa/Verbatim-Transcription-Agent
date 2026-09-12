@@ -13,6 +13,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
 from src.source_identity import SourceIdentity, UNITS_PER_SECOND
+from src.gemini_client import ModelReplanRequired, GeminiTranscribeError
 from src.coverage_validator import CoverageValidator, CoverageDecision
 from src.config import load_config, ConfigurationError
 from src.audio_manager import AudioManager, AudioError
@@ -153,6 +154,9 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         initial_delay_seconds=config.retry_initial_delay_seconds,
         timeout_seconds=config.timeout_seconds,
         fallback_enabled=config.model_fallback_enabled,
+        fallback_policy=config.provider_fallback_policy,
+        max_backoff_seconds=config.max_provider_backoff_seconds,
+        fallback_models=config.fallback_models,
     )
 
     response_parser = ResponseParser(schema_path=config.schema_path)
@@ -205,7 +209,14 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             block_result = None
             last_exc: Exception | None = None
 
-            for v_attempt in range(1, config.validator_max_retries + 1):
+            v_attempt, coverage_generation, total_attempts = 1, 1, 0
+            def select_model(model, reason):
+                target = orchestrator.select_model(model, reason)
+                if adaptive_slice.current_duration_seconds > target + 1e-6:
+                    raise ModelReplanRequired(target)
+            gemini_client.on_model_selected = select_model
+            while v_attempt <= config.validator_max_retries:
+                total_attempts += 1
                 print(f" Transcribing...", end="", flush=True)
                 try:
                     if gemini_file is None:
@@ -213,6 +224,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                         raw_name = getattr(gemini_file, "name", None)
                         last_file_id = str(raw_name) if raw_name is not None else str(gemini_file)
                     print(f" [block_id={block_id} attempt={v_attempt} generation={adaptive_slice.generation} "
+                          f"validation_attempt={v_attempt} coverage_generation={coverage_generation} physical_generation={adaptive_slice.generation} "
                           f"start={block.start_time_seconds} end={block.end_time_seconds} "
                           f"duration={adaptive_slice.current_duration_seconds} slice={block.file_path} "
                           f"upload={last_file_id} action=TRANSCRIBE]", end="", flush=True)
@@ -229,7 +241,16 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     last_val_result = outcome.structural_validation
                     fidelity_result = outcome.fidelity_validation
                     last_exc = None
+                except ModelReplanRequired as exc:
+                    orchestrator.rebuild_audio_block(adaptive_slice, exc.target / adaptive_slice.current_duration_seconds)
+                    block = adaptive_slice.source_block
+                    gemini_file = None
+                    continue
                 except Exception as exc:
+                    if isinstance(exc.__cause__, GeminiTranscribeError):
+                        raise  # Client provider budget is already exhausted.
+                    metadata = getattr(gemini_client, "last_response_metadata", {})
+                    orchestrator.select_model(metadata.get("actual_model", orchestrator.active_model))
                     last_exc = exc
                     print(f" [Error: {exc}]", end="", flush=True)
                     # Classify and potentially shrink block for next attempt
@@ -246,6 +267,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                             print(" [action=SHRINK_REBUILD_REUPLOAD]", end="", flush=True)
                         print(f" Retrying ({v_attempt+1}/{config.validator_max_retries})...", end="", flush=True)
                         time.sleep(config.retry_initial_delay_seconds)
+                        v_attempt += 1
                         continue
                     else:
                         raise TranscriptionError(
@@ -253,15 +275,21 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                             f"Block {block_id} failed after {config.validator_max_retries} attempts: {exc}"
                         ) from exc
 
+                metadata = getattr(gemini_client, "last_response_metadata", {})
+                orchestrator.select_model(metadata.get("actual_model", orchestrator.active_model))
                 if last_val_result.is_valid and fidelity_result.allows_confirmation:
                     # Provider STOP proves normal generation termination, not audio coverage.
+                    if block_result.last_source_index != block_result.segments[-1].source_index:
+                        print(f" [AUDIO_LAST_SEGMENT_ORDINAL_MISMATCH block_id={block_id} actual_model={metadata.get('actual_model')} received_last_source_index={block_result.last_source_index} final_segment_ordinal={block_result.segments[-1].source_index}]", flush=True)
                     coverage = coverage_validator.validate(block, block_result)
                     print(f" [coverage={coverage.decision.value} audio_end={block.end_time_seconds} "
                           f"last_timestamp={coverage.last_transcript_timestamp} tail_gap={coverage.tail_gap_seconds:.3f} "
-                          f"tail_activity={coverage.tail_activity} active_seconds={coverage.active_tail_seconds}]", end="", flush=True)
+                          f"tail_gap_ratio={coverage.tail_gap_ratio} physical_duration={coverage.physical_duration_seconds} tail_activity={coverage.tail_activity} active_seconds={coverage.active_tail_seconds}]", end="", flush=True)
                     if not coverage.allows_confirmation:
-                        failure_summary = f"COVERAGE_FAILURE: {coverage.to_dict()}"
-                        if coverage.decision == CoverageDecision.RETRY and v_attempt < config.validator_max_retries:
+                        failure_summary = f"COVERAGE_FAILURE COVERAGE_UNRESOLVED: {coverage.to_dict()}"
+                        if coverage.decision == CoverageDecision.RETRY:
+                            orchestrator.on_coverage_failure(adaptive_slice.current_duration_seconds)
+                        if coverage.decision == CoverageDecision.RETRY and coverage_generation < config.coverage_max_generations:
                             try:
                                 orchestrator.rebuild_audio_block(adaptive_slice, config.coverage_shrink_factor)
                             except BlockBuilderError as exc:
@@ -269,10 +297,12 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                             block = adaptive_slice.source_block
                             gemini_file = None
                             print(" [COVERAGE_FAILURE action=RETRY_SMALLER_BLOCK]", end="", flush=True)
+                            coverage_generation += 1
                             continue
                         break
                     validated = True
                     warn_tag = f" ({len(last_val_result.warnings)} warn)" if last_val_result.warnings else ""
+                    orchestrator.on_coverage_success(adaptive_slice.current_duration_seconds, coverage)
                     next_dur = orchestrator.current_block_duration_seconds
                     acceptance = "COVERAGE_WARNING" if coverage.decision == CoverageDecision.WARNING else "PASS"
                     print(f" [{acceptance}{warn_tag}] Done. (next block ~{next_dur:.0f}s)")
@@ -299,10 +329,12 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     if v_attempt < config.validator_max_retries:
                         print(f" Retrying validation attempt {v_attempt+1}...", end="", flush=True)
                         time.sleep(config.retry_initial_delay_seconds)
+                        v_attempt += 1
                     else:
                         print(f" Max validation retries reached.")
                         if fidelity_result.decision == FidelityDecision.RETRY_REVIEW:
                             failure_summary = "BLOCK_REVIEW_REQUIRED: " + failure_summary
+                        break
 
             if not validated or block_result is None:
                 # Do NOT commit checkpoint on FAIL
@@ -320,18 +352,32 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
 
             # Merge block segments idempotently
             merger.merge_block_result(block_result)
-            next_source_index = block_result.last_source_index + 1
+            # Keep declared last_source_index untouched in the response/diagnostics.
+            # Compatibility counters describe stored segments; audio progress uses boundaries.
+            final_segment_ordinal = block_result.segments[-1].source_index
+            next_source_index = final_segment_ordinal + 1
 
             # Atomic Checkpoint Commit ONLY after validation & merge PASS
             # Persist quality signals in existing metadata using the same atomic commit.
             metric = {
                 "source_mode": "AUDIO",
                 "segment_count": len(block_result.segments),
+                "received_last_source_index": block_result.last_source_index,
+                "final_segment_ordinal": final_segment_ordinal,
+                "structural_warnings": last_val_result.warnings,
+                "endpoint_diagnostics": ([dict(reason_code="AUDIO_LAST_SEGMENT_ORDINAL_MISMATCH",
+                    received_last_source_index=block_result.last_source_index,
+                    final_segment_ordinal=final_segment_ordinal, block_id=block_id,
+                    actual_model=provider_metadata.get("actual_model"))]
+                    if block_result.last_source_index != final_segment_ordinal else []),
                 "coverage": coverage.to_dict(),
                 "block_id": block_id,
                 "actual_start_offset": block.start_time_seconds,
                 "actual_end_offset": block.end_time_seconds,
-                "attempt_count": v_attempt,
+                "attempt_count": total_attempts,
+                "validation_attempt": v_attempt,
+                "coverage_generation": coverage_generation,
+                "physical_generation": adaptive_slice.generation,
                 "generation": adaptive_slice.generation,
                 "final_duration": adaptive_slice.current_duration_seconds,
                 "provider_metadata": provider_metadata,
@@ -347,7 +393,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             source_identity.assert_unchanged()
             checkpoint_mgr.commit_block(
                 block_id=block_id,
-                last_source_index=block_result.last_source_index,
+                last_source_index=final_segment_ordinal,
                 new_segments=[s.to_dict() for s in block_result.segments],
                 metric=metric, adaptive_state={"target_tokens": orchestrator.dabb.current_target_tokens},
                 file_id=last_file_id,
