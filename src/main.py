@@ -16,6 +16,7 @@ from src.config import load_config, ConfigurationError
 from src.audio_manager import AudioManager, AudioError
 from src.gemini_client import GeminiClient, GeminiClientError
 from src.transcriber import GeminiTranscriber, TranscriptionError
+from src.fidelity_validator import FidelityDecision
 from src.checkpoint import CheckpointManager, CheckpointStatus, CheckpointError
 from src.block_builder import DabbAudioOrchestrator, BlockBuilderError
 from src.failure_classifier import classify_failure, FailureType
@@ -271,11 +272,13 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                             f"Block {block_id} failed after {config.validator_max_retries} attempts: {exc}"
                         ) from exc
 
-                if last_val_result.is_valid and fidelity_result.is_valid:
+                if last_val_result.is_valid and fidelity_result.allows_confirmation:
                     validated = True
                     warn_tag = f" ({len(last_val_result.warnings)} warn)" if last_val_result.warnings else ""
                     next_dur = orchestrator.current_block_duration_seconds
                     print(f" [PASS{warn_tag}] Done. (next block ~{next_dur:.0f}s)")
+                    if fidelity_result.decision == FidelityDecision.ACCEPT_WITH_WARNING:
+                        print(f"  [ACCEPT_WITH_WARNING] {fidelity_result.summary()}")
                     break
                 else:
                     # Classify validation failure for DABB feedback
@@ -285,16 +288,21 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     )
                     failure_type = (
                         FailureType.FIDELITY_FAILURE
-                        if not fidelity_result.is_valid
+                        if not fidelity_result.allows_confirmation
                         else classify_failure(last_val_result.summary(), last_val_result)
                     )
                     orchestrator.on_block_failure(failure_type)
                     print(f" [{failure_summary}]", end="", flush=True)
+                    if fidelity_result.decision == FidelityDecision.FAIL:
+                        failure_summary = "DETERMINISTIC_FIDELITY_FAILURE: " + failure_summary
+                        break
                     if v_attempt < config.validator_max_retries:
                         print(f" Retrying validation attempt {v_attempt+1}...", end="", flush=True)
                         time.sleep(config.retry_initial_delay_seconds)
                     else:
                         print(f" Max validation retries reached.")
+                        if fidelity_result.decision == FidelityDecision.RETRY_REVIEW:
+                            failure_summary = "BLOCK_REVIEW_REQUIRED: " + failure_summary
 
             if not validated or block_result is None:
                 # Do NOT commit checkpoint on FAIL
@@ -314,6 +322,18 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             next_source_index = block_result.last_source_index + 1
 
             # Atomic Checkpoint Commit ONLY after validation & merge PASS
+            # Persist quality signals in existing metadata using the same atomic commit.
+            checkpoint_mgr.current_data.block_metrics.append({
+                "block_id": block_id,
+                "fidelity_status": fidelity_result.status.value,
+                "fidelity_decision": fidelity_result.decision.value,
+                "requires_quality_review": fidelity_result.needs_audio_review,
+                "unknown_token_count": fidelity_result.unknown_token_count,
+                "issues": [
+                    {"source_index": i.source_index, "reason": i.indicator, "detail": i.detail}
+                    for i in fidelity_result.issues
+                ],
+            })
             checkpoint_mgr.commit_block(
                 block_id=block_id,
                 last_source_index=block_result.last_source_index,

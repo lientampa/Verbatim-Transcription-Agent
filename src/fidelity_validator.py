@@ -27,6 +27,22 @@ class FidelityRisk(str, Enum):
     HIGH = "HIGH"
 
 
+class FidelityDecision(str, Enum):
+    """Acceptance policy, separate from heuristic quality status."""
+    ACCEPT = "ACCEPT"
+    ACCEPT_WITH_WARNING = "ACCEPT_WITH_WARNING"
+    RETRY_REVIEW = "RETRY_REVIEW"
+    FAIL = "FAIL"
+
+
+UNCERTAINTY_REASONS = frozenset({
+    "UNCERTAIN_SPEECH", "FULLY_UNCERTAIN_SEGMENT", "HIGH_UNCERTAINTY_RATE",
+})
+DETERMINISTIC_REASONS = frozenset({
+    "KNOWN_BAD_SUBSTITUTION", "TRUSTED_REFERENCE_MISMATCH", "UNSUPPORTED_REPLACEMENT",
+})
+
+
 @dataclass
 class FidelityIssue:
     """A single detected fidelity concern in a transcript segment."""
@@ -55,7 +71,26 @@ class FidelityValidationResult:
 
     @property
     def is_valid(self) -> bool:
+        """Quality-only compatibility property; use allows_confirmation for progress."""
         return self.status == FidelityStatus.PASS
+
+    @property
+    def decision(self) -> FidelityDecision:
+        reasons = {issue.indicator for issue in self.issues}
+        if self.status == FidelityStatus.FAIL or reasons & DETERMINISTIC_REASONS:
+            return FidelityDecision.FAIL
+        # Unknown review reasons fail closed, including REVIEW without any reason.
+        if reasons - UNCERTAINTY_REASONS:
+            return FidelityDecision.RETRY_REVIEW
+        if reasons or (self.status == FidelityStatus.PASS and self.unknown_token_count):
+            return FidelityDecision.ACCEPT_WITH_WARNING
+        if self.status == FidelityStatus.REVIEW:
+            return FidelityDecision.RETRY_REVIEW
+        return FidelityDecision.ACCEPT
+
+    @property
+    def allows_confirmation(self) -> bool:
+        return self.decision in (FidelityDecision.ACCEPT, FidelityDecision.ACCEPT_WITH_WARNING)
 
     @property
     def needs_audio_review(self) -> bool:
@@ -307,6 +342,11 @@ class ContentFidelityValidator:
         all_issues.extend(self.check_known_bad_substitutions(segments, trusted_source_texts))
         all_issues.extend(self.check_per_segment_unknown_rate(segments))
         all_issues.extend(self.check_repetition(segments))
+        # Retain even sparse uncertainty as a quality signal without forcing retry.
+        for seg in segments:
+            if _count_unknown_tokens(seg.text):
+                all_issues.append(FidelityIssue(seg.source_index, "UNCERTAIN_SPEECH",
+                                                "Approved uncertainty marker retained", "LOW"))
 
         # Unknown token metrics
         unknown_count, total_words, unknown_rate = self.check_unknown_token_rate(segments)

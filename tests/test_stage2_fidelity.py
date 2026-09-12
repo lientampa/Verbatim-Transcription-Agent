@@ -60,7 +60,9 @@ def test_semantic_uncertainty(text, fully, count, total):
     assert result.unknown_token_count == count
     assert result.total_word_count == total
     assert result.unknown_token_rate == count / total
-    assert result.status == (FidelityStatus.REVIEW if fully else FidelityStatus.PASS)
+    # Stage 2.1 keeps all uncertainty visible, separately from acceptance.
+    assert result.status == FidelityStatus.REVIEW
+    assert result.allows_confirmation
     assert candidate == before
 
 

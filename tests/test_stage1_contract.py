@@ -17,7 +17,10 @@ from src.fidelity_validator import ContentFidelityValidator, FidelityValidationR
     (False, "PASS", False),
     (True, "FAIL", False),
     (False, "FAIL", False),
-    (True, "REVIEW", False),
+    (True, "REVIEW", True),
+    (True, "MIXED", True),
+    (True, "MULTIPLE", True),
+    (False, "REVIEW", False),
     (True, "LOOP", False),
 ])
 def test_validation_gates_preserve_confirmed_progress(
@@ -57,10 +60,9 @@ def test_validation_gates_preserve_confirmed_progress(
     original_validate = ContentFidelityValidator.validate
 
     def validate_with_deterministic_failure(self, block_result):
-        # Stage 2 removed the invalid lexical FAIL for ordinary "dữ liệu".
-        # Inject FAIL to keep testing the orchestrator's independent status gate.
+        # Independently trusted reference makes this a real deterministic mismatch.
         if block_result.block_id == "BLOCK_002" and fidelity == "FAIL":
-            return FidelityValidationResult(FidelityStatus.FAIL, FidelityRisk.HIGH)
+            return original_validate(self, block_result, {2: "nguy cơ"})
         return original_validate(self, block_result)
 
     monkeypatch.setattr(ContentFidelityValidator, "validate", validate_with_deterministic_failure)
@@ -71,7 +73,7 @@ def test_validation_gates_preserve_confirmed_progress(
         events.append((
             "validated", outcome.block_result.block_id,
             outcome.structural_validation.is_valid,
-            outcome.fidelity_validation.is_valid,
+            outcome.fidelity_validation.allows_confirmation,
         ))
         return outcome
 
@@ -94,44 +96,66 @@ def test_validation_gates_preserve_confirmed_progress(
             text = {
                 "PASS": "Dạ vâng, anh cứ hỏi.", "FAIL": "dữ liệu",
                 "REVIEW": "[không rõ]", "LOOP": "chúng ta cần xử lý phần này " * 5,
+                "MIXED": "Tôi nghĩ là [không rõ] vào tuần sau.",
+                "MULTIPLE": "Tôi không biết.",
             }[fidelity]
         segments = [{"source_index": index, "text": text, "timestamp": "01:00" if second else "00:00"}]
+        if second and fidelity == "MULTIPLE":
+            segments.extend({"source_index": i, "text": t} for i, t in
+                            [(3, "[không rõ]"), (4, "Vâng."), (5, "[không rõ]")])
         if second and not structural_ok:
             segments.append(dict(segments[0]))  # Deterministic duplicate failure.
         return json.dumps(dict(
             schema_version="1.0", job_id="mock-job", session_id="mock-session",
             block_id="BLOCK_002" if second else "BLOCK_001",
-            first_source_index=index, last_source_index=index,
+            first_source_index=index, last_source_index=segments[-1]["source_index"],
             status="CONFIRMED", segments=segments,
         ), ensure_ascii=False)
     monkeypatch.setattr("src.main.GeminiClient.generate_transcription", generate)
     result = run_pipeline(base_dir=tmp_path)
     checkpoint = json.loads((tmp_path / "state" / "checkpoint.json").read_text(encoding="utf-8"))
     assert result == (0 if expected_success else 1)
-    assert checkpoint["last_confirmed_source_index"] == (2 if expected_success else 1)
-    assert checkpoint["next_source_index"] == (3 if expected_success else 2)
+    last_index = 5 if fidelity == "MULTIPLE" else 2
+    assert checkpoint["last_confirmed_source_index"] == (last_index if expected_success else 1)
+    assert checkpoint["next_source_index"] == (last_index + 1 if expected_success else 2)
     assert checkpoint["current_block_id"] == ("BLOCK_002" if expected_success else "BLOCK_001")
-    assert len(checkpoint["confirmed_segments"]) == (2 if expected_success else 1)
+    assert len(checkpoint["confirmed_segments"]) == (last_index if expected_success else 1)
     assert checkpoint["confirmed_segments"][0]["text"] == "Anh... anh cho tôi hỏi cái này."
-    assert requests == ([False, True] if expected_success else [False, True, True])
+    attempts = 1 if expected_success or fidelity == "FAIL" else 2
+    assert requests == [False] + [True] * attempts
     assert events[:2] == [
         ("validated", "BLOCK_001", True, True),
         ("checkpoint", "BLOCK_001"),
     ]
-    second_validation = ("validated", "BLOCK_002", structural_ok, fidelity == "PASS")
+    second_validation = ("validated", "BLOCK_002", structural_ok, fidelity not in ("FAIL", "LOOP"))
     assert events[2:] == (
         [second_validation, ("checkpoint", "BLOCK_002")]
-        if expected_success else [second_validation, second_validation]
+        if expected_success else [second_validation] * attempts
     )
     if expected_success:
         assert checkpoint["status"] == "COMPLETED"
         output = (tmp_path / "output" / "transcript.txt").read_text(encoding="utf-8")
-        assert "Dạ vâng, anh cứ hỏi." in output
+        if fidelity == "PASS":
+            assert "Dạ vâng, anh cứ hỏi." in output
+        else:
+            expected_texts = {
+                "REVIEW": ["[không rõ]"],
+                "MIXED": ["Tôi nghĩ là [không rõ] vào tuần sau."],
+                "MULTIPLE": ["Tôi không biết.", "[không rõ]", "Vâng.", "[không rõ]"],
+            }[fidelity]
+            assert [s["text"] for s in checkpoint["confirmed_segments"][1:]] == expected_texts
+            assert all(text in output for text in expected_texts)
+            metric = checkpoint["block_metrics"][-1]
+            assert metric["fidelity_decision"] == "ACCEPT_WITH_WARNING"
+            assert metric["requires_quality_review"] is True
+            assert any(i["reason"] == "UNCERTAIN_SPEECH" for i in metric["issues"])
         assert not failures
     else:
         assert checkpoint["status"] == "FAILED"
         assert "Structural:" in checkpoint["error_message"]
         assert "Fidelity:" in checkpoint["error_message"]
         assert not (tmp_path / "output" / "transcript.txt").exists()
-        if fidelity != "PASS":
-            assert failures == [FailureType.FIDELITY_FAILURE] * 2
+        if fidelity in ("FAIL", "LOOP"):
+            assert failures == [FailureType.FIDELITY_FAILURE] * attempts
+            assert ("DETERMINISTIC_FIDELITY_FAILURE" if fidelity == "FAIL" else
+                    "BLOCK_REVIEW_REQUIRED") in checkpoint["error_message"]
