@@ -253,7 +253,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     next_dur = orchestrator.current_block_duration_seconds
                     print(f" [PASS{warn_tag}] Done. (next block ~{next_dur:.0f}s)")
                     if fidelity_result.decision == FidelityDecision.ACCEPT_WITH_WARNING:
-                        print(f"  [ACCEPT_WITH_WARNING] {fidelity_result.summary()}")
+                        print(f"  [ACCEPT_WITH_WARNING / NON-BLOCKING] {fidelity_result.summary()}")
                     break
                 else:
                     # Classify validation failure for DABB feedback
@@ -313,7 +313,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 "requires_quality_review": fidelity_result.needs_audio_review,
                 "unknown_token_count": fidelity_result.unknown_token_count,
                 "issues": [
-                    {"source_index": i.source_index, "reason": i.indicator, "detail": i.detail}
+                    {"source_index": i.source_index, "reason": i.indicator, "detail": i.detail, "evidence": i.evidence}
                     for i in fidelity_result.issues
                 ],
             }

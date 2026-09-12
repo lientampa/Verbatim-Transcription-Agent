@@ -50,6 +50,7 @@ class FidelityIssue:
     indicator: str
     detail: str
     severity: str = "MEDIUM"  # LOW / MEDIUM / HIGH
+    evidence: str = "HEURISTIC"  # HEURISTIC | TRUSTED_REFERENCE | AUDIO_REVIEW
 
 
 @dataclass
@@ -61,6 +62,9 @@ class FidelityValidationResult:
     unknown_token_count: int = 0
     unknown_token_rate: float = 0.0
     total_word_count: int = 0
+    source_mode: str = "UNKNOWN"
+    has_trusted_reference: bool = False
+    has_acoustic_review: bool = False
 
     def summary(self) -> str:
         if self.status == FidelityStatus.PASS:
@@ -80,7 +84,12 @@ class FidelityValidationResult:
         if self.status == FidelityStatus.FAIL or reasons & DETERMINISTIC_REASONS:
             return FidelityDecision.FAIL
         # Unknown review reasons fail closed, including REVIEW without any reason.
-        if reasons - UNCERTAINTY_REASONS:
+        informational = UNCERTAINTY_REASONS
+        if (self.source_mode == "AUDIO" and not self.has_trusted_reference
+                and not self.has_acoustic_review
+                and all(i.evidence == "HEURISTIC" for i in self.issues if i.indicator == "OVER_NORMALIZED")):
+            informational = informational | {"OVER_NORMALIZED"}
+        if reasons - informational:
             return FidelityDecision.RETRY_REVIEW
         if reasons or (self.status == FidelityStatus.PASS and self.unknown_token_count):
             return FidelityDecision.ACCEPT_WITH_WARNING
@@ -168,11 +177,13 @@ class ContentFidelityValidator:
         high_risk_unknown_threshold: float = 0.60,
         enable_polished_language_check: bool = True,
         enable_known_bad_substitution_check: bool = True,
+        source_mode: str = "UNKNOWN",
     ) -> None:
         self.unknown_token_threshold = unknown_token_threshold
         self.high_risk_unknown_threshold = high_risk_unknown_threshold
         self.enable_polished_language_check = enable_polished_language_check
         self.enable_known_bad_substitution_check = enable_known_bad_substitution_check
+        self.source_mode = source_mode
 
         self._formal_patterns = [re.compile(p, re.IGNORECASE) for p in _FORMAL_SUBSTITUTION_PATTERNS]
         self._normalization_patterns = [re.compile(p, re.IGNORECASE) for p in _NORMALIZATION_INDICATORS]
@@ -340,6 +351,22 @@ class ContentFidelityValidator:
         # Run all checks
         all_issues.extend(self.check_suspiciously_polished(segments))
         all_issues.extend(self.check_known_bad_substitutions(segments, trusted_source_texts))
+        # A narrowly proven filler/repetition removal is stronger than phrase style.
+        # Keep it blocking even when the same indicator is informational in AUDIO.
+        if trusted_source_texts:
+            for seg in segments:
+                reference = trusted_source_texts.get(seg.source_index)
+                if reference is None:
+                    continue
+                original_words = re.findall(r"\w+", reference.casefold())
+                reduced = []
+                for word in original_words:
+                    if word not in {"ờ", "ừ", "à"} and (not reduced or word != reduced[-1]):
+                        reduced.append(word)
+                if reduced != original_words and reduced == re.findall(r"\w+", seg.text.casefold()):
+                    all_issues.append(FidelityIssue(seg.source_index, "OVER_NORMALIZED",
+                        "Trusted reference comparison confirms removed fillers/repetition",
+                        "MEDIUM", "TRUSTED_REFERENCE"))
         all_issues.extend(self.check_per_segment_unknown_rate(segments))
         all_issues.extend(self.check_repetition(segments))
         # Retain even sparse uncertainty as a quality signal without forcing retry.
@@ -378,6 +405,8 @@ class ContentFidelityValidator:
             unknown_token_count=unknown_count,
             unknown_token_rate=unknown_rate,
             total_word_count=total_words,
+            source_mode=self.source_mode,
+            has_trusted_reference=bool(trusted_source_texts),
         )
 
 

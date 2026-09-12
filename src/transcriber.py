@@ -51,7 +51,7 @@ class GeminiTranscriber:
         self.system_prompt_path = Path(system_prompt_path)
         self.validator = validator or TranscriptValidator()
         self.response_parser = response_parser or ResponseParser(schema_path=schema_path)
-        self.fidelity_validator = fidelity_validator or ContentFidelityValidator()
+        self.fidelity_validator = fidelity_validator or ContentFidelityValidator(source_mode="AUDIO")
         self._cached_prompt: str | None = None
 
     def load_system_prompt(self) -> str:
