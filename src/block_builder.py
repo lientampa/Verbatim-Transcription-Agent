@@ -463,7 +463,7 @@ class DabbAudioOrchestrator:
             # iterator only after successful validation/commit (or legacy skip).
             current_start = attempt_slice.source_block.end_time_seconds
 
-    def rebuild_audio_block(self, attempt_slice: AdaptiveBlockSlice) -> AdaptiveBlockSlice:
+    def rebuild_audio_block(self, attempt_slice: AdaptiveBlockSlice, reduction_factor: float | None = None) -> AdaptiveBlockSlice:
         """Rebuild the same logical block at its unchanged unconfirmed start.
 
         Called after SIZE_FAILURE feedback reduces the token target. Cap duration
@@ -471,8 +471,9 @@ class DabbAudioOrchestrator:
         """
         old = attempt_slice.source_block
         old_duration = old.end_time_seconds - old.start_time_seconds
+        factor = self.config.block_shrink_factor if reduction_factor is None else reduction_factor
         duration = max(self.config.min_duration_seconds, min(
-            self.current_block_duration_seconds, old_duration * self.config.block_shrink_factor))
+            self.current_block_duration_seconds, old_duration * factor))
         if duration >= old_duration - 1e-9:
             raise BlockBuilderError("BLOCK_SIZE_EXHAUSTED: cannot reduce current audio interval further")
         end = to_us(old.start_time_seconds + duration) / UNITS_PER_SECOND

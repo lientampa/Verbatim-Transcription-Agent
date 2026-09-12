@@ -174,6 +174,8 @@ class CheckpointManager:
             self.current_data.adaptive_state = adaptive_state
         now_iso = datetime.now(timezone.utc).isoformat()
         self.current_data.current_block_id = block_id
+        # AUDIO counters retain response metadata for compatibility only.
+        # Resume progress is next_audio_start_us, never these model ordinals.
         self.current_data.last_confirmed_source_index = last_source_index
         self.current_data.next_source_index = last_source_index + 1
         self.current_data.status = CheckpointStatus.RUNNING
@@ -181,21 +183,25 @@ class CheckpointManager:
         if file_id is not None:
             self.current_data.file_id = str(file_id)
 
-        # Idempotently merge confirmed segments
-        existing_indices = {s["source_index"] for s in self.current_data.confirmed_segments}
-        for seg in new_segments:
-            if seg["source_index"] in existing_indices:
-                # Update existing
-                for i, existing in enumerate(self.current_data.confirmed_segments):
-                    if existing["source_index"] == seg["source_index"]:
-                        self.current_data.confirmed_segments[i] = seg
-                        break
-            else:
-                self.current_data.confirmed_segments.append(seg)
-                existing_indices.add(seg["source_index"])
+        if metric and metric.get("source_mode") == "AUDIO":
+            # Backend block identity scopes untouched model ordinals.
+            self.current_data.confirmed_segments.extend(dict(seg, block_id=block_id) for seg in new_segments)
+        else:
+            # Idempotently merge confirmed segments
+            existing_indices = {s["source_index"] for s in self.current_data.confirmed_segments}
+            for seg in new_segments:
+                if seg["source_index"] in existing_indices:
+                    # Update existing
+                    for i, existing in enumerate(self.current_data.confirmed_segments):
+                        if existing["source_index"] == seg["source_index"]:
+                            self.current_data.confirmed_segments[i] = seg
+                            break
+                else:
+                    self.current_data.confirmed_segments.append(seg)
+                    existing_indices.add(seg["source_index"])
 
-        # Sort segments strictly by source_index
-        self.current_data.confirmed_segments.sort(key=lambda s: s["source_index"])
+            # Sort segments strictly by source_index
+            self.current_data.confirmed_segments.sort(key=lambda s: s["source_index"])
 
         try:
             if self.current_data.schema_version == 2:
@@ -229,7 +235,7 @@ class CheckpointManager:
                 raise ValueError("invalid job identity/status")
             if not 0 <= data.next_audio_start_us <= duration:
                 raise ValueError("next audio start outside source")
-            end, last_index = 0, 0
+            end, last_index, segment_offset = 0, 0, 0
             for ordinal, metric in enumerate(data.block_metrics, 1):
                 start, current_end = to_us(metric["actual_start_offset"]), to_us(metric["actual_end_offset"])
                 if start != end or not 0 <= start < current_end <= duration:
@@ -240,15 +246,30 @@ class CheckpointManager:
                     raise ValueError("confirmed block order mismatch")
                 if metric["fidelity_decision"] not in ("ACCEPT", "ACCEPT_WITH_WARNING"):
                     raise ValueError("unaccepted metric")
-                if type(metric["last_source_index"]) is not int or metric["last_source_index"] <= last_index:
-                    raise ValueError("metric segment progress mismatch")
-                end, last_index = current_end, metric["last_source_index"]
+                current_index = metric["last_source_index"]
+                if type(current_index) is not int or current_index <= 0:
+                    raise ValueError("invalid final ordinal")
+                audio_mode = metric.get("source_mode") == "AUDIO"
+                count = metric["segment_count"] if audio_mode else current_index - last_index
+                if type(count) is not int or count <= 0:
+                    raise ValueError("invalid segment count")
+                segments = data.confirmed_segments[segment_offset:segment_offset + count]
+                indices = [s["source_index"] for s in segments]
+                if len(segments) != count or any(type(i) is not int or i <= 0 for i in indices):
+                    raise ValueError("invalid segment ordinals")
+                if audio_mode:
+                    if any(s.get("block_id") != metric["block_id"] for s in segments):
+                        raise ValueError("segment block identity mismatch")
+                    if any(a >= b for a, b in zip(indices, indices[1:])) or indices[-1] != current_index:
+                        raise ValueError("invalid local ordinal order/end")
+                elif any(index != last_index + offset for offset, index in enumerate(indices, 1)):
+                    raise ValueError("confirmed segment progress mismatch")
+                segment_offset += count
+                end, last_index = current_end, current_index
             if data.next_audio_start_us != end:
                 raise ValueError("next start disagrees with confirmed end")
-            if len(data.confirmed_segments) != last_index or any(
-                    type(s["source_index"]) is not int or s["source_index"] != i
-                    for i, s in enumerate(data.confirmed_segments, 1)):
-                raise ValueError("confirmed segment progress mismatch")
+            if len(data.confirmed_segments) != segment_offset:
+                raise ValueError("confirmed segment count mismatch")
             if data.last_confirmed_source_index != (last_index or None) or data.next_source_index != last_index + 1:
                 raise ValueError("segment counters disagree")
             if data.current_block_id != (data.block_metrics[-1]["block_id"] if data.block_metrics else None):

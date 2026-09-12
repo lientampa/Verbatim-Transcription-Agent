@@ -95,7 +95,12 @@ class GeminiTranscriber:
             )
 
         range_note = ""
-        if last_source_index is not None:
+        if self.fidelity_validator.source_mode == "AUDIO":
+            range_note = ("- AUDIO source_index là số thứ tự trong response, không phải định danh nguồn audio.\n"
+                          "- first_source_index được gợi ý ở trên không ràng buộc ordinal với block trước.\n"
+                          "- Dùng số nguyên dương, duy nhất, tăng dần; có thể bắt đầu lại ở mỗi block.\n"
+                          "- first_source_index và last_source_index phải khớp segment đầu và cuối.\n")
+        elif last_source_index is not None:
             range_note = f"- Bắt buộc đánh số source_index liên tục từ {first_source_index} đến {last_source_index}.\n"
         else:
             range_note = (
@@ -174,7 +179,10 @@ class GeminiTranscriber:
             expected_first_index=first_source_index,
             expected_last_index=last_source_index,
             expected_context=ExpectedBlockContext(job_id, session_id, block_id,
-                first_source_index, last_source_index, start_offset_seconds, end_offset_seconds),
+                None if self.fidelity_validator.source_mode == "AUDIO" else first_source_index,
+                None if self.fidelity_validator.source_mode == "AUDIO" else last_source_index,
+                start_offset_seconds, end_offset_seconds,
+                source_mode=self.fidelity_validator.source_mode),
         )
 
         # Content Fidelity Validation (Tier 2) — always run, even if structural fails

@@ -19,6 +19,7 @@ class FailureType(str, Enum):
     SIZE_FAILURE = "SIZE_FAILURE"
     FIDELITY_FAILURE = "FIDELITY_FAILURE"  # TYPE C — Milestone 3.1
     NETWORK_FAILURE = "NETWORK_FAILURE"
+    COVERAGE_FAILURE = "COVERAGE_FAILURE"
 
 
 def classify_failure(

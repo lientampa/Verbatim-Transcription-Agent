@@ -45,6 +45,9 @@ def run_audio_case(tmp_path, monkeypatch, failure="output limit", attempts=3, mi
         return SimpleNamespace(returncode=0, stderr=b"")
 
     monkeypatch.setattr("src.block_builder.subprocess.run", ffmpeg)
+    # This harness writes boundary JSON instead of audio; model its tail as silent.
+    # Coverage-specific tests override this analyzer with explicit activity fixtures.
+    monkeypatch.setattr("src.coverage_validator.TailActivityAnalyzer.analyze", lambda self, *args: 0.0)
     monkeypatch.setattr("src.main.GeminiClient.__init__", lambda self, **kwargs: None)
 
     def upload(self, audio_path):
@@ -214,8 +217,10 @@ def test_provider_finish_reason_and_usage_preserved_without_fallback(finish_reas
     else:
         assert client.generate_transcription("asset", "verbatim") == '{"segments": []}'
     assert len(responses) == 1
-    assert client.last_response_metadata == dict(input_tokens=120, output_tokens=45,
+    assert {k: client.last_response_metadata[k] for k in ("input_tokens", "output_tokens", "total_tokens", "finish_reason")} == dict(input_tokens=120, output_tokens=45,
                                                  total_tokens=165, finish_reason=finish_reason)
+    assert client.last_response_metadata["actual_model"] == "test-model"
+    assert client.last_response_metadata["fallback_used"] is False
 
 
 def test_provider_absent_usage_is_not_fabricated():

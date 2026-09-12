@@ -13,17 +13,18 @@ class ExpectedBlockContext:
     One second of boundary tolerance covers whole-second timestamps and the
     prompt's floored slice offset. Comparison never changes the returned value.
 
-    The dynamic audio pipeline knows the first index, but not the segment count.
+    AUDIO ordinals are response-local; TEXT_TIMESTAMP indices are canonical.
     last_source_index is optional; internal endpoint consistency is always checked.
     """
     job_id: str
     session_id: str
     block_id: str
-    first_source_index: int
+    first_source_index: int | None
     last_source_index: int | None = None
     audio_start: float = 0.0
     audio_end: float | None = None
     timestamp_tolerance: float = 1.0
+    source_mode: str = "TEXT_TIMESTAMP"
 
 
 @dataclass
@@ -73,7 +74,7 @@ class TranscriptValidator:
         """Validate a structured TranscriptionBlockResult against all Milestone 3 rules.
 
         Checks:
-        1. Coverage (all indices from first to last must be present)
+        1. TEXT_TIMESTAMP canonical coverage; AUDIO ordinals need not be contiguous
         2. Duplicate (no duplicated indices)
         3. Order (strictly increasing indices)
         4. Range (no indices outside [first, last])
@@ -111,6 +112,10 @@ class TranscriptValidator:
         if block_result.status != "CONFIRMED":
             reject("FAILED_RESPONSE_STATUS" if block_result.status == "FAILED" else "INVALID_RESPONSE_STATUS",
                    f"status: expected='CONFIRMED', received={block_result.status!r}; model status cannot authorize confirmation")
+
+        audio_mode = expected_context is not None and expected_context.source_mode == "AUDIO"
+        if audio_mode:
+            expected_first_index = expected_last_index = None
 
         first_idx = expected_first_index if expected_first_index is not None else block_result.first_source_index
 
@@ -162,13 +167,14 @@ class TranscriptValidator:
 
         # 1. Coverage Check
         # Diagnose gaps without allocating a model-controlled range of arbitrary size.
-        cursor = first_idx
-        for idx in sorted(i for i in seen_indices if first_idx <= i <= last_idx):
-            if idx > cursor:
-                reject("MISSING_SOURCE_INDEX", f"Missing source indices: {cursor}..{idx - 1}")
-            cursor = idx + 1
-        if cursor <= last_idx:
-            reject("MISSING_SOURCE_INDEX", f"Missing source indices: {cursor}..{last_idx}")
+        if not audio_mode:
+            cursor = first_idx
+            for idx in sorted(i for i in seen_indices if first_idx <= i <= last_idx):
+                if idx > cursor:
+                    reject("MISSING_SOURCE_INDEX", f"Missing source indices: {cursor}..{idx - 1}")
+                cursor = idx + 1
+            if cursor <= last_idx:
+                reject("MISSING_SOURCE_INDEX", f"Missing source indices: {cursor}..{last_idx}")
 
         # Validate each segment content
         previous_seconds = None

@@ -22,6 +22,7 @@ def seed(path, source_path, duration=1500, ends=(360, 780, 1020)):
         block_id = f"BLOCK_{index:03d}"
         manager.commit_block(block_id, index, [{"source_index": index, "text": "Vâng."}],
             metric=dict(block_id=block_id, actual_start_offset=start, actual_end_offset=end,
+                        coverage={"decision": "COVERAGE_PASS"},
                         fidelity_decision="ACCEPT"), adaptive_state={"target_tokens": 1200})
         start = end
     return manager, source

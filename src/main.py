@@ -13,6 +13,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
 from src.source_identity import SourceIdentity, UNITS_PER_SECOND
+from src.coverage_validator import CoverageValidator, CoverageDecision
 from src.config import load_config, ConfigurationError
 from src.audio_manager import AudioManager, AudioError
 from src.gemini_client import GeminiClient, GeminiClientError
@@ -105,6 +106,9 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         has_checkpoint = config.checkpoint_file_path.exists() and not force
         if has_checkpoint:
             checkpoint_mgr.validate_resume(source_identity)
+            if any(m.get("coverage", {}).get("decision") not in ("COVERAGE_PASS", "COVERAGE_WARNING")
+                   for m in existing_data.block_metrics):
+                raise CheckpointError("COVERAGE_UNVERIFIED_CHECKPOINT: historical progress lacks coverage evidence; explicit reprocessing required")
             print(f"[SOURCE_MATCH] fingerprint={source_identity.fingerprint[:12]} version={existing_data.schema_version}")
             if checkpoint_mgr.is_completed_for(target_audio.file_name, config.output_transcript_path, source_identity):
                 print("STATUS: COMPLETED (Cached; verified source and EOF)")
@@ -114,14 +118,14 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         return 1
 
     is_resuming = has_checkpoint
-    merger = OutputMerger()
+    merger = OutputMerger(source_mode="AUDIO")
     if is_resuming:
         current_job = existing_data
         next_source_index = existing_data.next_source_index
         resume_from_seconds = existing_data.next_audio_start_us / UNITS_PER_SECOND
         start_from_block = len(existing_data.block_metrics) + 1
         for segment in existing_data.confirmed_segments:
-            merger.add_segment(TranscriptSegment.from_dict(segment))
+            merger.add_segment(TranscriptSegment.from_dict(segment), segment.get("block_id"))
         adaptive = existing_data.adaptive_state
         target = adaptive.get("target_tokens") if isinstance(adaptive, dict) else None
         if type(target) is int and config.min_block_tokens <= target <= config.max_block_tokens:
@@ -148,6 +152,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         max_retries=config.retry_max_attempts,
         initial_delay_seconds=config.retry_initial_delay_seconds,
         timeout_seconds=config.timeout_seconds,
+        fallback_enabled=config.model_fallback_enabled,
     )
 
     response_parser = ResponseParser(schema_path=config.schema_path)
@@ -161,6 +166,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
     )
 
     renderer = OutputRenderer()
+    coverage_validator = CoverageValidator(config)
 
     # -------------------------------------------------------------
     # Step 3: Sequential Block Transcription Loop (DABB-driven)
@@ -248,10 +254,28 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                         ) from exc
 
                 if last_val_result.is_valid and fidelity_result.allows_confirmation:
+                    # Provider STOP proves normal generation termination, not audio coverage.
+                    coverage = coverage_validator.validate(block, block_result)
+                    print(f" [coverage={coverage.decision.value} audio_end={block.end_time_seconds} "
+                          f"last_timestamp={coverage.last_transcript_timestamp} tail_gap={coverage.tail_gap_seconds:.3f} "
+                          f"tail_activity={coverage.tail_activity} active_seconds={coverage.active_tail_seconds}]", end="", flush=True)
+                    if not coverage.allows_confirmation:
+                        failure_summary = f"COVERAGE_FAILURE: {coverage.to_dict()}"
+                        if coverage.decision == CoverageDecision.RETRY and v_attempt < config.validator_max_retries:
+                            try:
+                                orchestrator.rebuild_audio_block(adaptive_slice, config.coverage_shrink_factor)
+                            except BlockBuilderError as exc:
+                                raise TranscriptionError(f"{failure_summary}; coverage rebuild exhausted: {exc}") from exc
+                            block = adaptive_slice.source_block
+                            gemini_file = None
+                            print(" [COVERAGE_FAILURE action=RETRY_SMALLER_BLOCK]", end="", flush=True)
+                            continue
+                        break
                     validated = True
                     warn_tag = f" ({len(last_val_result.warnings)} warn)" if last_val_result.warnings else ""
                     next_dur = orchestrator.current_block_duration_seconds
-                    print(f" [PASS{warn_tag}] Done. (next block ~{next_dur:.0f}s)")
+                    acceptance = "COVERAGE_WARNING" if coverage.decision == CoverageDecision.WARNING else "PASS"
+                    print(f" [{acceptance}{warn_tag}] Done. (next block ~{next_dur:.0f}s)")
                     if fidelity_result.decision == FidelityDecision.ACCEPT_WITH_WARNING:
                         print(f"  [ACCEPT_WITH_WARNING / NON-BLOCKING] {fidelity_result.summary()}")
                     break
@@ -301,6 +325,9 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             # Atomic Checkpoint Commit ONLY after validation & merge PASS
             # Persist quality signals in existing metadata using the same atomic commit.
             metric = {
+                "source_mode": "AUDIO",
+                "segment_count": len(block_result.segments),
+                "coverage": coverage.to_dict(),
                 "block_id": block_id,
                 "actual_start_offset": block.start_time_seconds,
                 "actual_end_offset": block.end_time_seconds,

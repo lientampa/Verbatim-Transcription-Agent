@@ -75,10 +75,13 @@ class GeminiClient:
         max_retries: int = 3,
         initial_delay_seconds: float = 2.0,
         timeout_seconds: int = 300,
+        fallback_enabled: bool = True,
     ) -> None:
         if not api_key:
             raise GeminiClientError("API key must be provided to initialize GeminiClient.")
         self.model_name = model_name
+        self.requested_model = model_name
+        self.fallback_enabled = fallback_enabled
         self.max_retries = max(1, max_retries)
         self.initial_delay_seconds = max(0.1, initial_delay_seconds)
         self.timeout_seconds = timeout_seconds
@@ -137,22 +140,36 @@ class GeminiClient:
 
     def _call_model(self, model: str, gemini_file: Any, user_prompt: str, config: Any) -> str | None:
         """Helper to invoke models.generate_content and extract transcript text."""
-        self.last_response_metadata = {}
+        requested = getattr(self, "requested_model", getattr(self, "model_name", model))
+        attempt = getattr(self, "_provider_attempt", 0) + 1
+        self._provider_attempt = attempt
+        block_match = re.search(r'- block_id: "([^"]+)"', user_prompt)
+        self.last_response_metadata = {
+            "requested_model": requested, "actual_model": model,
+            "fallback_used": model != requested,
+            "fallback_reason": (getattr(self, "_fallback_reason", None) or
+                                getattr(self, "_sticky_fallback_reason", None)) if model != requested else None,
+            "attempt": attempt, "block_id": block_match.group(1) if block_match else None,
+        }
+        if not hasattr(self, "call_history"):
+            self.call_history = []
+        self.call_history.append(self.last_response_metadata)
+        print(f" [MODEL_CALL {self.last_response_metadata}]", end="", flush=True)
         try:
             response = self.client.models.generate_content(
                 model=model, contents=[gemini_file, user_prompt], config=config)
-        except APIError as exc:
-            self.last_response_metadata = {"provider_error_code": getattr(exc, "code", None),
-                                           "provider_error_message": str(exc)}
+        except Exception as exc:
+            self.last_response_metadata.update(provider_error_code=getattr(exc, "code", None),
+                                               provider_error_message=str(exc))
             if classify_failure(exc) == FailureType.SIZE_FAILURE:
                 raise GeminiSizeError(str(exc), self.last_response_metadata) from exc
             raise
         usage = getattr(response, "usage_metadata", None)
-        self.last_response_metadata = {
+        self.last_response_metadata.update({
             "input_tokens": getattr(usage, "prompt_token_count", None),
             "output_tokens": getattr(usage, "candidates_token_count", None),
             "total_tokens": getattr(usage, "total_token_count", None),
-        }
+        })
 
         # 1. Try extracting text from candidates parts
         if response and hasattr(response, "candidates") and response.candidates:
@@ -207,6 +224,8 @@ class GeminiClient:
         )
 
         last_err: Exception | None = None
+        self._provider_attempt = 0
+        self._fallback_reason = None
         for attempt in range(1, self.max_retries + 1):
             try:
                 transcript = self._call_model(self.model_name, gemini_file, user_prompt, config)
@@ -214,7 +233,8 @@ class GeminiClient:
                     return transcript
 
                 # If primary model returned empty response and is not the fallback model, try fallback
-                if self.model_name != self.FALLBACK_MODEL:
+                if getattr(self, "fallback_enabled", True) and self.model_name != self.FALLBACK_MODEL:
+                    self._fallback_reason = "Primary model returned empty response"
                     logger.warning(
                         f"[GeminiClient] Model '{self.model_name}' returned empty response. "
                         f"Attempting fallback to '{self.FALLBACK_MODEL}'..."
@@ -232,7 +252,8 @@ class GeminiClient:
                 err_str = str(exc)
 
                 # If quota exhausted (429) or unavailable (503), try alternative models from pool
-                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "503" in err_str:
+                if getattr(self, "fallback_enabled", True) and ("429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "503" in err_str):
+                    self._fallback_reason = err_str
                     alternative_models = [m for m in ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite"] if m != self.model_name]
                     for alt_m in alternative_models:
                         try:
@@ -240,6 +261,7 @@ class GeminiClient:
                             alt_transcript = self._call_model(alt_m, gemini_file, user_prompt, config)
                             if alt_transcript:
                                 self.model_name = alt_m  # Persist the working model for remaining blocks
+                                self._sticky_fallback_reason = err_str
                                 return alt_transcript
                         except GeminiSizeError:
                             raise
@@ -255,7 +277,8 @@ class GeminiClient:
                     break
             except Exception as exc:
                 # If error occurred with primary model, try fallback before failing
-                if self.model_name != self.FALLBACK_MODEL:
+                if getattr(self, "fallback_enabled", True) and self.model_name != self.FALLBACK_MODEL:
+                    self._fallback_reason = str(exc)
                     try:
                         fallback_transcript = self._call_model(self.FALLBACK_MODEL, gemini_file, user_prompt, config)
                         if fallback_transcript:

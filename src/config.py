@@ -58,6 +58,12 @@ class AppConfig:
     min_duration_seconds: float = 60.0
     target_duration_seconds: float = 300.0
     max_duration_seconds: float = 900.0
+    model_fallback_enabled: bool = True
+    # Tail timestamps are segment starts: allow pauses and a final utterance.
+    coverage_tail_gap_threshold_sec: float = 120.0
+    coverage_active_tail_min_sec: float = 30.0
+    coverage_silence_threshold_db: float = -40.0
+    coverage_shrink_factor: float = 0.5
 
 
 
@@ -182,4 +188,9 @@ def load_config(base_dir: Path | None = None) -> AppConfig:
         min_duration_seconds=min_duration_seconds,
         target_duration_seconds=target_duration_seconds,
         max_duration_seconds=max_duration_seconds,
+        model_fallback_enabled=os.getenv("MODEL_FALLBACK_ENABLED", "true").lower() in ("true", "1", "yes"),
+        coverage_tail_gap_threshold_sec=float(os.getenv("COVERAGE_TAIL_GAP_THRESHOLD_SEC", "120")),
+        coverage_active_tail_min_sec=float(os.getenv("COVERAGE_ACTIVE_TAIL_MIN_SEC", "30")),
+        coverage_silence_threshold_db=float(os.getenv("COVERAGE_SILENCE_THRESHOLD_DB", "-40")),
+        coverage_shrink_factor=float(os.getenv("COVERAGE_SHRINK_FACTOR", "0.5")),
     )
