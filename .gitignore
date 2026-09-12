@@ -1,0 +1,29 @@
+# Python virtual environment
+.venv/
+venv/
+ENV/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environment secrets
+.env
+
+# Project storage directories (keep directory structure via .gitkeep)
+audio/*
+!audio/.gitkeep
+
+output/*
+!output/.gitkeep
+
+state/*
+!state/.gitkeep
+
+# IDE & OS files
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db

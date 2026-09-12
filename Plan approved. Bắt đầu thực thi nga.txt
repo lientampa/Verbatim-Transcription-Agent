@@ -1,0 +1,29 @@
+Plan approved. Bắt đầu thực thi ngay. Tôi sẽ implement theo dependency order.
+
+Created task.md
+
+**Component 1: System Prompt V5**
+
+Created system_prompt.txt
+
+**Component 2: fidelity_validator.py [NEW]** và **Component 5: failure_classifier.py [MODIFY]** — thực hiện song song:
+
+Created fidelity_validator.py
+Created audio_review.py
+
+**Component 5: failure_classifier.py** và **Component 4: transcript_validator.py** — song song:
+
+Edited failure_classifier.py
+
+**Component 4: transcript_validator.py** — thêm `validation_tier` và `timestamp_is_estimated`:
+
+Edited transcript_validator.py
+
+**Component 6: transcriber.py** — thêm fidelity validator vào pipeline:
+
+Edited transcriber.py
+
+**Component 8: checkpoint.py** — thêm block_metrics:
+
+Edited checkpoint.py
+Viewed checkpoint.py:165-210
