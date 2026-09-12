@@ -17,6 +17,9 @@ import subprocess
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from uuid import uuid4
+import json
+import hashlib
+from src.source_identity import SourceIdentity, to_us, UNITS_PER_SECOND, sha256_file
 from pathlib import Path
 from typing import Iterator
 
@@ -98,6 +101,7 @@ class AudioBlockBuilder(BlockBuilder):
         block_size_seconds: int = 300,
         cache_dir: Path | None = None,
         job_id: str | None = None,
+        source_identity: SourceIdentity | None = None,
     ) -> None:
         self.audio_path = Path(audio_path)
         if not self.audio_path.exists():
@@ -105,10 +109,12 @@ class AudioBlockBuilder(BlockBuilder):
 
         self.block_size_seconds = max(10, block_size_seconds)
         self.job_id = job_id or "default_job"
+        self.source_identity = source_identity
 
         if cache_dir is None:
             cache_dir = self.audio_path.parent.parent / ".cache" / "blocks"
         self.cache_dir = Path(cache_dir) / self.job_id
+        self.shared_cache_dir = Path(cache_dir) / "slices"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         self._ffmpeg_bin = _find_binary("ffmpeg")
@@ -219,11 +225,29 @@ class AudioBlockBuilder(BlockBuilder):
         return list(self.iter_blocks())
 
     def slice_time_range(self, block_id: str, start_sec: float, end_sec: float) -> Path:
-        """Build a fresh attempt slice; weak block-ID cache reuse is disabled.
-
-        Source fingerprints and reusable boundary-aware cache entries are Stage 5.
-        """
+        """Reuse only verified source/boundary/profile/artifact cache records."""
+        if self.source_identity is None:
+            self.source_identity = SourceIdentity.capture(self.audio_path, self.get_duration())
+        self.source_identity.assert_unchanged()
+        start_us, end_us = to_us(start_sec), to_us(end_sec)
+        if not 0 <= start_us < end_us <= self.source_identity.duration_us:
+            raise BlockBuilderError("Invalid audio slice boundaries for verified source")
+        start_sec, end_sec = start_us / UNITS_PER_SECOND, end_us / UNITS_PER_SECOND
         ext = self.audio_path.suffix.lower()
+        identity = dict(source_fingerprint=self.source_identity.fingerprint, start_us=start_us,
+                        end_us=end_us, profile=f"ffmpeg-copy-aac64-v1:{ext}")
+        key = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
+        self.shared_cache_dir.mkdir(parents=True, exist_ok=True)
+        final_file = self.shared_cache_dir / f"{key}{ext}"
+        sidecar = self.shared_cache_dir / f"{key}.json"
+        try:
+            record = json.loads(sidecar.read_text(encoding="utf-8"))
+            if record["identity"] == identity and final_file.stat().st_size > 0 and record["artifact_hash"] == sha256_file(final_file):
+                logger.info("CACHE_HIT source=%s start_us=%s end_us=%s", self.source_identity.fingerprint[:12], start_us, end_us)
+                return final_file
+        except (OSError, ValueError, KeyError, TypeError):
+            pass
+        logger.info("CACHE_MISS identity/metadata/artifact mismatch source=%s start_us=%s end_us=%s", self.source_identity.fingerprint[:12], start_us, end_us)
         block_file = self.cache_dir / f"{block_id}_{uuid4().hex}{ext}"
 
         duration = end_sec - start_sec
@@ -256,7 +280,13 @@ class AudioBlockBuilder(BlockBuilder):
                     f"FFmpeg failed to slice {block_id}: {re_proc.stderr.decode('utf-8', errors='ignore')}"
                 )
 
-        return block_file
+        self.source_identity.assert_unchanged()
+        record = dict(identity=identity, artifact_hash=sha256_file(block_file))
+        temp_metadata = self.cache_dir / f"{uuid4().hex}.json"
+        temp_metadata.write_text(json.dumps(record), encoding="utf-8")
+        block_file.replace(final_file)
+        temp_metadata.replace(sidecar)
+        return final_file
 
 
 # ---------------------------------------------------------------------------
@@ -319,6 +349,8 @@ class DabbAudioOrchestrator:
         self._audio_builder: AudioBlockBuilder | None = None
         self._total_duration: float | None = None
         self._slice_paths: set[Path] = set()
+        self.source_identity: SourceIdentity | None = None
+        self.next_block_number = 1
 
         # Compute tokens/second from density constants
         self._tokens_per_second: float = (
@@ -332,6 +364,7 @@ class DabbAudioOrchestrator:
             block_size_seconds=block_size_seconds,
             cache_dir=self.cache_dir,
             job_id=self.job_id,
+            source_identity=self.source_identity,
         )
 
     def get_duration(self) -> float:
@@ -368,8 +401,9 @@ class DabbAudioOrchestrator:
         4. Yield block — caller must call on_block_success() or on_block_failure()
         """
         total_duration = self.get_duration()
-        current_start = start_from_seconds
-        block_num = 0
+        current_start = to_us(start_from_seconds) / UNITS_PER_SECOND
+        total_duration = to_us(total_duration) / UNITS_PER_SECOND
+        block_num = self.next_block_number - 1
 
         while current_start < total_duration:
             block_num += 1
@@ -379,7 +413,7 @@ class DabbAudioOrchestrator:
             duration_sec = self._target_tokens_to_seconds(target_tokens)
             block_size = duration_sec
 
-            current_end = min(total_duration, current_start + block_size)
+            current_end = min(total_duration, to_us(current_start + block_size) / UNITS_PER_SECOND)
             actual_duration = current_end - current_start
             est_input_tokens = int(actual_duration * self._tokens_per_second)
 
@@ -441,7 +475,8 @@ class DabbAudioOrchestrator:
             self.current_block_duration_seconds, old_duration * self.config.block_shrink_factor))
         if duration >= old_duration - 1e-9:
             raise BlockBuilderError("BLOCK_SIZE_EXHAUSTED: cannot reduce current audio interval further")
-        end = old.start_time_seconds + duration
+        end = to_us(old.start_time_seconds + duration) / UNITS_PER_SECOND
+        duration = end - old.start_time_seconds
         path = self._get_audio_builder(max(10, int(duration))).slice_time_range(
             block_id=f"BLOCK_{old.source_index_str}", start_sec=old.start_time_seconds, end_sec=end)
         self._slice_paths.add(path)

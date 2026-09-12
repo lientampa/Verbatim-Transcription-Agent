@@ -183,8 +183,8 @@ def test_idempotency_detection(tmp_path: Path):
     manager.create_new_job("audio.mp3")
     manager.update_status(CheckpointStatus.COMPLETED, transcript_file="transcript.txt")
 
-    # Should detect as completed
-    assert manager.is_completed_for("audio.mp3", transcript_file) is True
+    # Stage 5: filename + output + legacy COMPLETED status cannot prove completion.
+    assert manager.is_completed_for("audio.mp3", transcript_file) is False
 
     # Different audio file name should return False
     assert manager.is_completed_for("another.mp3", transcript_file) is False

@@ -2,10 +2,13 @@
 
 import json
 import os
+import re
+from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from dataclasses import dataclass, asdict, field
+from src.source_identity import SourceIdentity, DURATION_TOLERANCE_US, to_us
 
 
 class CheckpointError(Exception):
@@ -42,6 +45,10 @@ class CheckpointData:
     error_message: str | None = None
     confirmed_segments: list[dict[str, Any]] = field(default_factory=list)
     block_metrics: list[dict[str, Any]] = field(default_factory=list)  # Milestone 3.1
+    schema_version: int = 1  # Legacy records remain readable, never trusted for resume.
+    source_identity: dict[str, Any] | None = None
+    next_audio_start_us: int = 0
+    adaptive_state: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -64,10 +71,16 @@ class CheckpointData:
             "error_message",
             "confirmed_segments",
             "block_metrics",  # Milestone 3.1
+            "schema_version", "source_identity", "next_audio_start_us", "adaptive_state",
         }
         filtered = {k: v for k, v in data.items() if k in allowed_fields}
+        if data.get("schema_version") == 2:
+            required = {"source_identity", "next_audio_start_us", "block_metrics", "confirmed_segments",
+                        "next_source_index", "last_confirmed_source_index", "current_block_id"}
+            if set(data) - allowed_fields or required - set(data):
+                raise CheckpointError("CHECKPOINT_INVALID: unexpected or missing checkpoint fields")
         # Compute next_source_index if missing
-        if filtered.get("last_confirmed_source_index") is not None and filtered.get("next_source_index") is None:
+        if filtered.get("schema_version", 1) == 1 and filtered.get("last_confirmed_source_index") is not None and filtered.get("next_source_index") is None:
             filtered["next_source_index"] = filtered["last_confirmed_source_index"] + 1
         return cls(**filtered)
 
@@ -99,6 +112,7 @@ class CheckpointManager:
         job_id: str | None = None,
         session_id: str | None = None,
         status: str = CheckpointStatus.NOT_STARTED,
+        source_identity: SourceIdentity | None = None,
     ) -> CheckpointData:
         """Create a new job state for a given audio file."""
         now_iso = datetime.now(timezone.utc).isoformat()
@@ -119,6 +133,8 @@ class CheckpointManager:
             updated_at=now_iso,
             error_message=None,
             confirmed_segments=[],
+            schema_version=2 if source_identity else 1,
+            source_identity=source_identity.to_dict() if source_identity else None,
         )
         self.save()
         return self.current_data
@@ -133,6 +149,8 @@ class CheckpointManager:
             with open(self.checkpoint_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             self.current_data = CheckpointData.from_dict(data)
+            if self.current_data.schema_version == 2:
+                self.validate_resume()
             return self.current_data
         except Exception as exc:
             raise CheckpointError(f"Failed to read checkpoint from {self.checkpoint_path}: {exc}") from exc
@@ -143,8 +161,17 @@ class CheckpointManager:
         last_source_index: int,
         new_segments: list[dict[str, Any]],
         file_id: str | None = None,
+        metric: dict[str, Any] | None = None,
+        adaptive_state: dict[str, Any] | None = None,
     ) -> CheckpointData:
         """Atomic Checkpoint Commit: Only called after validation and merge PASS."""
+        previous = self.current_data
+        self.current_data = deepcopy(previous)
+        if metric is not None:
+            self.current_data.block_metrics.append(dict(metric, last_source_index=last_source_index))
+            self.current_data.next_audio_start_us = to_us(metric["actual_end_offset"])
+        if adaptive_state is not None:
+            self.current_data.adaptive_state = adaptive_state
         now_iso = datetime.now(timezone.utc).isoformat()
         self.current_data.current_block_id = block_id
         self.current_data.last_confirmed_source_index = last_source_index
@@ -170,8 +197,68 @@ class CheckpointManager:
         # Sort segments strictly by source_index
         self.current_data.confirmed_segments.sort(key=lambda s: s["source_index"])
 
-        self.save()
+        try:
+            if self.current_data.schema_version == 2:
+                self.validate_resume()
+            self.save()
+        except Exception:
+            self.current_data = previous
+            raise
         return self.current_data
+
+    def validate_resume(self, source: SourceIdentity | None = None) -> None:
+        """Reject contradictions without repairing or rewriting checkpoint evidence."""
+        data = self.current_data
+        if data.schema_version != 2 or not data.source_identity:
+            raise CheckpointError("CHECKPOINT_LEGACY_UNTRUSTED: use explicit --force for a new job")
+        try:
+            identity = data.source_identity
+            if type(identity["size_bytes"]) is not int or identity["size_bytes"] < 0:
+                raise ValueError("invalid source size")
+            if not re.fullmatch(r"[0-9a-f]{64}", identity["fingerprint"]):
+                raise ValueError("invalid fingerprint")
+            duration = identity["duration_us"]
+            if type(duration) is not int or duration <= 0 or type(data.next_audio_start_us) is not int:
+                raise ValueError("invalid offset type")
+            if source:
+                if identity["fingerprint"] != source.fingerprint or identity["size_bytes"] != source.size_bytes:
+                    raise CheckpointError("CHECKPOINT_SOURCE_MISMATCH")
+                if abs(duration - source.duration_us) > DURATION_TOLERANCE_US:
+                    raise ValueError("source duration mismatch")
+            if data.status not in CheckpointStatus.ALL or not data.job_id or not data.session_id:
+                raise ValueError("invalid job identity/status")
+            if not 0 <= data.next_audio_start_us <= duration:
+                raise ValueError("next audio start outside source")
+            end, last_index = 0, 0
+            for ordinal, metric in enumerate(data.block_metrics, 1):
+                start, current_end = to_us(metric["actual_start_offset"]), to_us(metric["actual_end_offset"])
+                if start != end or not 0 <= start < current_end <= duration:
+                    raise ValueError("noncontiguous or invalid confirmed boundaries")
+                if "final_duration" in metric and to_us(metric["final_duration"]) != current_end - start:
+                    raise ValueError("metric duration contradicts boundaries")
+                if metric["block_id"] != f"BLOCK_{ordinal:03d}":
+                    raise ValueError("confirmed block order mismatch")
+                if metric["fidelity_decision"] not in ("ACCEPT", "ACCEPT_WITH_WARNING"):
+                    raise ValueError("unaccepted metric")
+                if type(metric["last_source_index"]) is not int or metric["last_source_index"] <= last_index:
+                    raise ValueError("metric segment progress mismatch")
+                end, last_index = current_end, metric["last_source_index"]
+            if data.next_audio_start_us != end:
+                raise ValueError("next start disagrees with confirmed end")
+            if len(data.confirmed_segments) != last_index or any(
+                    type(s["source_index"]) is not int or s["source_index"] != i
+                    for i, s in enumerate(data.confirmed_segments, 1)):
+                raise ValueError("confirmed segment progress mismatch")
+            if data.last_confirmed_source_index != (last_index or None) or data.next_source_index != last_index + 1:
+                raise ValueError("segment counters disagree")
+            if data.current_block_id != (data.block_metrics[-1]["block_id"] if data.block_metrics else None):
+                raise ValueError("current confirmed block mismatch")
+            if data.status == CheckpointStatus.COMPLETED and end != duration:
+                raise ValueError("completed checkpoint does not reach EOF")
+        except CheckpointError:
+            raise
+        except (ValueError, TypeError, KeyError) as exc:
+            raise CheckpointError(f"CHECKPOINT_INVALID: {exc}") from exc
 
     def update_status(
         self,
@@ -186,6 +273,8 @@ class CheckpointManager:
         if status not in CheckpointStatus.ALL:
             raise ValueError(f"Invalid status '{status}'. Must be one of {CheckpointStatus.ALL}")
 
+        previous = self.current_data
+        self.current_data = deepcopy(previous)
         self.current_data.status = status
         self.current_data.updated_at = datetime.now(timezone.utc).isoformat()
 
@@ -205,7 +294,13 @@ class CheckpointManager:
         if total_source_segments is not None:
             self.current_data.total_source_segments = total_source_segments
 
-        self.save()
+        try:
+            if self.current_data.schema_version == 2:
+                self.validate_resume()
+            self.save()
+        except Exception:
+            self.current_data = previous
+            raise
         return self.current_data
 
     def save(self) -> None:
@@ -229,11 +324,13 @@ class CheckpointManager:
                     pass
             raise CheckpointError(f"Failed to atomically save checkpoint: {exc}") from exc
 
-    def is_completed_for(self, file_name: str, transcript_path: Path) -> bool:
-        """Check idempotency: return True if a job for this file already completed and transcript exists."""
+    def is_completed_for(self, file_name: str, transcript_path: Path, source_identity: SourceIdentity | None = None) -> bool:
+        """Require verified source + consistent completed EOF; filename is diagnostic."""
+        if source_identity is None:
+            return False
+        self.validate_resume(source_identity)
         if (
-            self.current_data.file_name == file_name
-            and self.current_data.status == CheckpointStatus.COMPLETED
+            self.current_data.status == CheckpointStatus.COMPLETED
             and transcript_path.exists()
             and transcript_path.stat().st_size > 0
         ):

@@ -12,6 +12,7 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
+from src.source_identity import SourceIdentity, UNITS_PER_SECOND
 from src.config import load_config, ConfigurationError
 from src.audio_manager import AudioManager, AudioError
 from src.gemini_client import GeminiClient, GeminiClientError
@@ -67,26 +68,6 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         return 1
 
     checkpoint_mgr = CheckpointManager(checkpoint_path=config.checkpoint_file_path)
-    existing_data = checkpoint_mgr.load()
-
-    # Idempotency check: avoid redundant billing / processing
-    if not force and checkpoint_mgr.is_completed_for(
-        file_name=target_audio.file_name,
-        transcript_path=config.output_transcript_path,
-    ):
-        print(f"\nJob ID: {existing_data.job_id}")
-        print(f"Audio:  {target_audio.file_name}")
-        print(
-            f"\n[NOTICE] This audio file has already been successfully transcribed.\n"
-            f"Transcript: {config.output_transcript_path}\n"
-            f"DOCX:       {config.output_docx_path}\n"
-            f"SRT:        {config.output_srt_path}\n"
-            f"Checkpoint: {config.checkpoint_file_path}\n"
-            f"To re-run and overwrite existing outputs, run with: python -m src.main --force"
-        )
-        print("\nSTATUS: COMPLETED (Cached)")
-        return 0
-
     # -------------------------------------------------------------
     # Step 2: Audio Inspection & Block Building (DABB-driven)
     # -------------------------------------------------------------
@@ -116,54 +97,42 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
     initial_block_dur = orchestrator.current_block_duration_seconds
     total_blocks_approx = max(1, int(total_duration / max(1.0, initial_block_dur)))
 
-    # Check if we should resume an existing partially completed job
-    is_resuming = False
-    start_from_block = 1
-    next_source_index = 1
+    # Content identity is authoritative; path/name are diagnostic only.
+    try:
+        source_identity = SourceIdentity.capture(target_audio.path, total_duration)
+        orchestrator.source_identity = source_identity
+        existing_data = checkpoint_mgr.load() if not force else checkpoint_mgr.current_data
+        has_checkpoint = config.checkpoint_file_path.exists() and not force
+        if has_checkpoint:
+            checkpoint_mgr.validate_resume(source_identity)
+            print(f"[SOURCE_MATCH] fingerprint={source_identity.fingerprint[:12]} version={existing_data.schema_version}")
+            if checkpoint_mgr.is_completed_for(target_audio.file_name, config.output_transcript_path, source_identity):
+                print("STATUS: COMPLETED (Cached; verified source and EOF)")
+                return 0
+    except (CheckpointError, OSError, ValueError) as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        return 1
+
+    is_resuming = has_checkpoint
     merger = OutputMerger()
-
-    if (
-        not force
-        and existing_data.file_name == target_audio.file_name
-        and existing_data.last_confirmed_source_index is not None
-        and existing_data.last_confirmed_source_index > 0
-        and existing_data.status != CheckpointStatus.COMPLETED
-    ):
-        is_resuming = True
+    if is_resuming:
         current_job = existing_data
-        next_source_index = (
-            existing_data.next_source_index
-            if existing_data.next_source_index is not None
-            else (existing_data.last_confirmed_source_index + 1)
-        )
-
-        # Estimate starting block from last_confirmed_source_index
-        # or find last confirmed block ID
-        if existing_data.current_block_id and existing_data.current_block_id.startswith("BLOCK_"):
-            try:
-                last_block_num = int(existing_data.current_block_id.replace("BLOCK_", ""))
-                start_from_block = last_block_num + 1
-            except ValueError:
-                start_from_block = 1
-        else:
-            start_from_block = 1
-
-        # Populate merger with confirmed segments from checkpoint
-        if existing_data.confirmed_segments:
-            for s_dict in existing_data.confirmed_segments:
-                merger.add_segment(TranscriptSegment.from_dict(s_dict))
-
-        print(
-            f"\n[RESUME] Phát hiện checkpoint hợp lệ. Đã hoàn thành {existing_data.last_confirmed_source_index} segment(s)."
-        )
-        print(f"[RESUME] Tiếp tục phiên âm từ next_source_index = {next_source_index} (Block {start_from_block:03d})...")
+        next_source_index = existing_data.next_source_index
+        resume_from_seconds = existing_data.next_audio_start_us / UNITS_PER_SECOND
+        start_from_block = len(existing_data.block_metrics) + 1
+        for segment in existing_data.confirmed_segments:
+            merger.add_segment(TranscriptSegment.from_dict(segment))
+        adaptive = existing_data.adaptive_state
+        target = adaptive.get("target_tokens") if isinstance(adaptive, dict) else None
+        if type(target) is int and config.min_block_tokens <= target <= config.max_block_tokens:
+            orchestrator.dabb.current_target_tokens = target
+        print(f"[RESUME] next_start={resume_from_seconds} next_block={start_from_block} action=DIRECT_RESUME")
     else:
-        # Initialize new job
+        next_source_index, resume_from_seconds, start_from_block = 1, 0.0, 1
         current_job = checkpoint_mgr.create_new_job(
-            file_name=target_audio.file_name,
-            total_source_segments=total_blocks_approx,
-            status=CheckpointStatus.RUNNING,
-        )
+            file_name=target_audio.file_name, total_source_segments=total_blocks_approx,
+            status=CheckpointStatus.RUNNING, source_identity=source_identity)
+    orchestrator.next_block_number = start_from_block
 
     minutes = int(total_duration // 60)
     seconds = int(total_duration % 60)
@@ -199,22 +168,12 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
     print(f"[3/5] Transcribing blocks (DABB adaptive, resuming from {next_source_index})...")
     checkpoint_mgr.update_status(CheckpointStatus.PROCESSING)
 
-    # Determine resume offset in seconds from checkpoint
-    resume_from_seconds = 0.0
-    if is_resuming and existing_data.last_confirmed_source_index:
-        # Rough estimate: use last confirmed block duration from checkpoint if available
-        # We'll skip blocks whose end time is before our resume point by tracking block_num
-        pass
-
     last_file_id: str | None = None
     try:
         for adaptive_slice in orchestrator.iter_adaptive_blocks(start_from_seconds=resume_from_seconds):
+            source_identity.assert_unchanged()
             block = adaptive_slice.source_block
             block_id = f"BLOCK_{block.source_index_str}"
-
-            # Skip already-processed blocks when resuming
-            if is_resuming and adaptive_slice.block_num < start_from_block:
-                continue
 
             start_m = int(block.start_time_seconds // 60)
             start_s = int(block.start_time_seconds % 60)
@@ -341,7 +300,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
 
             # Atomic Checkpoint Commit ONLY after validation & merge PASS
             # Persist quality signals in existing metadata using the same atomic commit.
-            checkpoint_mgr.current_data.block_metrics.append({
+            metric = {
                 "block_id": block_id,
                 "actual_start_offset": block.start_time_seconds,
                 "actual_end_offset": block.end_time_seconds,
@@ -357,15 +316,21 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     {"source_index": i.source_index, "reason": i.indicator, "detail": i.detail}
                     for i in fidelity_result.issues
                 ],
-            })
+            }
+            source_identity.assert_unchanged()
             checkpoint_mgr.commit_block(
                 block_id=block_id,
                 last_source_index=block_result.last_source_index,
                 new_segments=[s.to_dict() for s in block_result.segments],
+                metric=metric, adaptive_state={"target_tokens": orchestrator.dabb.current_target_tokens},
                 file_id=last_file_id,
             )
 
-    except (GeminiClientError, TranscriptionError, BlockBuilderError, OSError) as exc:
+    except CheckpointError as exc:
+        print(f"[ERROR] Checkpoint commit failed; last persisted state retained: {exc}", file=sys.stderr)
+        orchestrator.cleanup_slices()
+        return 1
+    except (GeminiClientError, TranscriptionError, BlockBuilderError, OSError, ValueError) as exc:
         print(f"\n[ERROR] Pipeline failed during block transcription: {exc}", file=sys.stderr)
         checkpoint_mgr.update_status(
             CheckpointStatus.FAILED,

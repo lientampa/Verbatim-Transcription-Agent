@@ -11,7 +11,7 @@ from src.main import run_pipeline
 
 
 def run_audio_case(tmp_path, monkeypatch, failure="output limit", attempts=3, minimum=60,
-                   fail_count=1, fail_block="BLOCK_001"):
+                   fail_count=1, fail_block="BLOCK_001", restart=False, setup=None, total_duration=900.0):
     (tmp_path / "audio").mkdir()
     (tmp_path / "audio" / "source.wav").write_bytes(b"source")
     (tmp_path / "prompts").mkdir()
@@ -26,7 +26,7 @@ def run_audio_case(tmp_path, monkeypatch, failure="output limit", attempts=3, mi
                      block_shrink_factor=0.6, retry_initial_delay_seconds=0)
     monkeypatch.setattr("src.main.load_config", lambda **kwargs: config)
     monkeypatch.setattr("src.block_builder._find_binary", lambda name: name)
-    monkeypatch.setattr("src.block_builder.AudioBlockBuilder.get_duration", lambda self: 900.0)
+    monkeypatch.setattr("src.block_builder.AudioBlockBuilder.get_duration", lambda self: total_duration)
     slices, uploads, calls = [], [], []
     from src.transcript_validator import TranscriptValidator
     original_validate = TranscriptValidator.validate_block_result
@@ -75,9 +75,33 @@ def run_audio_case(tmp_path, monkeypatch, failure="output limit", attempts=3, mi
 
     monkeypatch.setattr("src.main.GeminiClient.upload_audio", upload)
     monkeypatch.setattr("src.main.GeminiClient.generate_transcription", generate)
+    if setup:
+        setup(config)
+    if restart:
+        from src.checkpoint import CheckpointManager
+        original_commit = CheckpointManager.commit_block
+        def interrupt(self, **kwargs):
+            value = original_commit(self, **kwargs)
+            raise KeyboardInterrupt("simulated process interruption after atomic commit")
+        monkeypatch.setattr(CheckpointManager, "commit_block", interrupt)
+        with pytest.raises(KeyboardInterrupt):
+            run_pipeline(base_dir=tmp_path)
+        monkeypatch.setattr(CheckpointManager, "commit_block", original_commit)
+        calls.clear()
+        slices.clear()
+        uploads.clear()
+        fail_count = 0
     result = run_pipeline(base_dir=tmp_path)
     checkpoint = json.loads(config.checkpoint_file_path.read_text(encoding="utf-8"))
     return result, slices, uploads, calls, checkpoint
+
+
+def test_restart_after_shrink_begins_at_confirmed_boundary(tmp_path, monkeypatch):
+    result, slices, uploads, calls, checkpoint = run_audio_case(tmp_path, monkeypatch, restart=True)
+    assert result == 0
+    assert slices[0][0] == 360
+    assert calls[0][0].bounds[0] == 360
+    assert '- block_id: "BLOCK_002"' in calls[0][1]
 
 
 def test_size_failure_rebuilds_and_continues_from_smaller_end(tmp_path, monkeypatch):
