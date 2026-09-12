@@ -9,6 +9,7 @@ from typing import Any
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError
+from src.failure_classifier import FailureType, classify_failure
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,15 @@ class GeminiUploadError(GeminiClientError):
 class GeminiTranscribeError(GeminiClientError):
     """Raised when Gemini content generation fails."""
     pass
+
+
+class GeminiSizeError(GeminiClientError):
+    """Provider-confirmed size failure; bypass same-asset client retries."""
+    failure_type = FailureType.SIZE_FAILURE
+
+    def __init__(self, message: str, metadata: dict | None = None):
+        super().__init__(message)
+        self.metadata = metadata or {}
 
 
 class GeminiClient:
@@ -108,6 +118,9 @@ class GeminiClient:
 
                 return uploaded_file
             except (APIError, ConnectionError, TimeoutError, OSError) as exc:
+                if classify_failure(exc) == FailureType.SIZE_FAILURE:
+                    raise GeminiSizeError(str(exc), {"provider_error_code": getattr(exc, "code", None),
+                                                    "provider_error_message": str(exc)}) from exc
                 last_err = exc
                 if attempt < self.max_retries:
                     base_delay = self.initial_delay_seconds * (2 ** (attempt - 1))
@@ -124,15 +137,31 @@ class GeminiClient:
 
     def _call_model(self, model: str, gemini_file: Any, user_prompt: str, config: Any) -> str | None:
         """Helper to invoke models.generate_content and extract transcript text."""
-        response = self.client.models.generate_content(
-            model=model,
-            contents=[gemini_file, user_prompt],
-            config=config,
-        )
+        self.last_response_metadata = {}
+        try:
+            response = self.client.models.generate_content(
+                model=model, contents=[gemini_file, user_prompt], config=config)
+        except APIError as exc:
+            self.last_response_metadata = {"provider_error_code": getattr(exc, "code", None),
+                                           "provider_error_message": str(exc)}
+            if classify_failure(exc) == FailureType.SIZE_FAILURE:
+                raise GeminiSizeError(str(exc), self.last_response_metadata) from exc
+            raise
+        usage = getattr(response, "usage_metadata", None)
+        self.last_response_metadata = {
+            "input_tokens": getattr(usage, "prompt_token_count", None),
+            "output_tokens": getattr(usage, "candidates_token_count", None),
+            "total_tokens": getattr(usage, "total_token_count", None),
+        }
 
         # 1. Try extracting text from candidates parts
         if response and hasattr(response, "candidates") and response.candidates:
             candidate = response.candidates[0]
+            reason = getattr(candidate, "finish_reason", None)
+            reason = getattr(reason, "value", reason)
+            self.last_response_metadata["finish_reason"] = reason
+            if reason == "MAX_TOKENS":
+                raise GeminiSizeError("OUTPUT_TRUNCATED: provider finish_reason=MAX_TOKENS", self.last_response_metadata)
             if hasattr(candidate, "content") and candidate.content and candidate.content.parts:
                 extracted = "".join(
                     p.text for p in candidate.content.parts
@@ -196,6 +225,8 @@ class GeminiClient:
 
                 raise GeminiTranscribeError("Gemini returned an empty response or no text was generated.")
 
+            except GeminiSizeError:
+                raise
             except (APIError, ConnectionError, TimeoutError) as exc:
                 last_err = exc
                 err_str = str(exc)
@@ -210,6 +241,8 @@ class GeminiClient:
                             if alt_transcript:
                                 self.model_name = alt_m  # Persist the working model for remaining blocks
                                 return alt_transcript
+                        except GeminiSizeError:
+                            raise
                         except Exception:
                             continue
 
@@ -227,6 +260,8 @@ class GeminiClient:
                         fallback_transcript = self._call_model(self.FALLBACK_MODEL, gemini_file, user_prompt, config)
                         if fallback_transcript:
                             return fallback_transcript
+                    except GeminiSizeError:
+                        raise
                     except Exception:
                         pass
                 raise GeminiTranscribeError(f"Transcription failed: {exc}") from exc

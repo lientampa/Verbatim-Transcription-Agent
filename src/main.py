@@ -231,9 +231,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 end="",
                 flush=True,
             )
-            gemini_file = gemini_client.upload_audio(audio_path=block.file_path)
-            raw_name = getattr(gemini_file, "name", None)
-            last_file_id = str(raw_name) if raw_name is not None else str(gemini_file)
+            gemini_file = None
 
             # Transcribe & Validate with retry on FAIL
             validated = False
@@ -245,6 +243,14 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             for v_attempt in range(1, config.validator_max_retries + 1):
                 print(f" Transcribing...", end="", flush=True)
                 try:
+                    if gemini_file is None:
+                        gemini_file = gemini_client.upload_audio(audio_path=block.file_path)
+                        raw_name = getattr(gemini_file, "name", None)
+                        last_file_id = str(raw_name) if raw_name is not None else str(gemini_file)
+                    print(f" [block_id={block_id} attempt={v_attempt} generation={adaptive_slice.generation} "
+                          f"start={block.start_time_seconds} end={block.end_time_seconds} "
+                          f"duration={adaptive_slice.current_duration_seconds} slice={block.file_path} "
+                          f"upload={last_file_id} action=TRANSCRIBE]", end="", flush=True)
                     outcome = transcriber.transcribe_block(
                         gemini_file=gemini_file,
                         job_id=current_job.job_id or "JOB_001",
@@ -263,13 +269,22 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     print(f" [Error: {exc}]", end="", flush=True)
                     # Classify and potentially shrink block for next attempt
                     failure_type = classify_failure(exc)
+                    target_before = orchestrator.dabb.current_target_tokens
                     orchestrator.on_block_failure(failure_type)
+                    print(f" [failure_class={failure_type.value} target_before={target_before} "
+                          f"target_after={orchestrator.dabb.current_target_tokens}]", end="", flush=True)
                     if v_attempt < config.validator_max_retries:
+                        if failure_type == FailureType.SIZE_FAILURE:
+                            orchestrator.rebuild_audio_block(adaptive_slice)
+                            block = adaptive_slice.source_block
+                            gemini_file = None  # Old upload cannot represent new boundaries.
+                            print(" [action=SHRINK_REBUILD_REUPLOAD]", end="", flush=True)
                         print(f" Retrying ({v_attempt+1}/{config.validator_max_retries})...", end="", flush=True)
                         time.sleep(config.retry_initial_delay_seconds)
                         continue
                     else:
                         raise TranscriptionError(
+                            f"{'SIZE_RETRIES_EXHAUSTED: ' if failure_type == FailureType.SIZE_FAILURE else ''}"
                             f"Block {block_id} failed after {config.validator_max_retries} attempts: {exc}"
                         ) from exc
 
@@ -312,8 +327,9 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 raise TranscriptionError(f"Block {block.source_index_str} failed validation: {fail_summary}")
 
             # Feed success back to DABB (actual token usage from response metadata)
-            actual_in = getattr(block_result, "actual_input_tokens", 0) or adaptive_slice.estimated_input_tokens
-            actual_out = getattr(block_result, "actual_output_tokens", 0) or 0
+            provider_metadata = getattr(gemini_client, "last_response_metadata", {})
+            actual_in = provider_metadata.get("input_tokens") or adaptive_slice.estimated_input_tokens
+            actual_out = provider_metadata.get("output_tokens") or 0
             orchestrator.on_block_success(
                 actual_input_tokens=actual_in,
                 actual_output_tokens=actual_out,
@@ -327,6 +343,12 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             # Persist quality signals in existing metadata using the same atomic commit.
             checkpoint_mgr.current_data.block_metrics.append({
                 "block_id": block_id,
+                "actual_start_offset": block.start_time_seconds,
+                "actual_end_offset": block.end_time_seconds,
+                "attempt_count": v_attempt,
+                "generation": adaptive_slice.generation,
+                "final_duration": adaptive_slice.current_duration_seconds,
+                "provider_metadata": provider_metadata,
                 "fidelity_status": fidelity_result.status.value,
                 "fidelity_decision": fidelity_result.decision.value,
                 "requires_quality_review": fidelity_result.needs_audio_review,
@@ -350,6 +372,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             file_id=last_file_id,
             error_message=str(exc),
         )
+        orchestrator.cleanup_slices()
         return 1
 
     # -------------------------------------------------------------

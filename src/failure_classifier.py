@@ -18,6 +18,7 @@ class FailureType(str, Enum):
     CONTENT_FAILURE = "CONTENT_FAILURE"
     SIZE_FAILURE = "SIZE_FAILURE"
     FIDELITY_FAILURE = "FIDELITY_FAILURE"  # TYPE C — Milestone 3.1
+    NETWORK_FAILURE = "NETWORK_FAILURE"
 
 
 def classify_failure(
@@ -30,24 +31,31 @@ def classify_failure(
     Other failures (structural schema bugs, duplicate indices, content hallucination)
     must trigger retry without shrinking block size.
     """
+    cause = error
+    while isinstance(cause, Exception):
+        if getattr(cause, "failure_type", None) == FailureType.SIZE_FAILURE:
+            return FailureType.SIZE_FAILURE
+        cause = cause.__cause__
     error_str = str(error).lower()
+    if getattr(validation_result, "reason_codes", None):
+        return FailureType.STRUCTURAL_FAILURE
+    if any(word in error_str for word in ("schema validation", "response parsing", "invalid json", "failed to parse json")):
+        return FailureType.STRUCTURAL_FAILURE
+    if any(word in error_str for word in ("timeout", "timed out", "connection", "429", "rate limit", "503", "temporarily unavailable")):
+        return FailureType.NETWORK_FAILURE
     val_errors = [e.lower() for e in (getattr(validation_result, "errors", []) or [])]
     all_text = f"{error_str} {' '.join(val_errors)}"
 
     # 1. Check for SIZE_FAILURE indicators
     size_keywords = [
-        "truncated",
         "output_truncated",
+        "context_limit",
+        "input too large",
         "context_overflow",
         "max_tokens",
         "output limit",
         "context limit",
-        "too long",
         "payload too large",
-        "incomplete json",
-        "unexpected end of data",
-        "unterminated string",
-        "unclosed",
     ]
     for kw in size_keywords:
         if kw in all_text:

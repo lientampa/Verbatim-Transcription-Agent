@@ -81,6 +81,7 @@ class GeminiTranscriber:
         first_source_index: int,
         last_source_index: int | None = None,
         start_offset_seconds: float = 0.0,
+        end_offset_seconds: float | None = None,
     ) -> str:
         """Construct structured user prompt instructing Gemini to return strict JSON."""
         offset_note = ""
@@ -111,6 +112,7 @@ class GeminiTranscriber:
             f"- first_source_index: {first_source_index}\n"
             f"{range_note}"
             f"{offset_note}"
+            f"- Absolute audio boundaries (seconds): start={start_offset_seconds}, end={end_offset_seconds}.\n"
             f"LƯU Ý QUAN TRỌNG VỀ last_source_index: Giá trị \"last_source_index\" trong JSON BẮT BUỘC phải bằng chính xác source_index của segment cuối cùng trong mảng segments.\n"
             f"BẮT BUỘC trả về duy nhất một chuỗi JSON hợp lệ tuân thủ JSON Schema 1.0. "
             f"Tuyệt đối không dùng Markdown, không có lời giải thích, không trộn timestamp/speaker vào trường text."
@@ -144,6 +146,7 @@ class GeminiTranscriber:
             first_source_index=first_source_index,
             last_source_index=last_source_index,
             start_offset_seconds=start_offset_seconds,
+            end_offset_seconds=end_offset_seconds,
         )
 
         try:
@@ -210,4 +213,3 @@ class GeminiTranscriber:
             for s in outcome.block_result.segments
         ]
         return "\n\n".join(text_lines), outcome.structural_validation
-

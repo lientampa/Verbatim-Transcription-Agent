@@ -15,7 +15,8 @@ import os
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from uuid import uuid4
 from pathlib import Path
 from typing import Iterator
 
@@ -218,18 +219,21 @@ class AudioBlockBuilder(BlockBuilder):
         return list(self.iter_blocks())
 
     def slice_time_range(self, block_id: str, start_sec: float, end_sec: float) -> Path:
-        """Slice an audio segment based on dynamic start and end seconds."""
-        ext = self.audio_path.suffix.lower()
-        block_file = self.cache_dir / f"{block_id}{ext}"
-        if block_file.exists() and block_file.stat().st_size > 0:
-            return block_file
+        """Build a fresh attempt slice; weak block-ID cache reuse is disabled.
 
-        duration = max(0.5, end_sec - start_sec)
+        Source fingerprints and reusable boundary-aware cache entries are Stage 5.
+        """
+        ext = self.audio_path.suffix.lower()
+        block_file = self.cache_dir / f"{block_id}_{uuid4().hex}{ext}"
+
+        duration = end_sec - start_sec
+        if start_sec < 0 or duration <= 0:
+            raise BlockBuilderError("Invalid audio slice boundaries")
         copy_cmd = [
             self._ffmpeg_bin,
             "-y",
-            "-ss", f"{start_sec:.2f}",
-            "-t", f"{duration:.2f}",
+            "-ss", f"{start_sec:.9f}",
+            "-t", f"{duration:.9f}",
             "-i", str(self.audio_path),
             "-c", "copy",
             str(block_file),
@@ -239,8 +243,8 @@ class AudioBlockBuilder(BlockBuilder):
             encode_cmd = [
                 self._ffmpeg_bin,
                 "-y",
-                "-ss", f"{start_sec:.2f}",
-                "-t", f"{duration:.2f}",
+                "-ss", f"{start_sec:.9f}",
+                "-t", f"{duration:.9f}",
                 "-i", str(self.audio_path),
                 "-c:a", "aac",
                 "-b:a", "64k",
@@ -268,6 +272,7 @@ class AdaptiveBlockSlice:
     estimated_input_tokens: int
     context_budget: int
     output_budget: int
+    generation: int = 1
 
 
 class DabbAudioOrchestrator:
@@ -298,7 +303,9 @@ class DabbAudioOrchestrator:
         self.config = config
         self.audio_path = Path(audio_path)
         self.cache_dir = cache_dir or config.cache_dir
-        self.job_id = job_id or "default_job"
+        self.job_id = job_id or f"audio_{uuid4().hex}"
+        if not 0 < config.block_shrink_factor < 1 or config.min_duration_seconds <= 0:
+            raise BlockBuilderError("Shrink factor must be between 0 and 1; minimum duration must be positive")
         self.system_prompt = system_prompt
 
         # DABB instance — no source segments (audio mode: duration is the proxy)
@@ -311,6 +318,7 @@ class DabbAudioOrchestrator:
         # Audio block builder — block_size will be driven by DABB dynamically
         self._audio_builder: AudioBlockBuilder | None = None
         self._total_duration: float | None = None
+        self._slice_paths: set[Path] = set()
 
         # Compute tokens/second from density constants
         self._tokens_per_second: float = (
@@ -363,13 +371,13 @@ class DabbAudioOrchestrator:
         current_start = start_from_seconds
         block_num = 0
 
-        while current_start < total_duration - 0.5:
+        while current_start < total_duration:
             block_num += 1
 
             # Ask DABB for current token target → convert to duration
             target_tokens = self.dabb.current_target_tokens
             duration_sec = self._target_tokens_to_seconds(target_tokens)
-            block_size = max(30, int(duration_sec))  # min 30s safety floor
+            block_size = duration_sec
 
             current_end = min(total_duration, current_start + block_size)
             actual_duration = current_end - current_start
@@ -395,6 +403,7 @@ class DabbAudioOrchestrator:
                 start_sec=current_start,
                 end_sec=current_end,
             )
+            self._slice_paths.add(source_block)
 
             # Build a minimal SourceBlock wrapper
             src_block = SourceBlock(
@@ -406,7 +415,7 @@ class DabbAudioOrchestrator:
                 total_blocks=0,  # unknown until all blocks processed
             )
 
-            yield AdaptiveBlockSlice(
+            attempt_slice = AdaptiveBlockSlice(
                 source_block=src_block,
                 block_num=block_num,
                 current_duration_seconds=actual_duration,
@@ -414,8 +423,43 @@ class DabbAudioOrchestrator:
                 context_budget=safe_context,
                 output_budget=safe_output,
             )
+            yield attempt_slice
 
-            current_start = current_end
+            # A rebuilt retry updates the yielded slice. The caller resumes this
+            # iterator only after successful validation/commit (or legacy skip).
+            current_start = attempt_slice.source_block.end_time_seconds
+
+    def rebuild_audio_block(self, attempt_slice: AdaptiveBlockSlice) -> AdaptiveBlockSlice:
+        """Rebuild the same logical block at its unchanged unconfirmed start.
+
+        Called after SIZE_FAILURE feedback reduces the token target. Cap duration
+        against the actual failed interval, even when that interval was a short tail.
+        """
+        old = attempt_slice.source_block
+        old_duration = old.end_time_seconds - old.start_time_seconds
+        duration = max(self.config.min_duration_seconds, min(
+            self.current_block_duration_seconds, old_duration * self.config.block_shrink_factor))
+        if duration >= old_duration - 1e-9:
+            raise BlockBuilderError("BLOCK_SIZE_EXHAUSTED: cannot reduce current audio interval further")
+        end = old.start_time_seconds + duration
+        path = self._get_audio_builder(max(10, int(duration))).slice_time_range(
+            block_id=f"BLOCK_{old.source_index_str}", start_sec=old.start_time_seconds, end_sec=end)
+        self._slice_paths.add(path)
+        attempt_slice.source_block = replace(old, end_time_seconds=end, file_path=path)
+        attempt_slice.current_duration_seconds = duration
+        attempt_slice.estimated_input_tokens = int(duration * self._tokens_per_second)
+        attempt_slice.generation += 1
+        return attempt_slice
+
+    def cleanup_slices(self) -> None:
+        """Remove only files created by this orchestrator, including failed retries."""
+        owned_root = (Path(self.cache_dir) / self.job_id).resolve()
+        for path in self._slice_paths:
+            if path.resolve().is_relative_to(owned_root):
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError:
+                    logger.warning("Unable to remove owned slice %s", path)
 
     def on_block_success(
         self,
