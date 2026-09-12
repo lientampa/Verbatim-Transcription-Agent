@@ -1,6 +1,8 @@
 """Content Fidelity Validator for Milestone 3.1.
 
-Provides multi-tier fidelity detection separate from structural validation.
+Provides heuristic fidelity detection separate from structural validation.
+PASS means no issue detected, never acoustic verification. Trusted reference
+text may establish a deterministic substitution; lexical presence cannot.
 Does NOT rewrite transcript — only detects suspicious patterns and returns
 PASS / FAIL / REVIEW with structured issue report.
 """
@@ -8,7 +10,7 @@ PASS / FAIL / REVIEW with structured issue report.
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from src.response_parser import TranscriptionBlockResult, TranscriptSegment
 
@@ -36,7 +38,7 @@ class FidelityIssue:
 
 @dataclass
 class FidelityValidationResult:
-    """Result of content fidelity validation."""
+    """Heuristic result, not a claim of acoustic correctness."""
     status: FidelityStatus
     risk_level: FidelityRisk
     issues: list[FidelityIssue] = field(default_factory=list)
@@ -57,7 +59,7 @@ class FidelityValidationResult:
 
     @property
     def needs_audio_review(self) -> bool:
-        return self.risk_level in (FidelityRisk.HIGH, FidelityRisk.MEDIUM)
+        return self.status != FidelityStatus.PASS
 
 
 # ---------------------------------------------------------------------------
@@ -102,9 +104,9 @@ _WORD_SPLIT = re.compile(r"[\s,\.!?;:\"'()\[\]]+")
 
 
 def _count_words(text: str) -> int:
-    """Count words in Vietnamese text."""
-    tokens = [t for t in _WORD_SPLIT.split(text.strip()) if t]
-    return len(tokens)
+    """Count comparison units: each uncertainty marker is one semantic unit."""
+    tokens = [t for t in _WORD_SPLIT.split(_UNKNOWN_PATTERN.sub(" ", text)) if t]
+    return len(tokens) + _count_unknown_tokens(text)
 
 
 def _count_unknown_tokens(text: str) -> int:
@@ -117,10 +119,10 @@ class ContentFidelityValidator:
 
     Checks for:
     1. Suspiciously polished / formal language (semantic substitution indicators)
-    2. Known bad substitution patterns (from golden test audit)
+    2. Known substitutions confirmed against caller-supplied trusted text
     3. Unknown token rate ([không rõ] density)
     4. Over-normalization indicators
-    5. Timestamp coherence with block offset
+    5. Long repeated phrases / extreme single-word loops
 
     Does NOT modify transcript. Only returns PASS / FAIL / REVIEW.
     """
@@ -196,24 +198,34 @@ class ContentFidelityValidator:
         return issues
 
     def check_known_bad_substitutions(
-        self, segments: Sequence[TranscriptSegment]
+        self, segments: Sequence[TranscriptSegment],
+        trusted_source_texts: Mapping[int, str] | None = None,
     ) -> list[FidelityIssue]:
-        """Detect known hallucination patterns discovered during golden test audit."""
+        """Require a full-segment comparison with independently trusted text.
+
+        The caller must never supply a model guess as a trusted reference.
+        This establishes a text mismatch, not acoustic verification.
+        """
         issues: list[FidelityIssue] = []
-        if not self.enable_known_bad_substitution_check:
+        if not self.enable_known_bad_substitution_check or trusted_source_texts is None:
             return issues
 
         for seg in segments:
             if not seg.text:
                 continue
             text_lower = seg.text.lower()
+            reference = trusted_source_texts.get(seg.source_index)
+            if reference is None:
+                continue
+            reference = " ".join(reference.lower().split())
+            text_lower = " ".join(text_lower.split())
             for source_frag, bad_frag in KNOWN_BAD_SUBSTITUTIONS:
-                # Flag if the bad output fragment appears (without the source fragment nearby)
-                if bad_frag in text_lower and source_frag not in text_lower:
+                transformed = re.sub(r"(?<!\w)" + re.escape(source_frag) + r"(?!\w)", bad_frag, reference)
+                if transformed != reference and transformed == text_lower:
                     issues.append(FidelityIssue(
                         source_index=seg.source_index,
                         indicator="KNOWN_BAD_SUBSTITUTION",
-                        detail=f"Possible bad substitution: expected '{source_frag}', found '{bad_frag}'",
+                        detail=f"Trusted text comparison confirms '{source_frag}' replaced by '{bad_frag}'",
                         severity="HIGH",
                     ))
         return issues
@@ -221,21 +233,43 @@ class ContentFidelityValidator:
     def check_per_segment_unknown_rate(
         self, segments: Sequence[TranscriptSegment]
     ) -> list[FidelityIssue]:
-        """Flag segments where entire text is [không rõ] (complete audio failure)."""
+        """Detect marker-only segments without assuming why audio is uncertain."""
         issues: list[FidelityIssue] = []
         for seg in segments:
             if not seg.text:
                 continue
-            word_count = _count_words(seg.text)
             unknown_count = _count_unknown_tokens(seg.text)
             # If segment is entirely unknown, flag as REVIEW (not FAIL — this is expected behavior)
-            if word_count > 0 and unknown_count == word_count:
+            if unknown_count and not re.search(r"\w", _UNKNOWN_PATTERN.sub("", seg.text)):
                 issues.append(FidelityIssue(
                     source_index=seg.source_index,
                     indicator="FULLY_UNCERTAIN_SEGMENT",
-                    detail="Entire segment is [không rõ] — audio likely inaudible",
+                    detail="Entire segment is uncertainty markers; audio review needed",
                     severity="LOW",  # Expected behavior, not a fidelity error
                 ))
+        return issues
+
+    def check_repetition(self, segments: Sequence[TranscriptSegment]) -> list[FidelityIssue]:
+        """Five consecutive copies of >=4 words, or 12 identical words, warrant review.
+
+        These conservative thresholds indicate possible generation loops, not proof.
+        Punctuation/case normalization is comparison-only; short stutters are valid.
+        """
+        issues = []
+        for seg in segments:
+            words = re.findall(r"\w+", _UNKNOWN_PATTERN.sub(" ", seg.text).casefold())
+            looping = False
+            for width, repeats in [(1, 12)] + [(n, 5) for n in range(4, len(words) // 5 + 1)]:
+                for start in range(len(words) - width * repeats + 1):
+                    phrase = words[start:start + width]
+                    if words[start:start + width * repeats] == phrase * repeats:
+                        looping = True
+                        break
+                if looping:
+                    break
+            if looping:
+                issues.append(FidelityIssue(seg.source_index, "POSSIBLE_GENERATION_LOOP",
+                                            "Repeated sequence requires audio review", "MEDIUM"))
         return issues
 
     def _compute_risk_level(
@@ -245,23 +279,23 @@ class ContentFidelityValidator:
     ) -> FidelityRisk:
         """Compute overall risk level from issues and unknown token rate."""
         high_severity = sum(1 for i in issues if i.severity == "HIGH")
-        medium_severity = sum(1 for i in issues if i.severity == "MEDIUM")
 
         if high_severity > 0 or unknown_rate > self.high_risk_unknown_threshold:
             return FidelityRisk.HIGH
-        if medium_severity >= 2 or unknown_rate > self.unknown_token_threshold:
+        if issues or unknown_rate > self.unknown_token_threshold:
             return FidelityRisk.MEDIUM
         return FidelityRisk.LOW
 
     def validate(
         self,
         block_result: TranscriptionBlockResult,
+        trusted_source_texts: Mapping[int, str] | None = None,
     ) -> FidelityValidationResult:
         """Run all fidelity checks and return structured result.
 
         Returns:
             FidelityValidationResult with PASS / FAIL / REVIEW status.
-            FAIL = known hallucination detected (HIGH severity issues)
+            FAIL = substitution confirmed against independently trusted source text
             REVIEW = suspicious patterns that need audio verification
             PASS = no significant fidelity concerns detected
         """
@@ -270,8 +304,9 @@ class ContentFidelityValidator:
 
         # Run all checks
         all_issues.extend(self.check_suspiciously_polished(segments))
-        all_issues.extend(self.check_known_bad_substitutions(segments))
+        all_issues.extend(self.check_known_bad_substitutions(segments, trusted_source_texts))
         all_issues.extend(self.check_per_segment_unknown_rate(segments))
+        all_issues.extend(self.check_repetition(segments))
 
         # Unknown token metrics
         unknown_count, total_words, unknown_rate = self.check_unknown_token_rate(segments)
@@ -289,8 +324,7 @@ class ContentFidelityValidator:
         risk_level = self._compute_risk_level(all_issues, unknown_rate)
 
         # Determine status
-        high_severity_issues = [i for i in all_issues if i.severity == "HIGH"]
-        if high_severity_issues:
+        if any(i.indicator == "KNOWN_BAD_SUBSTITUTION" for i in all_issues):
             status = FidelityStatus.FAIL
         elif risk_level in (FidelityRisk.MEDIUM, FidelityRisk.HIGH):
             status = FidelityStatus.REVIEW
@@ -313,8 +347,9 @@ def apply_unknown_substitutions(
 ) -> TranscriptionBlockResult:
     """Apply [không rõ] substitutions from audio review to a block result.
 
-    This is the ONLY allowed text modification after Gemini output.
-    Replaces specific text portions with [không rõ] based on audio review findings.
+    Stage 2 permits only whole-segment uncertainty annotation from review.
+    Partial edits and generated replacement speech are rejected. The caller must
+    revalidate the returned block; annotation does not authorize confirmation.
 
     Args:
         block_result: Original transcription block result.
@@ -325,11 +360,16 @@ def apply_unknown_substitutions(
     """
     from src.response_parser import TranscriptSegment
 
-    sub_map: dict[int, str] = {
-        s["source_index"]: s.get("replacement", "[không rõ]")
-        for s in substitutions
-        if "source_index" in s
-    }
+    # Validate the entire batch before constructing any replacement.
+    sub_map: dict[int, str] = {}
+    indices = {seg.source_index for seg in block_result.segments}
+    for sub in substitutions:
+        index = sub.get("source_index")
+        if type(index) is not int or index not in indices or index in sub_map:
+            raise ValueError("Substitution requires a unique existing source_index")
+        if sub.get("replacement", "[không rõ]") != "[không rõ]":
+            raise ValueError("Only whole-segment [không rõ] annotation is permitted")
+        sub_map[index] = "[không rõ]"
 
     new_segments = []
     for seg in block_result.segments:

@@ -58,7 +58,7 @@ class TranscriptValidator:
         5. Empty text (no segment has empty text)
         6. Timestamp formatting (if present, valid HH:MM:SS or MM:SS)
         7. Speaker consistency
-        8. Verbatim integrity (no AI meta-commentary, no hallucination loops)
+        8. Verbatim integrity (no AI meta-commentary; loops reviewed by fidelity)
         """
         errors: list[str] = []
         warnings: list[str] = []
@@ -132,10 +132,7 @@ class TranscriptValidator:
                 if phrase in text_lower:
                     errors.append(f"Forbidden AI meta-commentary in segment {seg.source_index}: '{phrase}'.")
 
-            # Check phrase loops
-            phrase_loop_match = re.search(r"(\b[\w\s]{4,30}\b)(?:\s+\1){4,}", seg.text, re.IGNORECASE)
-            if phrase_loop_match:
-                errors.append(f"Repetitive phrase loop in segment {seg.source_index}: '{phrase_loop_match.group(1).strip()}'.")
+            # Repetition is spoken content; heuristic loop review belongs to fidelity.
 
         # Timestamp estimate warning: if timestamps exist but are all Gemini estimates
         # (no forced alignment in current pipeline), add informational warning
@@ -204,9 +201,10 @@ class TranscriptValidator:
                 if phrase in text_lower:
                     errors.append(f"Forbidden AI meta-commentary: '{phrase}'.")
 
-            phrase_loop_match = re.search(r"(\b[\w\s]{4,30}\b)(?:\s+\1){4,}", cleaned, re.IGNORECASE)
-            if phrase_loop_match:
-                errors.append(f"Repetitive phrase loop: '{phrase_loop_match.group(1).strip()}'.")
+            # Legacy text callers receive an advisory; repetition cannot prove failure.
+            from src.fidelity_validator import ContentFidelityValidator
+            if ContentFidelityValidator().check_repetition([TranscriptSegment(1, cleaned)]):
+                warnings.append("POSSIBLE_GENERATION_LOOP: audio review needed.")
 
             # Timestamp check
             if not re.search(r"\[?\d{1,2}:\d{2}\]?", cleaned):
@@ -215,4 +213,3 @@ class TranscriptValidator:
             return ValidationResult(is_valid=len(errors) == 0, errors=errors, warnings=warnings)
 
         return ValidationResult(is_valid=False, errors=[f"Unsupported data type for validation: {type(data).__name__}"])
-

@@ -51,6 +51,8 @@ class AudioReviewResult:
 
     def get_substitutions(self) -> list[dict]:
         """Return substitution dicts for apply_unknown_substitutions()."""
+        if any(i.replacement != "[không rõ]" for i in self.issues):
+            raise ValueError("Review may only annotate whole segments with [không rõ]")
         return [
             {"source_index": i.source_index, "replacement": i.replacement}
             for i in self.issues
@@ -84,7 +86,7 @@ Output phải là JSON thuần túy theo schema:
       "source_index": <integer>,
       "candidate_text": "<text gốc>",
       "reason": "<lý do không xác minh được>",
-      "replacement": "<text đã sửa với [không rõ] hoặc toàn bộ [không rõ]>"
+      "replacement": "[không rõ]"
     }
   ]
 }
@@ -150,6 +152,8 @@ def _parse_review_response(raw_response: str) -> AudioReviewResult:
             error=f"JSON parse error: {exc}",
         )
 
+    if not isinstance(data, dict) or not isinstance(data.get("issues", []), list):
+        return AudioReviewResult(status=ReviewStatus.UNCERTAIN, error="Invalid review shape")
     status_str = str(data.get("status", "UNCERTAIN")).upper()
     try:
         status = ReviewStatus(status_str)
@@ -159,7 +163,10 @@ def _parse_review_response(raw_response: str) -> AudioReviewResult:
     issues = []
     for item in data.get("issues", []):
         if not isinstance(item, dict):
-            continue
+            return AudioReviewResult(status=ReviewStatus.UNCERTAIN, error="Invalid review issue")
+        if item.get("replacement", "[không rõ]") != "[không rõ]":
+            return AudioReviewResult(status=ReviewStatus.UNCERTAIN,
+                                     error="Unsafe review replacement rejected")
         try:
             issue = ReviewIssue(
                 source_index=int(item.get("source_index", 0)),
@@ -169,7 +176,10 @@ def _parse_review_response(raw_response: str) -> AudioReviewResult:
             )
             issues.append(issue)
         except (ValueError, TypeError):
-            continue
+            return AudioReviewResult(status=ReviewStatus.UNCERTAIN, error="Invalid review issue")
+
+    if status == ReviewStatus.PASS and issues:
+        status = ReviewStatus.UNCERTAIN
 
     return AudioReviewResult(
         status=status,

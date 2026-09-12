@@ -7,6 +7,9 @@ import pytest
 from src.main import run_pipeline
 from src.block_builder import SourceBlock, AdaptiveBlockSlice
 from src.failure_classifier import FailureType
+from src.transcriber import GeminiTranscriber, TranscriptionOutcome
+from src.checkpoint import CheckpointManager
+from src.fidelity_validator import ContentFidelityValidator, FidelityValidationResult, FidelityStatus, FidelityRisk
 
 
 @pytest.mark.parametrize("structural_ok,fidelity,expected_success", [
@@ -15,6 +18,7 @@ from src.failure_classifier import FailureType
     (True, "FAIL", False),
     (False, "FAIL", False),
     (True, "REVIEW", False),
+    (True, "LOOP", False),
 ])
 def test_validation_gates_preserve_confirmed_progress(
     tmp_path, monkeypatch, structural_ok, fidelity, expected_success
@@ -47,13 +51,50 @@ def test_validation_gates_preserve_confirmed_progress(
     monkeypatch.setattr("src.main.DabbAudioOrchestrator.on_block_failure",
                         lambda self, failure: failures.append(failure))
     requests = []
+    events = []
+    original_transcribe = GeminiTranscriber.transcribe_block
+    original_commit = CheckpointManager.commit_block
+    original_validate = ContentFidelityValidator.validate
+
+    def validate_with_deterministic_failure(self, block_result):
+        # Stage 2 removed the invalid lexical FAIL for ordinary "dữ liệu".
+        # Inject FAIL to keep testing the orchestrator's independent status gate.
+        if block_result.block_id == "BLOCK_002" and fidelity == "FAIL":
+            return FidelityValidationResult(FidelityStatus.FAIL, FidelityRisk.HIGH)
+        return original_validate(self, block_result)
+
+    monkeypatch.setattr(ContentFidelityValidator, "validate", validate_with_deterministic_failure)
+
+    def trace_transcribe(self, **kwargs):
+        outcome = original_transcribe(self, **kwargs)
+        assert isinstance(outcome, TranscriptionOutcome)
+        events.append((
+            "validated", outcome.block_result.block_id,
+            outcome.structural_validation.is_valid,
+            outcome.fidelity_validation.is_valid,
+        ))
+        return outcome
+
+    def trace_commit(self, **kwargs):
+        # A model-provided CONFIRMED status alone must never authorize a commit.
+        assert events[-1] == ("validated", kwargs["block_id"], True, True)
+        result = original_commit(self, **kwargs)
+        events.append(("checkpoint", kwargs["block_id"]))
+        return result
+
+    monkeypatch.setattr(GeminiTranscriber, "transcribe_block", trace_transcribe)
+    monkeypatch.setattr(CheckpointManager, "commit_block", trace_commit)
+
     def generate(self, **kwargs):
         second = "BLOCK_002" in kwargs["user_prompt"]
         requests.append(second)
         index = 2 if second else 1
         text = "Anh... anh cho tôi hỏi cái này."
         if second:
-            text = {"PASS": "Dạ vâng, anh cứ hỏi.", "FAIL": "dữ liệu", "REVIEW": "[không rõ]"}[fidelity]
+            text = {
+                "PASS": "Dạ vâng, anh cứ hỏi.", "FAIL": "dữ liệu",
+                "REVIEW": "[không rõ]", "LOOP": "chúng ta cần xử lý phần này " * 5,
+            }[fidelity]
         segments = [{"source_index": index, "text": text, "timestamp": "01:00" if second else "00:00"}]
         if second and not structural_ok:
             segments.append(dict(segments[0]))  # Deterministic duplicate failure.
@@ -73,6 +114,15 @@ def test_validation_gates_preserve_confirmed_progress(
     assert len(checkpoint["confirmed_segments"]) == (2 if expected_success else 1)
     assert checkpoint["confirmed_segments"][0]["text"] == "Anh... anh cho tôi hỏi cái này."
     assert requests == ([False, True] if expected_success else [False, True, True])
+    assert events[:2] == [
+        ("validated", "BLOCK_001", True, True),
+        ("checkpoint", "BLOCK_001"),
+    ]
+    second_validation = ("validated", "BLOCK_002", structural_ok, fidelity == "PASS")
+    assert events[2:] == (
+        [second_validation, ("checkpoint", "BLOCK_002")]
+        if expected_success else [second_validation, second_validation]
+    )
     if expected_success:
         assert checkpoint["status"] == "COMPLETED"
         output = (tmp_path / "output" / "transcript.txt").read_text(encoding="utf-8")

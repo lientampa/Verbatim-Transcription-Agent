@@ -37,13 +37,15 @@ def test_validator_forbidden_meta_phrases(validator):
     assert any("dưới đây là bản phiên âm" in e.lower() for e in result.errors)
 
 
-def test_validator_hallucination_loop(validator):
+def test_validator_loop_requires_review_not_structural_rejection(validator):
     looping_text = (
         "[00:00] Người nói 1: " + "cảm ơn các bạn rất nhiều " * 6
     )
     result = validator.validate(looping_text)
-    assert result.is_valid is False
-    assert any("loop" in e.lower() or "repetitive" in e.lower() for e in result.errors)
+    # Repetition alone cannot prove hallucination: Stage 2 routes it to review.
+    assert result.is_valid is True
+    assert result.errors == []
+    assert any("POSSIBLE_GENERATION_LOOP" in warning for warning in result.warnings)
 
 
 def test_validator_silence_tag(validator):
