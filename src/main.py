@@ -252,6 +252,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                         block_id=block_id,
                         first_source_index=next_source_index,
                         start_offset_seconds=block.start_time_seconds,
+                        end_offset_seconds=block.end_time_seconds,
                     )
                     block_result = outcome.block_result
                     last_val_result = outcome.structural_validation
@@ -283,13 +284,14 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 else:
                     # Classify validation failure for DABB feedback
                     failure_summary = (
-                        f"Structural: {last_val_result.summary()}; "
+                        f"Attempt {v_attempt}/{config.validator_max_retries}; Structural: {last_val_result.summary()}; "
                         f"Fidelity: {fidelity_result.summary()}"
                     )
                     failure_type = (
                         FailureType.FIDELITY_FAILURE
                         if not fidelity_result.allows_confirmation
-                        else classify_failure(last_val_result.summary(), last_val_result)
+                        else (FailureType.STRUCTURAL_FAILURE if last_val_result.reason_codes
+                              else classify_failure(last_val_result.summary(), last_val_result))
                     )
                     orchestrator.on_block_failure(failure_type)
                     print(f" [{failure_summary}]", end="", flush=True)

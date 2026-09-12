@@ -13,7 +13,7 @@ from src.response_parser import (
     InvalidJSONError,
     SchemaValidationError,
 )
-from src.transcript_validator import TranscriptValidator, ValidationResult
+from src.transcript_validator import TranscriptValidator, ValidationResult, ExpectedBlockContext
 from src.fidelity_validator import ContentFidelityValidator, FidelityValidationResult, FidelityStatus
 from src.validator import BaseValidator
 
@@ -125,6 +125,7 @@ class GeminiTranscriber:
         first_source_index: int,
         last_source_index: int | None = None,
         start_offset_seconds: float = 0.0,
+        end_offset_seconds: float | None = None,
     ) -> TranscriptionOutcome:
         """Execute transcription, JSON parsing, schema validation, structural validation,
         and content fidelity validation for a block.
@@ -169,6 +170,8 @@ class GeminiTranscriber:
             block_result=block_result,
             expected_first_index=first_source_index,
             expected_last_index=last_source_index,
+            expected_context=ExpectedBlockContext(job_id, session_id, block_id,
+                first_source_index, last_source_index, start_offset_seconds, end_offset_seconds),
         )
 
         # Content Fidelity Validation (Tier 2) — always run, even if structural fails

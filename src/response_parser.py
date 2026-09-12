@@ -37,8 +37,8 @@ class TranscriptSegment:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "TranscriptSegment":
         return cls(
-            source_index=int(data["source_index"]),
-            text=str(data["text"]).strip(),
+            source_index=data["source_index"],
+            text=data["text"],
             timestamp=data.get("timestamp"),
             speaker=data.get("speaker"),
         )
@@ -76,8 +76,8 @@ class TranscriptionBlockResult:
             job_id=data["job_id"],
             session_id=data["session_id"],
             block_id=data["block_id"],
-            first_source_index=int(data["first_source_index"]),
-            last_source_index=int(data["last_source_index"]),
+            first_source_index=data["first_source_index"],
+            last_source_index=data["last_source_index"],
             status=data["status"],
             segments=segments,
         )
@@ -157,11 +157,5 @@ class ResponseParser:
             jsonschema.validate(instance=parsed_data, schema=schema)
         except jsonschema.ValidationError as exc:
             raise SchemaValidationError(f"JSON schema validation failed: {exc.message} at path {list(exc.path)}") from exc
-
-        # Synchronize last_source_index with actual last segment if present
-        if parsed_data.get("segments") and isinstance(parsed_data["segments"], list) and len(parsed_data["segments"]) > 0:
-            last_seg = parsed_data["segments"][-1]
-            if isinstance(last_seg, dict) and "source_index" in last_seg:
-                parsed_data["last_source_index"] = int(last_seg["source_index"])
 
         return TranscriptionBlockResult.from_dict(parsed_data)

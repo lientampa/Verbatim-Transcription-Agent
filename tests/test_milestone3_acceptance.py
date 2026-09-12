@@ -574,17 +574,18 @@ def test_audio_block_dynamic_last_index_mismatch(parser, validator):
         "last_source_index": 139,  # Guessed ahead of generating segments
         "status": "CONFIRMED",
         "segments": [
-            {"source_index": i, "timestamp": f"00:{i:02d}", "speaker": "Speaker", "text": f"Lời nói {i}"}
+            {"source_index": i, "timestamp": f"{i // 60:02d}:{i % 60:02d}", "speaker": "Speaker", "text": f"Lời nói {i}"}
             for i in range(1, 74)
         ],
     }
 
-    # Parser automatically aligns last_source_index with actual last segment (73)
+    # Stage 3 preserves the model's invalid metadata instead of silently repairing it.
     block_res = parser.parse(json.dumps(raw_json))
-    assert block_res.last_source_index == 73
+    assert block_res.last_source_index == 139
 
-    # Validator checks range [1, 73] when expected_last_index is None
+    # A dynamic end still requires consistency with the returned segment endpoint.
     val_res = validator.validate_block_result(block_res, expected_first_index=1, expected_last_index=None)
-    assert val_res.is_valid is True
-    assert len(val_res.errors) == 0
+    assert val_res.is_valid is False
+    assert "LAST_SOURCE_INDEX_MISMATCH" in val_res.reason_codes
+    assert block_res.last_source_index == 139
 
