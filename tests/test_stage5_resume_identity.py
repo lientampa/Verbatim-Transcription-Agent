@@ -20,7 +20,7 @@ def seed(path, source_path, duration=1500, ends=(360, 780, 1020)):
     start = 0
     for index, end in enumerate(ends, 1):
         block_id = f"BLOCK_{index:03d}"
-        manager.commit_block(block_id, index, [{"source_index": index, "text": "Vâng."}],
+        manager.commit_block(block_id, index, [{"source_index": index, "text": "Vâng.", "timestamp": f"{int(start)//60:02d}:{int(start)%60:02d}", "speaker": "Người nói 1"}],
             metric=dict(block_id=block_id, actual_start_offset=start, actual_end_offset=end,
                         coverage={"decision": "COVERAGE_PASS"},
                         fidelity_decision="ACCEPT"), adaptive_state={"target_tokens": 1200})

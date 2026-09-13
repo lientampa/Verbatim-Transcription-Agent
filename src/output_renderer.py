@@ -5,6 +5,9 @@ from typing import Sequence
 import os
 import re
 import tempfile
+import math
+import json
+import shutil
 import docx
 from docx.shared import Pt, RGBColor
 from src.response_parser import TranscriptSegment
@@ -19,10 +22,10 @@ def parse_timestamp_to_seconds(ts: str | None) -> float | None:
     try:
         if len(parts) == 3:
             h, m, s = int(parts[0]), int(parts[1]), float(parts[2])
-            return h * 3600 + m * 60 + s
+            return h * 3600 + m * 60 + s if h >= 0 and 0 <= m < 60 and 0 <= s < 60 and math.isfinite(s) else None
         elif len(parts) == 2:
             m, s = int(parts[0]), float(parts[1])
-            return m * 60 + s
+            return m * 60 + s if m >= 0 and 0 <= s < 60 and math.isfinite(s) else None
     except (ValueError, TypeError):
         return None
     return None
@@ -64,19 +67,29 @@ def normalize_timestamp_display(ts: str | None) -> str | None:
 class OutputRenderer:
     """Renders validated transcription segments into TXT, DOCX, and SRT formats."""
 
-    def __init__(self, default_segment_duration_seconds: float = 4.0, strict_speaker_format: bool = False) -> None:
+    def __init__(self, default_segment_duration_seconds: float = 4.0, strict_speaker_format: bool = False, srt_end_policy: str = "NEXT_START", srt_min_duration: float = 0.1, source_end: float | None = None) -> None:
         self.default_segment_duration_seconds = default_segment_duration_seconds
         self.strict_speaker_format = strict_speaker_format
+        if srt_end_policy not in ("NEXT_START", "ESTIMATED"):
+            raise ValueError("SRT_END_POLICY_UNSUPPORTED: schema has no model end")
+        if not math.isfinite(srt_min_duration) or srt_min_duration < .001 or not math.isfinite(default_segment_duration_seconds) or default_segment_duration_seconds <= 0:
+            raise ValueError("SRT_DURATION_INVALID")
+        self.srt_end_policy = srt_end_policy
+        self.srt_min_duration = srt_min_duration
+        self.source_end = source_end
+        self.render_contract_version = 2
 
     def validate_output_fields(self, segments):
         if not self.strict_speaker_format:
             return
         for segment in segments:
             label = segment.speaker or ""
-            if (not label.strip() or re.search(r"[\r\n\[\]:]", label)
+            if (not label.strip() or re.search(r"[\r\n\[\]:=]", label)
                     or re.fullmatch(r"(?:speaker|segment|block|unknown)[_ -]*[a-z0-9]+", label.strip(), re.I)):
                 raise ValueError(f"SPEAKER_LABEL_REQUIRED: segment ordinal {segment.source_index}; human-readable stable label required")
-            if not segment.timestamp or not re.fullmatch(r"(?:[0-9]{1,2}:)?[0-9]{1,2}:[0-9]{2}", segment.timestamp):
+            if "\n" in segment.text or "\r" in segment.text:
+                raise ValueError("RENDER_MULTILINE_SEGMENT")
+            if parse_timestamp_to_seconds(segment.timestamp) is None or not segment.timestamp or not re.fullmatch(r"(?:[0-9]{1,2}:)?[0-9]{1,2}:[0-9]{2}", segment.timestamp):
                 raise ValueError(f"ABSOLUTE_TIMESTAMP_REQUIRED: segment ordinal {segment.source_index}")
 
     def _display_timestamp(self, segment):
@@ -115,7 +128,7 @@ class OutputRenderer:
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         lines = [self.format_txt_line(seg) for seg in segments]
-        content = "\n\n".join(lines)
+        content = ("\n" if self.strict_speaker_format else "\n\n").join(lines)
 
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(content)
@@ -199,37 +212,14 @@ class OutputRenderer:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        srt_blocks: list[str] = []
-        cue_index = 1
-
-        total_segments = len(segments)
-        for i, seg in enumerate(segments):
-            start_sec = parse_timestamp_to_seconds(seg.timestamp)
-            if start_sec is None:
-                # If no timestamp, calculate sequential offset based on cue index
-                start_sec = (cue_index - 1) * self.default_segment_duration_seconds
-
-            # Explicit policy for end timestamp calculation without hallucination:
-            # If next segment has valid timestamp > start_sec, use min(next_start, start_sec + default_duration)
-            end_sec: float
-            if i + 1 < total_segments:
-                next_start = parse_timestamp_to_seconds(segments[i + 1].timestamp)
-                if next_start is not None and next_start > start_sec:
-                    end_sec = min(next_start, start_sec + self.default_segment_duration_seconds)
-                else:
-                    end_sec = start_sec + self.default_segment_duration_seconds
-            else:
-                end_sec = start_sec + self.default_segment_duration_seconds
-
-            start_srt = format_seconds_to_srt_time(start_sec)
-            end_srt = format_seconds_to_srt_time(end_sec)
-
+        srt_blocks = []
+        for i, (start_sec, end_sec) in enumerate(self.srt_times(segments), 1):
+            seg = segments[i-1]
+            # Retain the existing explicit product convention in strict mode:
+            # the user previously required the bracketed line in all formats.
             speaker_tag = f"[{seg.speaker.strip()}]: " if seg.speaker and seg.speaker.strip() else ""
             sub_text = self.format_txt_line(seg) if self.strict_speaker_format else f"{speaker_tag}{seg.text}"
-
-            cue = f"{cue_index}\n{start_srt} --> {end_srt}\n{sub_text}"
-            srt_blocks.append(cue)
-            cue_index += 1
+            srt_blocks.append(f"{i}\n{format_seconds_to_srt_time(start_sec)} --> {format_seconds_to_srt_time(end_sec)}\n{sub_text}")
 
         content = "\n\n".join(srt_blocks)
         with open(output_path, "w", encoding="utf-8") as f:
@@ -239,31 +229,43 @@ class OutputRenderer:
 
         return output_path
 
-    def render_all(
-        self,
-        segments: Sequence[TranscriptSegment],
-        base_dir: Path,
-        job_id: str | None = None,
-    ) -> dict[str, Path]:
-        """Render all 3 required output formats: TXT, DOCX, and SRT.
+    def srt_times(self, segments):
+        starts = [parse_timestamp_to_seconds(seg.timestamp) for seg in segments]
+        if any(t is None for t in starts):
+            if self.strict_speaker_format:
+                raise ValueError("SRT_START_REQUIRED")
+            starts = [t if t is not None else i*self.default_segment_duration_seconds for i,t in enumerate(starts)]
+        if any(b < a for a,b in zip(starts, starts[1:])):
+            raise ValueError("SRT_START_ORDER")
+        times = []
+        for i, start in enumerate(starts):
+            end = (starts[i+1] if self.srt_end_policy == "NEXT_START" and i+1 < len(starts)
+                   else start + self.default_segment_duration_seconds)
+            end = max(end, start + self.srt_min_duration)
+            if self.source_end is not None:
+                end = min(end, self.source_end)
+            if round(end*1000) <= round(start*1000):
+                raise ValueError("SRT_NONPOSITIVE_DURATION")
+            times.append((start,end))
+        return times
 
-        Each format is rendered independently. A PermissionError on DOCX
-        (e.g. file open in Word) raises immediately with a clear message.
-        TXT and SRT are always attempted.
-        """
-        self.validate_output_fields(segments)
+    def render_all(self, segments, base_dir, job_id=None):
+        """Stage and validate the complete set before publishing, with rollback."""
+        from src.renderer_validator import RendererValidator
+        from src.render_transaction import publish_outputs, recover_outputs
         base_dir = Path(base_dir)
-        txt_path = base_dir / "transcript.txt"
-        docx_path = base_dir / "transcript.docx"
-        srt_path = base_dir / "subtitle.srt"
-
-        self.render_txt(segments, txt_path)
-        self.render_srt(segments, srt_path)
-        # DOCX last — most likely to be locked. TXT & SRT already saved.
-        self.render_docx(segments, docx_path)
-
-        return {
-            "txt": txt_path,
-            "docx": docx_path,
-            "srt": srt_path,
-        }
+        base_dir.mkdir(parents=True, exist_ok=True)
+        recover_outputs(base_dir)
+        self.validate_output_fields(segments)
+        with tempfile.TemporaryDirectory(prefix=".render-stage-", dir=base_dir) as temporary:
+            stage = Path(temporary)
+            self.render_txt(segments, stage / "transcript.txt")
+            self.render_docx(segments, stage / "transcript.docx")
+            self.render_srt(segments, stage / "subtitle.srt")
+            RendererValidator.validate(self, segments, stage)
+            (stage / "render_manifest.json").write_text(json.dumps({
+                "render_contract_version": self.render_contract_version,
+                "segment_count": len(segments), "srt_end_policy": self.srt_end_policy,
+                "srt_end_is_estimated": True, "source_end": self.source_end, **getattr(self, "provenance", {})}), encoding="utf-8")
+            publish_outputs(stage, base_dir)
+        return {"txt": base_dir / "transcript.txt", "docx": base_dir / "transcript.docx", "srt": base_dir / "subtitle.srt"}

@@ -117,8 +117,10 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             if existing_data.next_audio_start_us == source_identity.duration_us:
                 # Checkpoint is the durable transcript manifest. Rebuild derived outputs
                 # without creating a provider client, even after a render-time crash.
-                OutputRenderer(strict_speaker_format=config.strict_speaker_format).render_all(
-                    segments=[TranscriptSegment.from_dict(seg) for seg in existing_data.confirmed_segments],
+                recovery_renderer = OutputRenderer(strict_speaker_format=config.strict_speaker_format, srt_end_policy=config.srt_end_policy, srt_min_duration=config.srt_min_duration, default_segment_duration_seconds=config.srt_estimated_duration, source_end=total_duration)
+                recovery_renderer.provenance = {"source_fingerprint": source_identity.fingerprint, "checkpoint_version": existing_data.schema_version, "committed_block_count": len(existing_data.block_metrics)}
+                recovery_renderer.render_all(
+                    segments=OutputMerger.from_checkpoint(existing_data, require_complete=True).get_merged_segments(),
                     base_dir=config.output_dir, job_id=existing_data.job_id)
                 checkpoint_mgr.update_status(CheckpointStatus.COMPLETED,
                     transcript_file=config.output_transcript_path.name)
@@ -194,7 +196,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         response_parser=response_parser,
     )
 
-    renderer = OutputRenderer(strict_speaker_format=config.strict_speaker_format)
+    renderer = OutputRenderer(strict_speaker_format=config.strict_speaker_format, srt_end_policy=config.srt_end_policy, srt_min_duration=config.srt_min_duration, default_segment_duration_seconds=config.srt_estimated_duration, source_end=total_duration)
     coverage_validator = CoverageValidator(config)
 
     # -------------------------------------------------------------
@@ -412,7 +414,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             )
 
             # Merge block segments idempotently
-            merger.merge_block_result(block_result)
+            # Do not merge an attempt before durable commit.
             # Keep declared last_source_index untouched in the response/diagnostics.
             # Compatibility counters describe stored segments; audio progress uses boundaries.
             final_segment_ordinal = block_result.segments[-1].source_index
@@ -468,6 +470,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 metric=metric, adaptive_state={},
                 file_id=last_file_id,
             )
+            merger.merge_block_result(block_result)  # Committed speaker context only.
             model_health.success(actual_model, adaptive_slice.current_duration_seconds)
 
     except CheckpointError as exc:
@@ -489,8 +492,11 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
     # Step 4: Render outputs (TXT, DOCX, SRT)
     # -------------------------------------------------------------
     print("[4/5] Rendering outputs (transcript.txt, transcript.docx, subtitle.srt)...")
-    merged_segments = merger.get_merged_segments()
     try:
+        committed = checkpoint_mgr.load()
+        merger = OutputMerger.from_checkpoint(committed, require_complete=True)
+        renderer.provenance = {"source_fingerprint": source_identity.fingerprint, "checkpoint_version": committed.schema_version, "committed_block_count": len(committed.block_metrics)}
+        merged_segments = merger.get_merged_segments()
         rendered_paths = renderer.render_all(
             segments=merged_segments,
             base_dir=config.output_dir,

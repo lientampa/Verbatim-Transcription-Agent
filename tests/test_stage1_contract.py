@@ -110,7 +110,7 @@ def test_validation_gates_preserve_confirmed_progress(
             }[fidelity]
         segments = [{"source_index": index, "text": text, "timestamp": "01:00" if second else "00:00"}]
         if second and fidelity == "MULTIPLE":
-            segments.extend({"source_index": i, "text": t} for i, t in
+            segments.extend({"source_index": i, "text": t, "timestamp": "01:00"} for i, t in
                             [(3, "[không rõ]"), (4, "Vâng."), (5, "[không rõ]")])
         if second and not structural_ok and fidelity not in ("IDENTITY", "STATUS", "TIMESTAMP"):
             segments.append(dict(segments[0]))  # Deterministic duplicate failure.
