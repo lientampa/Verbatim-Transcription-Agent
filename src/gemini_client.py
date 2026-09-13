@@ -210,6 +210,23 @@ class GeminiClient:
 
         raise GeminiUploadError(f"Failed to upload audio after {self.max_retries} attempts: {last_err}") from last_err
 
+    def refresh_audio_upload(self, gemini_file: Any, audio_path: Path) -> Any:
+        """Validate an in-memory reference before reuse; never restore checkpoint file_id."""
+        from datetime import datetime, timezone
+        expiration = getattr(gemini_file, "expiration_time", None)
+        if isinstance(expiration, datetime) and expiration.replace(tzinfo=expiration.tzinfo or timezone.utc) <= datetime.now(timezone.utc):
+            return self.upload_audio(audio_path)
+        try:
+            refreshed = self.client.files.get(name=gemini_file.name)
+        except Exception as exc:
+            if getattr(exc, "code", None) == 404:
+                return self.upload_audio(audio_path)
+            raise GeminiUploadError("UPLOAD_REFERENCE_CHECK_FAILED") from exc
+        state = getattr(getattr(refreshed, "state", None), "name", None)
+        if state in ("FAILED", "EXPIRED"):
+            return self.upload_audio(audio_path)
+        return refreshed
+
     def _call_model(self, model: str, gemini_file: Any, user_prompt: str, config: Any) -> str | None:
         """Helper to invoke models.generate_content and extract transcript text."""
         require_model_allowed(model, getattr(self, "allow_lite_models", False))
@@ -249,6 +266,8 @@ class GeminiClient:
             "input_tokens": getattr(usage, "prompt_token_count", None),
             "output_tokens": getattr(usage, "candidates_token_count", None),
             "total_tokens": getattr(usage, "total_token_count", None),
+            "thought_tokens": getattr(usage, "thoughts_token_count", None),
+            "configured_max_output_tokens": getattr(config, "max_output_tokens", None),
         })
 
         # 1. Try extracting text from candidates parts
@@ -258,6 +277,13 @@ class GeminiClient:
             reason = getattr(reason, "value", reason)
             self.last_response_metadata["finish_reason"] = reason
             if reason == "MAX_TOKENS":
+                parts = getattr(getattr(candidate, "content", None), "parts", None) or []
+                self.last_response_metadata["response_text_characters"] = sum(len(getattr(p, "text", None) or "") for p in parts if not getattr(p, "thought", False))
+                diagnostic = {key: self.last_response_metadata.get(key) for key in (
+                    "block_id", "actual_model", "provider_attempt", "finish_reason",
+                    "input_tokens", "output_tokens", "thought_tokens", "total_tokens",
+                    "configured_max_output_tokens", "response_text_characters")}
+                print(f" [MAX_TOKENS_DIAGNOSTICS {diagnostic}]", flush=True)
                 raise GeminiSizeError("OUTPUT_TRUNCATED: provider finish_reason=MAX_TOKENS", self.last_response_metadata)
             if hasattr(candidate, "content") and candidate.content and candidate.content.parts:
                 extracted = "".join(

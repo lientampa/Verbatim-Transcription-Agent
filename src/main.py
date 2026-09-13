@@ -12,7 +12,7 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
-from src.source_identity import SourceIdentity, UNITS_PER_SECOND
+from src.source_identity import SourceIdentity, UNITS_PER_SECOND, sha256_file
 from src.gemini_client import ModelReplanRequired, GeminiTranscribeError
 from src.model_health import ModelHealth
 from src.coverage_validator import CoverageValidator, CoverageDecision
@@ -104,6 +104,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
     try:
         source_identity = SourceIdentity.capture(target_audio.path, total_duration)
         orchestrator.source_identity = source_identity
+        print(f"[SOURCE_IDENTITY] mode=AUDIO fingerprint={source_identity.fingerprint} duration={total_duration}")
         existing_data = checkpoint_mgr.load() if not force else checkpoint_mgr.current_data
         has_checkpoint = config.checkpoint_file_path.exists() and not force
         if has_checkpoint:
@@ -112,8 +113,16 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                    for m in existing_data.block_metrics):
                 raise CheckpointError("COVERAGE_UNVERIFIED_CHECKPOINT: historical progress lacks coverage evidence; explicit reprocessing required")
             print(f"[SOURCE_MATCH] fingerprint={source_identity.fingerprint[:12]} version={existing_data.schema_version}")
-            if checkpoint_mgr.is_completed_for(target_audio.file_name, config.output_transcript_path, source_identity):
-                print("STATUS: COMPLETED (Cached; verified source and EOF)")
+            print(f"[CHECKPOINT_LOAD] status=VALID last_committed_block={existing_data.current_block_id} last_confirmed_audio_end={existing_data.next_audio_start_us / UNITS_PER_SECOND}")
+            if existing_data.next_audio_start_us == source_identity.duration_us:
+                # Checkpoint is the durable transcript manifest. Rebuild derived outputs
+                # without creating a provider client, even after a render-time crash.
+                OutputRenderer(strict_speaker_format=config.strict_speaker_format).render_all(
+                    segments=[TranscriptSegment.from_dict(seg) for seg in existing_data.confirmed_segments],
+                    base_dir=config.output_dir, job_id=existing_data.job_id)
+                checkpoint_mgr.update_status(CheckpointStatus.COMPLETED,
+                    transcript_file=config.output_transcript_path.name)
+                print(f"[RESUME] status=SOURCE_COMPLETE last_confirmed_audio_end={total_duration}")
                 return 0
     except (CheckpointError, OSError, ValueError) as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
@@ -128,16 +137,20 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         start_from_block = len(existing_data.block_metrics) + 1
         for segment in existing_data.confirmed_segments:
             merger.add_segment(TranscriptSegment.from_dict(segment), segment.get("block_id"))
-        adaptive = existing_data.adaptive_state
-        target = adaptive.get("target_tokens") if isinstance(adaptive, dict) else None
-        if type(target) is int and config.min_block_tokens <= target <= config.max_block_tokens:
-            orchestrator.dabb.current_target_tokens = target
-        print(f"[RESUME] next_start={resume_from_seconds} next_block={start_from_block} action=DIRECT_RESUME")
+        # Adaptive hints are disposable and were not versioned/model-scoped.
+        # Fresh resume uses the same new-block policy as normal continuation.
+        print(f"[RESUME] next_start={resume_from_seconds} next_block={start_from_block} reason=LAST_CONFIRMED_AUDIO_END")
     else:
         next_source_index, resume_from_seconds, start_from_block = 1, 0.0, 1
+        if force and config.checkpoint_file_path.exists():
+            from uuid import uuid4
+            backup = config.checkpoint_file_path.with_name(f"checkpoint.before-force.{uuid4().hex}.json")
+            shutil.copy2(config.checkpoint_file_path, backup)
+            print(f"[CHECKPOINT_ARCHIVE] path={backup}")
         current_job = checkpoint_mgr.create_new_job(
             file_name=target_audio.file_name, total_source_segments=total_blocks_approx,
             status=CheckpointStatus.RUNNING, source_identity=source_identity)
+    current_job.contract_metadata = {"transcription_contract_version": 1, "system_prompt_sha256": sha256_file(config.system_prompt_path), "schema_sha256": sha256_file(config.schema_path) if config.schema_path.exists() else None}
     orchestrator.next_block_number = start_from_block
 
     minutes = int(total_duration // 60)
@@ -189,6 +202,8 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
     print(f"[3/5] Transcribing blocks (DABB adaptive, resuming from {next_source_index})...")
     checkpoint_mgr.update_status(CheckpointStatus.PROCESSING)
 
+    block = None
+    block_id = None
     last_file_id: str | None = None
     try:
         for adaptive_slice in orchestrator.iter_adaptive_blocks(start_from_seconds=resume_from_seconds):
@@ -221,21 +236,27 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             last_exc: Exception | None = None
 
             v_attempt, coverage_generation, total_attempts = 1, 1, 0
+            size_retry_count, structural_retry_count, network_failure_count = 0, 0, 0
+            # Independent budgets; the legacy validation setting supplies the
+            # default size allowance, never its consumed counter.
+            size_limit = config.validator_max_retries
             def select_model(model, reason):
                 target = orchestrator.select_model(model, reason)
                 if adaptive_slice.current_duration_seconds > target + 1e-6:
                     raise ModelReplanRequired(target)
             gemini_client.on_model_selected = select_model
-            while v_attempt <= config.validator_max_retries:
+            while True:
                 total_attempts += 1
                 print(f" Transcribing...", end="", flush=True)
                 try:
                     if gemini_file is None:
                         gemini_file = gemini_client.upload_audio(audio_path=block.file_path)
-                        raw_name = getattr(gemini_file, "name", None)
-                        last_file_id = str(raw_name) if raw_name is not None else str(gemini_file)
-                    print(f" [block_id={block_id} attempt={v_attempt} generation={adaptive_slice.generation} "
-                          f"validation_attempt={v_attempt} coverage_generation={coverage_generation} physical_generation={adaptive_slice.generation} "
+                    else:
+                        gemini_file = gemini_client.refresh_audio_upload(gemini_file, block.file_path)
+                    raw_name = getattr(gemini_file, "name", None)
+                    last_file_id = str(raw_name) if raw_name is not None else str(gemini_file)
+                    print(f" [block_id={block_id} attempt={total_attempts} generation={adaptive_slice.generation} "
+                          f"validation_attempt={v_attempt} structural_retry_count={structural_retry_count} size_retry_count={size_retry_count} coverage_generation={coverage_generation} physical_generation={adaptive_slice.generation} "
                           f"start={block.start_time_seconds} end={block.end_time_seconds} "
                           f"duration={adaptive_slice.current_duration_seconds} slice={block.file_path} "
                           f"upload={last_file_id} action=TRANSCRIBE]", end="", flush=True)
@@ -259,7 +280,8 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     gemini_file = None
                     continue
                 except Exception as exc:
-                    if isinstance(exc.__cause__, GeminiTranscribeError):
+                    if (isinstance(exc, GeminiTranscribeError) or
+                            isinstance(exc.__cause__, GeminiClientError) and classify_failure(exc) != FailureType.SIZE_FAILURE):
                         raise  # Client provider budget is already exhausted.
                     metadata = getattr(gemini_client, "last_response_metadata", {})
                     orchestrator.select_model(metadata.get("actual_model", orchestrator.active_model))
@@ -271,25 +293,36 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     orchestrator.on_block_failure(failure_type)
                     print(f" [failure_class={failure_type.value} target_before={target_before} "
                           f"target_after={orchestrator.dabb.current_target_tokens}]", end="", flush=True)
-                    if v_attempt < config.validator_max_retries:
-                        if failure_type == FailureType.SIZE_FAILURE:
-                            orchestrator.rebuild_audio_block(adaptive_slice)
-                            block = adaptive_slice.source_block
-                            gemini_file = None  # Old upload cannot represent new boundaries.
-                            print(" [action=SHRINK_REBUILD_REUPLOAD]", end="", flush=True)
-                        print(f" Retrying ({v_attempt+1}/{config.validator_max_retries})...", end="", flush=True)
+                    if failure_type == FailureType.SIZE_FAILURE:
+                        size_retry_count += 1
+                        if size_retry_count >= size_limit:
+                            raise TranscriptionError(f"SIZE_RETRIES_EXHAUSTED: block={block_id} size_failures={size_retry_count} size_limit={size_limit} total_attempts={total_attempts}: {exc}") from exc
+                        orchestrator.rebuild_audio_block(adaptive_slice)
+                        block = adaptive_slice.source_block
+                        gemini_file = None
+                        print(f" [action=SHRINK_REBUILD_REUPLOAD size_retry_count={size_retry_count}]", end="", flush=True)
                         time.sleep(config.retry_initial_delay_seconds)
-                        v_attempt += 1
                         continue
-                    else:
-                        raise TranscriptionError(
-                            f"{'SIZE_RETRIES_EXHAUSTED: ' if failure_type == FailureType.SIZE_FAILURE else ''}"
-                            f"Block {block_id} failed after {config.validator_max_retries} attempts: {exc}"
-                        ) from exc
+                    if failure_type == FailureType.NETWORK_FAILURE:
+                        # Normally exhausted inside GeminiClient. This bounded
+                        # path handles transport errors escaping an adapter.
+                        network_failure_count += 1
+                        if network_failure_count > config.max_transient_retries_per_model:
+                            raise TranscriptionError("PROVIDER_RETRIES_EXHAUSTED") from exc
+                        time.sleep(config.retry_initial_delay_seconds)
+                        continue
+                    structural_retry_count += 1
+                    if v_attempt >= config.validator_max_retries:
+                        raise TranscriptionError(f"VALIDATION_RETRIES_EXHAUSTED: block={block_id} validation_attempt={v_attempt}: {exc}") from exc
+                    v_attempt += 1
+                    time.sleep(config.retry_initial_delay_seconds)
+                    continue
 
                 metadata = getattr(gemini_client, "last_response_metadata", {})
                 orchestrator.select_model(metadata.get("actual_model", orchestrator.active_model))
                 actual_model = metadata.get("actual_model")
+                if not last_val_result.is_valid:
+                    structural_retry_count += 1
                 if not last_val_result.is_valid and model_health.structural_failure(actual_model, last_val_result, block, block_result):
                     gemini_client.advance_after_output_failure()
                     continue
@@ -377,9 +410,12 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             final_segment_ordinal = block_result.segments[-1].source_index
             next_source_index = final_segment_ordinal + 1
 
+            # Atomic checkpoint contains both transcript payload and physical progress.
+            # Rendered files are rebuildable derivatives, never a resume authority.
             # Atomic Checkpoint Commit ONLY after validation & merge PASS
             # Persist quality signals in existing metadata using the same atomic commit.
             metric = {
+                "contract_metadata": dict(current_job.contract_metadata),
                 "source_mode": "AUDIO",
                 "segment_count": len(block_result.segments),
                 "received_last_source_index": block_result.last_source_index,
@@ -395,6 +431,12 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 "actual_start_offset": block.start_time_seconds,
                 "actual_end_offset": block.end_time_seconds,
                 "attempt_count": total_attempts,
+                "provider_attempt_count": getattr(gemini_client, "_provider_attempt", 0),
+                "validation_attempt_count": v_attempt,
+                "structural_retry_count": structural_retry_count,
+                "size_retry_count": size_retry_count,
+                "coverage_generation_count": coverage_generation,
+                "physical_generation_count": adaptive_slice.generation,
                 "validation_attempt": v_attempt,
                 "coverage_generation": coverage_generation,
                 "physical_generation": adaptive_slice.generation,
@@ -415,7 +457,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 block_id=block_id,
                 last_source_index=final_segment_ordinal,
                 new_segments=[s.to_dict() for s in block_result.segments],
-                metric=metric, adaptive_state={"target_tokens": orchestrator.dabb.current_target_tokens},
+                metric=metric, adaptive_state={},
                 file_id=last_file_id,
             )
             model_health.success(actual_model, adaptive_slice.current_duration_seconds)
@@ -425,6 +467,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         orchestrator.cleanup_slices()
         return 1
     except (GeminiClientError, TranscriptionError, BlockBuilderError, OSError, ValueError) as exc:
+        print(f"[BLOCK_NOT_COMMITTED] block_id={block_id} start={getattr(block, 'start_time_seconds', None)} attempted_end={getattr(block, 'end_time_seconds', None)} checkpoint_end={checkpoint_mgr.current_data.next_audio_start_us / UNITS_PER_SECOND} reason={type(exc).__name__}")
         print(f"\n[ERROR] Pipeline failed during block transcription: {exc}", file=sys.stderr)
         checkpoint_mgr.update_status(
             CheckpointStatus.FAILED,

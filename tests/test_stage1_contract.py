@@ -55,6 +55,7 @@ def test_validation_gates_preserve_confirmed_progress(
     monkeypatch.setattr("src.main.DabbAudioOrchestrator.iter_adaptive_blocks",
                         lambda self, start_from_seconds=0.0: iter(slices))
     monkeypatch.setattr("src.main.GeminiClient.__init__", lambda self, **kwargs: None)
+    monkeypatch.setattr("src.main.GeminiClient.refresh_audio_upload", lambda self, file, path: file)
     monkeypatch.setattr("src.main.GeminiClient.upload_audio", lambda self, **kwargs: "mock-file")
     monkeypatch.setattr("src.main.time.sleep", lambda delay: None)
     failures = []

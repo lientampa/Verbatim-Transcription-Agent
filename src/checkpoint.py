@@ -46,6 +46,8 @@ class CheckpointData:
     confirmed_segments: list[dict[str, Any]] = field(default_factory=list)
     block_metrics: list[dict[str, Any]] = field(default_factory=list)  # Milestone 3.1
     schema_version: int = 1  # Legacy records remain readable, never trusted for resume.
+    source_mode: str | None = None
+    contract_metadata: dict[str, Any] = field(default_factory=dict)
     source_identity: dict[str, Any] | None = None
     next_audio_start_us: int = 0
     adaptive_state: dict[str, Any] = field(default_factory=dict)
@@ -55,6 +57,8 @@ class CheckpointData:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "CheckpointData":
+        if not isinstance(data, dict) or type(data.get("schema_version", 1)) is not int or data.get("schema_version", 1) not in (1, 2):
+            raise CheckpointError("CHECKPOINT_INCOMPATIBLE: unsupported schema version")
         allowed_fields = {
             "job_id",
             "session_id",
@@ -71,7 +75,7 @@ class CheckpointData:
             "error_message",
             "confirmed_segments",
             "block_metrics",  # Milestone 3.1
-            "schema_version", "source_identity", "next_audio_start_us", "adaptive_state",
+            "schema_version", "source_identity", "next_audio_start_us", "adaptive_state", "source_mode", "contract_metadata",
         }
         filtered = {k: v for k, v in data.items() if k in allowed_fields}
         if data.get("schema_version") == 2:
@@ -135,6 +139,7 @@ class CheckpointManager:
             confirmed_segments=[],
             schema_version=2 if source_identity else 1,
             source_identity=source_identity.to_dict() if source_identity else None,
+            source_mode="AUDIO" if source_identity else "TEXT_TIMESTAMP",
         )
         self.save()
         return self.current_data
@@ -166,6 +171,23 @@ class CheckpointManager:
     ) -> CheckpointData:
         """Atomic Checkpoint Commit: Only called after validation and merge PASS."""
         previous = self.current_data
+        if previous.schema_version == 2:
+            self.validate_resume()
+            if metric is None or metric.get("block_id") != block_id:
+                raise CheckpointError("CHECKPOINT_INVALID: AUDIO commit requires physical metric identity")
+            for position, existing in enumerate(previous.block_metrics):
+                if existing["block_id"] == block_id:
+                    same_range = all(to_us(existing[k]) == to_us(metric[k]) for k in ("actual_start_offset", "actual_end_offset"))
+                    stored = [seg for seg in previous.confirmed_segments if seg.get("block_id") == block_id]
+                    if not stored and existing.get("source_mode") is None:
+                        # v2 predecessor used contiguous ordinals, with physical metrics.
+                        first = previous.block_metrics[position - 1]["last_source_index"] if position else 0
+                        stored = [dict(seg, block_id=block_id) for seg in previous.confirmed_segments[first:existing["last_source_index"]]]
+                    candidate = [dict(seg, block_id=block_id) for seg in new_segments]
+                    if same_range and stored == candidate:
+                        print(f"[CHECKPOINT_COMMIT] status=IDEMPOTENT_ALREADY_COMMITTED block_id={block_id}", flush=True)
+                        return previous
+                    raise CheckpointError("CHECKPOINT_INVALID: conflicting duplicate block identity")
         self.current_data = deepcopy(previous)
         if metric is not None:
             self.current_data.block_metrics.append(dict(metric, last_source_index=last_source_index))
@@ -210,14 +232,18 @@ class CheckpointManager:
         except Exception:
             self.current_data = previous
             raise
+        if metric is not None:
+            print(f"[CHECKPOINT_COMMIT] block_id={block_id} start={metric['actual_start_offset']} end={metric['actual_end_offset']} last_confirmed_audio_end={self.current_data.next_audio_start_us / 1_000_000}", flush=True)
         return self.current_data
 
     def validate_resume(self, source: SourceIdentity | None = None) -> None:
         """Reject contradictions without repairing or rewriting checkpoint evidence."""
         data = self.current_data
         if data.schema_version != 2 or not data.source_identity:
-            raise CheckpointError("CHECKPOINT_LEGACY_UNTRUSTED: use explicit --force for a new job")
+            raise CheckpointError("CHECKPOINT_INCOMPATIBLE CHECKPOINT_LEGACY_UNTRUSTED: use explicit --force for a new job")
         try:
+            if data.source_mode not in (None, "AUDIO"):
+                raise ValueError("source mode is not AUDIO")
             identity = data.source_identity
             if type(identity["size_bytes"]) is not int or identity["size_bytes"] < 0:
                 raise ValueError("invalid source size")
@@ -238,7 +264,11 @@ class CheckpointManager:
             end, last_index, segment_offset = 0, 0, 0
             for ordinal, metric in enumerate(data.block_metrics, 1):
                 start, current_end = to_us(metric["actual_start_offset"]), to_us(metric["actual_end_offset"])
-                if start != end or not 0 <= start < current_end <= duration:
+                if start < end:
+                    raise ValueError("CHECKPOINT_BLOCK_OVERLAP")
+                if start > end:
+                    raise ValueError("CHECKPOINT_BLOCK_GAP")
+                if not 0 <= start < current_end <= duration:
                     raise ValueError("noncontiguous or invalid confirmed boundaries")
                 if "final_duration" in metric and to_us(metric["final_duration"]) != current_end - start:
                     raise ValueError("metric duration contradicts boundaries")
@@ -249,7 +279,11 @@ class CheckpointManager:
                 current_index = metric["last_source_index"]
                 if type(current_index) is not int or current_index <= 0:
                     raise ValueError("invalid final ordinal")
+                if metric.get("source_mode") not in (None, "AUDIO"):
+                    raise ValueError("incompatible metric source mode")
                 audio_mode = metric.get("source_mode") == "AUDIO"
+                if audio_mode and metric.get("coverage", {}).get("decision") not in ("COVERAGE_PASS", "COVERAGE_WARNING"):
+                    raise ValueError("unaccepted coverage metric")
                 count = metric["segment_count"] if audio_mode else current_index - last_index
                 if type(count) is not int or count <= 0:
                     raise ValueError("invalid segment count")

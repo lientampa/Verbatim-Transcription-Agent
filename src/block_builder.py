@@ -244,10 +244,12 @@ class AudioBlockBuilder(BlockBuilder):
         try:
             record = json.loads(sidecar.read_text(encoding="utf-8"))
             if record["identity"] == identity and final_file.stat().st_size > 0 and record["artifact_hash"] == sha256_file(final_file):
+                print(f"[SLICE_CACHE] status=HIT source_fingerprint={self.source_identity.fingerprint[:12]} start={start_sec} end={end_sec}", flush=True)
                 logger.info("CACHE_HIT source=%s start_us=%s end_us=%s", self.source_identity.fingerprint[:12], start_us, end_us)
                 return final_file
         except (OSError, ValueError, KeyError, TypeError):
             pass
+        print(f"[SLICE_CACHE] status=MISS source_fingerprint={self.source_identity.fingerprint[:12]} start={start_sec} end={end_sec}", flush=True)
         logger.info("CACHE_MISS identity/metadata/artifact mismatch source=%s start_us=%s end_us=%s", self.source_identity.fingerprint[:12], start_us, end_us)
         block_file = self.cache_dir / f"{block_id}_{uuid4().hex}{ext}"
 

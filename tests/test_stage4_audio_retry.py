@@ -49,6 +49,7 @@ def run_audio_case(tmp_path, monkeypatch, failure="output limit", attempts=3, mi
     # Coverage-specific tests override this analyzer with explicit activity fixtures.
     monkeypatch.setattr("src.coverage_validator.TailActivityAnalyzer.analyze", lambda self, *args: 0.0)
     monkeypatch.setattr("src.main.GeminiClient.__init__", lambda self, **kwargs: None)
+    monkeypatch.setattr("src.main.GeminiClient.refresh_audio_upload", lambda self, file, path: file)
 
     def upload(self, audio_path):
         item = SimpleNamespace(name=f"upload-{len(uploads)}", bounds=json.loads(audio_path.read_text()), path=audio_path)
