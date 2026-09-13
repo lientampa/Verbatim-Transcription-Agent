@@ -30,6 +30,7 @@ from src.fidelity_validator import ContentFidelityValidator, FidelityValidationR
 def test_validation_gates_preserve_confirmed_progress(
     tmp_path, monkeypatch, structural_ok, fidelity, expected_success
 ):
+    monkeypatch.setenv("STRICT_SPEAKER_FORMAT", "false")  # Legacy output contract fixture.
     # Fake media has no decodable audio; these tests model an explicitly silent tail.
     monkeypatch.setattr("src.coverage_validator.TailActivityAnalyzer.analyze", lambda self, *args: 0.0)
     (tmp_path / "audio").mkdir()

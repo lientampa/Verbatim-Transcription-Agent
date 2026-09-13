@@ -20,7 +20,7 @@ def run_audio_case(tmp_path, monkeypatch, failure="output limit", attempts=3, mi
     schema = Path(__file__).resolve().parents[1] / "schemas" / "transcription_result.schema.json"
     (tmp_path / "schemas" / schema.name).write_bytes(schema.read_bytes())
     (tmp_path / ".env").write_text("GEMINI_API_KEY=mock-key\n", encoding="utf-8")
-    config = replace(load_config(tmp_path), initial_target_input_tokens=1500,
+    config = replace(load_config(tmp_path), strict_speaker_format=False, next_target_policy="LEARNED", model_health_strike_limit=10, initial_target_input_tokens=1500,
                      min_block_tokens=10, min_duration_seconds=minimum,
                      max_duration_seconds=900, validator_max_retries=attempts, coverage_max_generations=attempts,
                      block_shrink_factor=0.6, retry_initial_delay_seconds=0)

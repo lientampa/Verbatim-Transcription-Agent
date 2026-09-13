@@ -40,6 +40,10 @@ class ValidationResult:
         if self.is_valid:
             warn_str = f" ({len(self.warnings)} warning(s))" if self.warnings else ""
             return f"PASS{warn_str}"
+        if len(self.errors) > 5:
+            from collections import Counter
+            counts = Counter(self.reason_codes)
+            return f"FAIL: {dict(counts)}; first={self.errors[0]}; last={self.errors[-1]}; full diagnostics retained"
         return f"FAIL: {'; '.join(self.errors)}"
 
 

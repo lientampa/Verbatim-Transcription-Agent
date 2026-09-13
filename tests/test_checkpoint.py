@@ -199,6 +199,10 @@ def test_idempotency_detection(tmp_path: Path):
 # Test 9: End-to-End Pipeline Execution (Mocked Gemini)
 # ---------------------------------------------------------------------------
 def test_end_to_end_pipeline_mock(tmp_path: Path, monkeypatch):
+    from google.genai.models import Models
+    from google.genai.types import Model
+    monkeypatch.setattr(Models, "list", lambda self: [Model(name="models/gemini-3.8-flash", supported_actions=["generateContent"])])
+    monkeypatch.setenv("STRICT_SPEAKER_FORMAT", "false")  # Legacy output contract fixture.
     # Fake media has no decodable audio; these tests model an explicitly silent tail.
     monkeypatch.setattr("src.coverage_validator.TailActivityAnalyzer.analyze", lambda self, *args: 0.0)
     from unittest.mock import MagicMock, PropertyMock

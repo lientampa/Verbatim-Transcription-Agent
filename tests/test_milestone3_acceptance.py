@@ -474,6 +474,10 @@ def test_16_retry_idempotency_no_duplicate():
 # TEST PHASE 20: End-to-End Test (15 segments pipeline)
 # ---------------------------------------------------------------------------
 def test_phase20_end_to_end_15_segments(tmp_path, monkeypatch):
+    from google.genai.models import Models
+    from google.genai.types import Model
+    monkeypatch.setattr(Models, "list", lambda self: [Model(name="models/gemini-3.8-flash", supported_actions=["generateContent"])])
+    monkeypatch.setenv("STRICT_SPEAKER_FORMAT", "false")  # Legacy output contract fixture.
     # Fake media has no decodable audio; these tests model an explicitly silent tail.
     monkeypatch.setattr("src.coverage_validator.TailActivityAnalyzer.analyze", lambda self, *args: 0.0)
     audio_dir = tmp_path / "audio"

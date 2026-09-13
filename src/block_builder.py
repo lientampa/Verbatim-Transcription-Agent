@@ -20,6 +20,7 @@ from uuid import uuid4
 import json
 import hashlib
 from src.source_identity import SourceIdentity, to_us, UNITS_PER_SECOND, sha256_file
+from src.model_policy import require_model_allowed
 from pathlib import Path
 from typing import Iterator
 
@@ -351,6 +352,11 @@ class DabbAudioOrchestrator:
         self._slice_paths: set[Path] = set()
         self.source_identity: SourceIdentity | None = None
         self.next_block_number = 1
+        if config.next_target_policy not in ("MAX_FIRST", "LEARNED") or config.max_probe_failure_threshold < 1 or config.max_probe_cooldown_successes < 1:
+            raise BlockBuilderError("Invalid next-target policy or guard bounds")
+        self._probe_models, self._failed_probe_models, self._suppressed_models = set(), set(), set()
+        self._active_slice = None
+        require_model_allowed(config.gemini_model, config.allow_lite_models)
         self.active_model = config.gemini_model
         self.model_profiles = {self.active_model: dict(target=config.max_duration_seconds,
             safe_duration=None, streak=0, coverage_failures=0, size_failures=0, dabb=self.dabb)}
@@ -418,7 +424,14 @@ class DabbAudioOrchestrator:
 
             # Ask DABB for current token target → convert to duration
             target_tokens = self.dabb.current_target_tokens
-            duration_sec = self.current_block_duration_seconds
+            self._probe_models, self._failed_probe_models, self._suppressed_models = set(), set(), set()
+            duration_sec = self.next_target_duration_seconds
+            if self.config.next_target_policy == "MAX_FIRST":
+                profile = self.model_profiles[self.active_model]
+                profile["target"] = duration_sec
+                self.dabb.current_target_tokens = int(duration_sec * self._tokens_per_second)
+                if profile.get("suppressed", False):
+                    self._suppressed_models.add(self.active_model)
             block_size = duration_sec
 
             current_end = min(total_duration, to_us(current_start + block_size) / UNITS_PER_SECOND)
@@ -465,13 +478,18 @@ class DabbAudioOrchestrator:
                 context_budget=safe_context,
                 output_budget=safe_output,
             )
+            self._active_slice = attempt_slice
+            if self.config.next_target_policy == "MAX_FIRST":
+                self._register_probe(actual_duration)
+                profile = self.model_profiles[self.active_model]
+                print(f" [NEXT_BLOCK block_id={block_id} next_start={current_start} requested_target={actual_duration} max_target={self.max_target_duration_seconds} safe_duration={profile['safe_duration']} max_probe_allowed={not profile.get('suppressed', False)} max_failure_streak={profile.get('max_failure_streak', 0)} actual_model={self.active_model} reason={'FAILURE_STREAK_GUARD' if profile.get('suppressed', False) else 'MAX_FIRST'}]", flush=True)
             yield attempt_slice
 
             # A rebuilt retry updates the yielded slice. The caller resumes this
             # iterator only after successful validation/commit (or legacy skip).
             current_start = attempt_slice.source_block.end_time_seconds
 
-    def rebuild_audio_block(self, attempt_slice: AdaptiveBlockSlice, reduction_factor: float | None = None) -> AdaptiveBlockSlice:
+    def rebuild_audio_block(self, attempt_slice: AdaptiveBlockSlice, reduction_factor: float | None = None, reason: str = "SIZE_FAILURE") -> AdaptiveBlockSlice:
         """Rebuild the same logical block at its unchanged unconfirmed start.
 
         Called after SIZE_FAILURE feedback reduces the token target. Cap duration
@@ -493,6 +511,7 @@ class DabbAudioOrchestrator:
         attempt_slice.current_duration_seconds = duration
         attempt_slice.estimated_input_tokens = int(duration * self._tokens_per_second)
         attempt_slice.generation += 1
+        print(f" [BLOCK_RETRY start={old.start_time_seconds} previous_target={old_duration} retry_target={duration} actual_model={self.active_model} reason={reason}]", flush=True)
         return attempt_slice
 
     def cleanup_slices(self) -> None:
@@ -538,6 +557,7 @@ class DabbAudioOrchestrator:
             segments=[],
         )
         if failure_type == FailureType.SIZE_FAILURE:
+            self._note_max_failure()
             self.model_profiles[self.active_model]["size_failures"] += 1
             self.model_profiles[self.active_model]["streak"] = 0
         return self.dabb.on_block_failure(block=proxy, failure_type=failure_type)
@@ -549,6 +569,7 @@ class DabbAudioOrchestrator:
                    self.model_profiles[self.active_model]["target"])
 
     def select_model(self, model: str, reason=None) -> float:
+        require_model_allowed(model, self.config.allow_lite_models)
         if model != self.active_model:
             previous, target = self.active_model, self.current_block_duration_seconds
             if model not in self.model_profiles:
@@ -559,21 +580,39 @@ class DabbAudioOrchestrator:
                                                      system_prompt=self.system_prompt))
             self.active_model = model
             self.dabb = self.model_profiles[model]["dabb"]
+            if self.config.next_target_policy == "MAX_FIRST":
+                target = self.next_target_duration_seconds
+                self.model_profiles[model]["target"] = target
+                self.dabb.current_target_tokens = int(target * self._tokens_per_second)
+                if self.model_profiles[model].get("suppressed", False):
+                    self._suppressed_models.add(model)
+                if self._active_slice:
+                    self._register_probe(min(target, self._active_slice.current_duration_seconds))
             print(f" [MODEL_SWITCH from={previous} to={model} reason={reason} profile_target={self.current_block_duration_seconds}]", flush=True)
         return self.current_block_duration_seconds
 
     def on_coverage_failure(self, duration: float) -> None:
+        self._note_max_failure()
         profile = self.model_profiles[self.active_model]
         profile["target"] = max(self.config.min_duration_seconds,
             min(profile["target"], duration * self.config.coverage_shrink_factor))
         profile["streak"] = 0
         profile["coverage_failures"] += 1
-        print(f" [COVERAGE_FAIL actual_model={self.active_model} duration={duration} next_target={self.current_block_duration_seconds}]", flush=True)
+        print(f" [COVERAGE_FAIL actual_model={self.active_model} duration={duration} retry_target={self.current_block_duration_seconds}]", flush=True)
 
     def on_coverage_success(self, duration: float, coverage) -> None:
         profile = self.model_profiles[self.active_model]
         profile["safe_duration"] = duration
         profile["target"] = min(profile["target"], max(self.config.min_duration_seconds, duration))
+        if self.config.next_target_policy == "MAX_FIRST":
+            if self.active_model in self._suppressed_models:
+                profile["cooldown_successes"] = profile.get("cooldown_successes", 0) + 1
+                if profile["cooldown_successes"] >= self.config.max_probe_cooldown_successes:
+                    profile.update(suppressed=False, max_failure_streak=0, cooldown_successes=0)
+            elif self.active_model in self._probe_models and self.active_model not in self._failed_probe_models:
+                profile["max_failure_streak"] = 0
+            print(f" [BLOCK_ACCEPT actual_model={self.active_model} successful_duration={duration} safe_duration={duration} next_target={self.next_target_duration_seconds}]", flush=True)
+            return
         strong = coverage.decision.value == "COVERAGE_PASS" and coverage.tail_gap_seconds <= self.config.coverage_growth_headroom_sec
         profile["streak"] = profile["streak"] + 1 if strong else 0
         reason = "accepted_physical_duration"
@@ -581,4 +620,43 @@ class DabbAudioOrchestrator:
             profile["target"] = min(self.config.max_duration_seconds, profile["target"] * self.config.coverage_growth_factor)
             profile["streak"] = 0
             reason = "coverage_headroom_growth"
-        print(f" [COVERAGE_ACCEPT actual_model={self.active_model} safe_duration={duration} next_target={self.current_block_duration_seconds} reason={reason}]", flush=True)
+        print(f" [COVERAGE_ACCEPT actual_model={self.active_model} safe_duration={duration} retry_target={self.current_block_duration_seconds} reason={reason}]", flush=True)
+
+
+    @property
+    def max_target_duration_seconds(self) -> float:
+        """Hard duration/input/context/output caps; learned retry size is not a cap."""
+        overhead = self.dabb.token_estimator.estimate_system_prompt(self.system_prompt) + self.dabb.token_estimator.estimate_control_tokens("BLOCK_999999")
+        ratio = max(self.config.default_output_ratio, self.dabb.output_tracker.get_ratio(), 0.01)
+        tokens = min(self.config.max_block_tokens,
+            (self.config.model_context_limit - self.config.context_safety_margin - overhead) / (1 + ratio),
+            (self.config.model_max_output_tokens - self.config.output_safety_margin) / ratio)
+        duration = min(self.config.max_duration_seconds, tokens / self._tokens_per_second)
+        if duration < self.config.min_duration_seconds:
+            raise BlockBuilderError("MODEL_BUDGET_TOO_SMALL: hard limits cannot support minimum duration")
+        return duration
+
+    @property
+    def next_target_duration_seconds(self) -> float:
+        if self.config.next_target_policy == "LEARNED":
+            return self.current_block_duration_seconds
+        maximum = self.max_target_duration_seconds
+        profile = self.model_profiles[self.active_model]
+        if profile.get("suppressed", False):
+            return min(maximum, max(self.config.min_duration_seconds,
+                profile["safe_duration"] or self.config.unknown_model_duration_sec))
+        return maximum
+
+    def _register_probe(self, duration):
+        profile = self.model_profiles[self.active_model]
+        if not profile.get("suppressed", False) and duration >= self.max_target_duration_seconds - 1e-6:
+            self._probe_models.add(self.active_model)
+
+    def _note_max_failure(self):
+        if self.config.next_target_policy != "MAX_FIRST" or self.active_model not in self._probe_models or self.active_model in self._failed_probe_models:
+            return
+        self._failed_probe_models.add(self.active_model)
+        profile = self.model_profiles[self.active_model]
+        profile["max_failure_streak"] = profile.get("max_failure_streak", 0) + 1
+        if profile["max_failure_streak"] >= self.config.max_probe_failure_threshold:
+            profile.update(suppressed=True, cooldown_successes=0)

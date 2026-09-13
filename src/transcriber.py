@@ -53,6 +53,7 @@ class GeminiTranscriber:
         self.response_parser = response_parser or ResponseParser(schema_path=schema_path)
         self.fidelity_validator = fidelity_validator or ContentFidelityValidator(source_mode="AUDIO")
         self._cached_prompt: str | None = None
+        self.speaker_context: list[str] = []
 
     def load_system_prompt(self) -> str:
         """Load and cache the verbatim system instruction from file."""
@@ -84,11 +85,29 @@ class GeminiTranscriber:
         end_offset_seconds: float | None = None,
     ) -> str:
         """Construct structured user prompt instructing Gemini to return strict JSON."""
+        def hhmmss(seconds):
+            seconds = int(seconds)
+            return f"{seconds // 3600:02d}:{seconds % 3600 // 60:02d}:{seconds % 60:02d}"
+        timestamp_contract = ""
+        if self.fidelity_validator.source_mode == "AUDIO":
+            timestamp_contract = (
+                "All transcript timestamps are absolute from the beginning of the source file. Format: HH:MM:SS.\n"
+                "20 minutes 26 seconds = 00:20:26, NOT 20:00:26 (which means 20 hours).\n"
+                f"BLOCK_ABSOLUTE_START_SECONDS={start_offset_seconds}\n"
+                f"BLOCK_ABSOLUTE_END_SECONDS={end_offset_seconds}\n"
+                f"BLOCK_ABSOLUTE_START_HHMMSS={hhmmss(start_offset_seconds)}\n"
+                f"BLOCK_ABSOLUTE_END_HHMMSS={hhmmss(end_offset_seconds) if end_offset_seconds is not None else 'UNSPECIFIED'}\n"
+            )
+            if end_offset_seconds is not None:
+                width = end_offset_seconds - start_offset_seconds
+                examples = [hhmmss(start_offset_seconds + min(3,width/4)),
+                            hhmmss(start_offset_seconds + width * .36), hhmmss(max(start_offset_seconds,end_offset_seconds-2))]
+                timestamp_contract += f"Valid timestamp examples inside this block (no transcript content): {', '.join(examples)}.\n"
+                if end_offset_seconds < 72003:
+                    timestamp_contract += "Invalid for this block: 20:00:03. Do not prepend block minutes as hours.\n"
         offset_note = ""
         if start_offset_seconds > 0:
-            minutes = int(start_offset_seconds // 60)
-            seconds = int(start_offset_seconds % 60)
-            offset_str = f"{minutes:02d}:{seconds:02d}"
+            offset_str = hhmmss(start_offset_seconds)
             offset_note = (
                 f"- Đoạn âm thanh này bắt đầu từ mốc thời gian thực [{offset_str}]. "
                 f"Hãy đánh dấu timestamp của các câu nói dựa theo mốc thực này thay vì bắt đầu lại từ 00:00.\n"
@@ -116,7 +135,9 @@ class GeminiTranscriber:
             f"- block_id: \"{block_id}\"\n"
             f"- first_source_index: {first_source_index}\n"
             f"{range_note}"
+            f"- Nhãn người nói đã dùng trong các block được xác nhận: {self.speaker_context!r}. Giữ nhãn nếu có căn cứ cùng người; không suy đoán danh tính từ danh sách này.\n"
             f"{offset_note}"
+            f"{timestamp_contract}"
             f"- Absolute audio boundaries (seconds): start={start_offset_seconds}, end={end_offset_seconds}.\n"
             f"LƯU Ý QUAN TRỌNG VỀ last_source_index: Giá trị \"last_source_index\" trong JSON BẮT BUỘC phải bằng chính xác source_index của segment cuối cùng trong mảng segments.\n"
             f"BẮT BUỘC trả về duy nhất một chuỗi JSON hợp lệ tuân thủ JSON Schema 1.0. "

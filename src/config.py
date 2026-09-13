@@ -1,6 +1,7 @@
 """Configuration management for Vietnamese Verbatim Transcription Agent."""
 
 import os
+from src.model_policy import allowed_models, require_model_allowed, ModelDisallowedError
 from dataclasses import dataclass
 from pathlib import Path
 from dotenv import load_dotenv
@@ -58,6 +59,8 @@ class AppConfig:
     min_duration_seconds: float = 60.0
     target_duration_seconds: float = 300.0
     max_duration_seconds: float = 900.0
+    allow_lite_models: bool = False
+    strict_speaker_format: bool = True
     model_fallback_enabled: bool = True
     # Tail timestamps are segment starts: allow pauses and a final utterance.
     coverage_tail_gap_threshold_sec: float = 120.0
@@ -65,14 +68,22 @@ class AppConfig:
     coverage_active_tail_min_sec: float = 30.0
     coverage_silence_threshold_db: float = -40.0
     coverage_shrink_factor: float = 0.5
+    severe_coverage_ratio: float = 0.75
+    model_health_strike_limit: int = 2
+    next_target_policy: str = "MAX_FIRST"
+    max_probe_failure_threshold: int = 3
+    max_probe_cooldown_successes: int = 2
     coverage_max_generations: int = 4
     coverage_growth_factor: float = 1.1
     coverage_growth_passes: int = 3
     coverage_growth_headroom_sec: float = 30.0
     unknown_model_duration_sec: float = 300.0
-    provider_fallback_policy: str = "PREFER_WAIT"
-    max_provider_backoff_seconds: float = 30.0
-    fallback_models: tuple[str, ...] = ("gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash")
+    retry_max_delay_seconds: float = 8.0
+    retry_backoff_multiplier: float = 2.0
+    max_transient_retries_per_model: int = 2
+    provider_fallback_policy: str = "SPEED_FIRST"
+    max_provider_backoff_seconds: float = 5.0
+    fallback_models: tuple[str, ...] = ("gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash")
 
 
 
@@ -107,9 +118,15 @@ def load_config(base_dir: Path | None = None) -> AppConfig:
             "See .env.example for reference."
         )
 
-    model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
     if not model_name:
-        model_name = "gemini-2.5-flash"
+        model_name = "gemini-3.8-flash"
+
+    allow_lite_models = False  # Product hard ban; environment cannot opt in.
+    try:
+        require_model_allowed(model_name, allow_lite_models)
+    except ModelDisallowedError as exc:
+        raise ConfigurationError(str(exc)) from exc
 
     try:
         retry_max_attempts = int(os.getenv("RETRY_MAX_ATTEMPTS", "3"))
@@ -117,9 +134,9 @@ def load_config(base_dir: Path | None = None) -> AppConfig:
         retry_max_attempts = 3
 
     try:
-        retry_initial_delay_seconds = float(os.getenv("RETRY_INITIAL_DELAY_SECONDS", "2.0"))
+        retry_initial_delay_seconds = float(os.getenv("RETRY_INITIAL_DELAY_SECONDS", "1.0"))
     except ValueError:
-        retry_initial_delay_seconds = 2.0
+        retry_initial_delay_seconds = 1.0
 
     try:
         timeout_seconds = int(os.getenv("TIMEOUT_SECONDS", "300"))
@@ -197,18 +214,28 @@ def load_config(base_dir: Path | None = None) -> AppConfig:
         min_duration_seconds=min_duration_seconds,
         target_duration_seconds=target_duration_seconds,
         max_duration_seconds=max_duration_seconds,
+        allow_lite_models=allow_lite_models,
+        strict_speaker_format=os.getenv("STRICT_SPEAKER_FORMAT", "true").lower() in ("true", "1", "yes"),
         model_fallback_enabled=os.getenv("MODEL_FALLBACK_ENABLED", "true").lower() in ("true", "1", "yes"),
         coverage_tail_gap_threshold_sec=float(os.getenv("COVERAGE_TAIL_GAP_THRESHOLD_SEC", "120")),
         coverage_small_gap_max_ratio=float(os.getenv("COVERAGE_SMALL_GAP_MAX_RATIO", "0.1")),
         coverage_active_tail_min_sec=float(os.getenv("COVERAGE_ACTIVE_TAIL_MIN_SEC", "30")),
         coverage_silence_threshold_db=float(os.getenv("COVERAGE_SILENCE_THRESHOLD_DB", "-40")),
         coverage_shrink_factor=float(os.getenv("COVERAGE_SHRINK_FACTOR", "0.5")),
+        severe_coverage_ratio=float(os.getenv("SEVERE_COVERAGE_RATIO", "0.75")),
+        model_health_strike_limit=int(os.getenv("MODEL_HEALTH_STRIKE_LIMIT", "2")),
+        next_target_policy=os.getenv("NEXT_TARGET_POLICY", "MAX_FIRST").upper(),
+        max_probe_failure_threshold=int(os.getenv("MAX_PROBE_FAILURE_THRESHOLD", "3")),
+        max_probe_cooldown_successes=int(os.getenv("MAX_PROBE_COOLDOWN_SUCCESSES", "2")),
         coverage_max_generations=int(os.getenv("COVERAGE_MAX_GENERATIONS", "4")),
         coverage_growth_factor=float(os.getenv("COVERAGE_GROWTH_FACTOR", "1.1")),
         coverage_growth_passes=int(os.getenv("COVERAGE_GROWTH_PASSES", "3")),
         coverage_growth_headroom_sec=float(os.getenv("COVERAGE_GROWTH_HEADROOM_SEC", "30")),
         unknown_model_duration_sec=float(os.getenv("UNKNOWN_MODEL_DURATION_SEC", "300")),
-        provider_fallback_policy=os.getenv("PROVIDER_FALLBACK_POLICY", "PREFER_WAIT").upper(),
-        max_provider_backoff_seconds=float(os.getenv("MAX_PROVIDER_BACKOFF_SECONDS", "30")),
-        fallback_models=tuple(m.strip() for m in os.getenv("FALLBACK_MODELS", "gemini-3.6-flash,gemini-3.8-flash,gemini-3.5-flash-lite,gemini-3.5-flash").split(",") if m.strip()),
+        retry_max_delay_seconds=float(os.getenv("RETRY_MAX_DELAY_SECONDS", "8")),
+        retry_backoff_multiplier=float(os.getenv("RETRY_BACKOFF_MULTIPLIER", "2")),
+        max_transient_retries_per_model=int(os.getenv("MAX_TRANSIENT_RETRIES_PER_MODEL", "2")),
+        provider_fallback_policy=os.getenv("PROVIDER_RETRY_POLICY", os.getenv("PROVIDER_FALLBACK_POLICY", "SPEED_FIRST")).upper(),
+        max_provider_backoff_seconds=float(os.getenv("MAX_PROVIDER_WAIT_SECONDS", os.getenv("MAX_PROVIDER_BACKOFF_SECONDS", "5"))),
+        fallback_models=tuple(allowed_models((m.strip() for m in os.getenv("FALLBACK_MODELS", "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash").split(",") if m.strip()), allow_lite_models)),
     )

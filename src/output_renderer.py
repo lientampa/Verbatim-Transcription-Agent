@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import Sequence
 import os
+import re
 import tempfile
 import docx
 from docx.shared import Pt, RGBColor
@@ -63,8 +64,27 @@ def normalize_timestamp_display(ts: str | None) -> str | None:
 class OutputRenderer:
     """Renders validated transcription segments into TXT, DOCX, and SRT formats."""
 
-    def __init__(self, default_segment_duration_seconds: float = 4.0) -> None:
+    def __init__(self, default_segment_duration_seconds: float = 4.0, strict_speaker_format: bool = False) -> None:
         self.default_segment_duration_seconds = default_segment_duration_seconds
+        self.strict_speaker_format = strict_speaker_format
+
+    def validate_output_fields(self, segments):
+        if not self.strict_speaker_format:
+            return
+        for segment in segments:
+            label = segment.speaker or ""
+            if (not label.strip() or re.search(r"[\r\n\[\]:]", label)
+                    or re.fullmatch(r"(?:speaker|segment|block|unknown)[_ -]*[a-z0-9]+", label.strip(), re.I)):
+                raise ValueError(f"SPEAKER_LABEL_REQUIRED: segment ordinal {segment.source_index}; human-readable stable label required")
+            if not segment.timestamp or not re.fullmatch(r"(?:[0-9]{1,2}:)?[0-9]{1,2}:[0-9]{2}", segment.timestamp):
+                raise ValueError(f"ABSOLUTE_TIMESTAMP_REQUIRED: segment ordinal {segment.source_index}")
+
+    def _display_timestamp(self, segment):
+        self.validate_output_fields([segment])
+        if self.strict_speaker_format:
+            return format_seconds_to_srt_time(parse_timestamp_to_seconds(segment.timestamp)).split(",")[0]
+        return normalize_timestamp_display(segment.timestamp)
+
 
     def format_txt_line(self, segment: TranscriptSegment) -> str:
         """Format a single segment for transcript.txt.
@@ -75,7 +95,7 @@ class OutputRenderer:
         - [HH:MM:SS]: Text (if no speaker)
         - Text (if neither)
         """
-        ts_str = normalize_timestamp_display(segment.timestamp)
+        ts_str = self._display_timestamp(segment)
         speaker_str = segment.speaker.strip() if segment.speaker and segment.speaker.strip() else None
 
         if ts_str and speaker_str:
@@ -124,7 +144,7 @@ class OutputRenderer:
             p.paragraph_format.space_after = Pt(8)
             p.paragraph_format.line_spacing = 1.15
 
-            ts_str = normalize_timestamp_display(segment_ts := seg.timestamp)
+            ts_str = self._display_timestamp(seg)
             speaker_str = seg.speaker.strip() if seg.speaker and seg.speaker.strip() else None
 
             if ts_str and speaker_str:
@@ -205,7 +225,7 @@ class OutputRenderer:
             end_srt = format_seconds_to_srt_time(end_sec)
 
             speaker_tag = f"[{seg.speaker.strip()}]: " if seg.speaker and seg.speaker.strip() else ""
-            sub_text = f"{speaker_tag}{seg.text}"
+            sub_text = self.format_txt_line(seg) if self.strict_speaker_format else f"{speaker_tag}{seg.text}"
 
             cue = f"{cue_index}\n{start_srt} --> {end_srt}\n{sub_text}"
             srt_blocks.append(cue)
@@ -231,6 +251,7 @@ class OutputRenderer:
         (e.g. file open in Word) raises immediately with a clear message.
         TXT and SRT are always attempted.
         """
+        self.validate_output_fields(segments)
         base_dir = Path(base_dir)
         txt_path = base_dir / "transcript.txt"
         docx_path = base_dir / "transcript.docx"

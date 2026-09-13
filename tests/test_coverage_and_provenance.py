@@ -101,7 +101,7 @@ def test_analysis_error_blocks_instead_of_becoming_silence(tmp_path):
 
 
 @pytest.mark.parametrize("fallback", [True, False])
-def test_actual_lite_fallback_or_model_lock_through_pipeline(tmp_path, monkeypatch, fallback):
+def test_actual_non_lite_fallback_or_model_lock_through_pipeline(tmp_path, monkeypatch, fallback):
     sdk_calls = []
     real_generate = GeminiClient.generate_transcription
     real_validate = TranscriptValidator.validate_block_result
@@ -115,7 +115,7 @@ def test_actual_lite_fallback_or_model_lock_through_pipeline(tmp_path, monkeypat
             self.initial_delay_seconds = 0
             def generate_content(model, contents, **kwargs):
                 sdk_calls.append(model)
-                if model != "gemini-3.5-flash-lite":
+                if model != "gemini-3.5-flash":
                     raise ConnectionError("503 unavailable")
                 prompt = contents[1]
                 identity = {k: re.search(r'- ' + k + r': "([^"]+)"', prompt).group(1)
@@ -131,7 +131,7 @@ def test_actual_lite_fallback_or_model_lock_through_pipeline(tmp_path, monkeypat
     if fallback:
         assert result == 0
         metadata = checkpoint["block_metrics"][0]["provider_metadata"]
-        assert metadata["actual_model"] == "gemini-3.5-flash-lite"
+        assert metadata["actual_model"] == "gemini-3.5-flash"
         assert metadata["requested_model"] == sdk_calls[0]
         assert metadata["fallback_used"] is True
         assert "503" in metadata["fallback_reason"]

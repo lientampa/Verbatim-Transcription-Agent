@@ -14,6 +14,7 @@ if hasattr(sys.stderr, "reconfigure"):
 
 from src.source_identity import SourceIdentity, UNITS_PER_SECOND
 from src.gemini_client import ModelReplanRequired, GeminiTranscribeError
+from src.model_health import ModelHealth
 from src.coverage_validator import CoverageValidator, CoverageDecision
 from src.config import load_config, ConfigurationError
 from src.audio_manager import AudioManager, AudioError
@@ -147,18 +148,28 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
     print(f"Blocks:  ~{total_blocks_approx} block(s) est. (DABB adaptive, initial ~{initial_block_dur:.0f}s/block)")
     print(f"Model:   {config.gemini_model}\n")
 
-    gemini_client = GeminiClient(
-        api_key=config.gemini_api_key,
-        model_name=config.gemini_model,
-        max_retries=config.retry_max_attempts,
-        initial_delay_seconds=config.retry_initial_delay_seconds,
-        timeout_seconds=config.timeout_seconds,
-        fallback_enabled=config.model_fallback_enabled,
-        fallback_policy=config.provider_fallback_policy,
-        max_backoff_seconds=config.max_provider_backoff_seconds,
-        fallback_models=config.fallback_models,
-    )
+    try:
+        gemini_client = GeminiClient(
+            api_key=config.gemini_api_key,
+            model_name=config.gemini_model,
+            max_retries=config.retry_max_attempts,
+            initial_delay_seconds=config.retry_initial_delay_seconds,
+            timeout_seconds=config.timeout_seconds,
+            fallback_enabled=config.model_fallback_enabled,
+            allow_lite_models=config.allow_lite_models,
+            fallback_policy=config.provider_fallback_policy,
+            max_backoff_seconds=config.max_provider_backoff_seconds,
+            retry_max_delay_seconds=config.retry_max_delay_seconds,
+            backoff_multiplier=config.retry_backoff_multiplier,
+            max_transient_retries=config.max_transient_retries_per_model,
+            fallback_models=config.fallback_models,
+        )
+    except GeminiClientError as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        return 1
 
+    model_health = ModelHealth(config)
+    gemini_client.model_health = model_health
     response_parser = ResponseParser(schema_path=config.schema_path)
     transcript_validator = TranscriptValidator()
 
@@ -169,7 +180,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         response_parser=response_parser,
     )
 
-    renderer = OutputRenderer()
+    renderer = OutputRenderer(strict_speaker_format=config.strict_speaker_format)
     coverage_validator = CoverageValidator(config)
 
     # -------------------------------------------------------------
@@ -228,6 +239,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                           f"start={block.start_time_seconds} end={block.end_time_seconds} "
                           f"duration={adaptive_slice.current_duration_seconds} slice={block.file_path} "
                           f"upload={last_file_id} action=TRANSCRIBE]", end="", flush=True)
+                    transcriber.speaker_context = list(dict.fromkeys(s.speaker for s in merger.get_merged_segments() if s.speaker))
                     outcome = transcriber.transcribe_block(
                         gemini_file=gemini_file,
                         job_id=current_job.job_id or "JOB_001",
@@ -242,7 +254,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     fidelity_result = outcome.fidelity_validation
                     last_exc = None
                 except ModelReplanRequired as exc:
-                    orchestrator.rebuild_audio_block(adaptive_slice, exc.target / adaptive_slice.current_duration_seconds)
+                    orchestrator.rebuild_audio_block(adaptive_slice, exc.target / adaptive_slice.current_duration_seconds, reason="MODEL_REPLAN")
                     block = adaptive_slice.source_block
                     gemini_file = None
                     continue
@@ -277,6 +289,10 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
 
                 metadata = getattr(gemini_client, "last_response_metadata", {})
                 orchestrator.select_model(metadata.get("actual_model", orchestrator.active_model))
+                actual_model = metadata.get("actual_model")
+                if not last_val_result.is_valid and model_health.structural_failure(actual_model, last_val_result, block, block_result):
+                    gemini_client.advance_after_output_failure()
+                    continue
                 if last_val_result.is_valid and fidelity_result.allows_confirmation:
                     # Provider STOP proves normal generation termination, not audio coverage.
                     if block_result.last_source_index != block_result.segments[-1].source_index:
@@ -287,11 +303,14 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                           f"tail_gap_ratio={coverage.tail_gap_ratio} physical_duration={coverage.physical_duration_seconds} tail_activity={coverage.tail_activity} active_seconds={coverage.active_tail_seconds}]", end="", flush=True)
                     if not coverage.allows_confirmation:
                         failure_summary = f"COVERAGE_FAILURE COVERAGE_UNRESOLVED: {coverage.to_dict()}"
+                        if model_health.coverage_failure(actual_model, coverage):
+                            gemini_client.advance_after_output_failure()
+                            continue
                         if coverage.decision == CoverageDecision.RETRY:
                             orchestrator.on_coverage_failure(adaptive_slice.current_duration_seconds)
                         if coverage.decision == CoverageDecision.RETRY and coverage_generation < config.coverage_max_generations:
                             try:
-                                orchestrator.rebuild_audio_block(adaptive_slice, config.coverage_shrink_factor)
+                                orchestrator.rebuild_audio_block(adaptive_slice, config.coverage_shrink_factor, reason="COVERAGE_FAIL")
                             except BlockBuilderError as exc:
                                 raise TranscriptionError(f"{failure_summary}; coverage rebuild exhausted: {exc}") from exc
                             block = adaptive_slice.source_block
@@ -300,10 +319,11 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                             coverage_generation += 1
                             continue
                         break
+                    renderer.validate_output_fields(block_result.segments)
                     validated = True
                     warn_tag = f" ({len(last_val_result.warnings)} warn)" if last_val_result.warnings else ""
                     orchestrator.on_coverage_success(adaptive_slice.current_duration_seconds, coverage)
-                    next_dur = orchestrator.current_block_duration_seconds
+                    next_dur = orchestrator.next_target_duration_seconds
                     acceptance = "COVERAGE_WARNING" if coverage.decision == CoverageDecision.WARNING else "PASS"
                     print(f" [{acceptance}{warn_tag}] Done. (next block ~{next_dur:.0f}s)")
                     if fidelity_result.decision == FidelityDecision.ACCEPT_WITH_WARNING:
@@ -398,6 +418,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 metric=metric, adaptive_state={"target_tokens": orchestrator.dabb.current_target_tokens},
                 file_id=last_file_id,
             )
+            model_health.success(actual_model, adaptive_slice.current_duration_seconds)
 
     except CheckpointError as exc:
         print(f"[ERROR] Checkpoint commit failed; last persisted state retained: {exc}", file=sys.stderr)

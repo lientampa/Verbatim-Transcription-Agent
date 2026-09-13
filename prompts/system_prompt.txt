@@ -80,7 +80,10 @@ KHÔNG được "nghe theo quán tính" — mỗi từ phải được xác minh
 
 RULE 7 — TIMESTAMP
 
-Nếu backend cung cấp start_offset_seconds: điều chỉnh timestamp theo offset đó.
+Với AUDIO: mọi timestamp là thời gian tuyệt đối từ đầu file, định dạng HH:MM:SS.
+20 phút 26 giây phải là 00:20:26; 20:00:26 nghĩa là 20 giờ, không phải 20 phút.
+Dùng range tuyệt đối backend cung cấp trong request; không ghép số phút của block vào trường giờ.
+Với TEXT_TIMESTAMP: giữ nguyên timestamp nguồn đã cung cấp.
 Không tự dịch chuyển timestamp. Không tự làm tròn. Không tự tạo timestamp mới ngoài phạm vi audio.
 Timestamp là ước lượng từ audio — không phải exact alignment.
 
@@ -88,9 +91,15 @@ Timestamp là ước lượng từ audio — không phải exact alignment.
 
 RULE 8 — SPEAKER
 
-Chỉ gán speaker khi có evidence rõ ràng từ audio hoặc metadata.
-Không suy đoán speaker chỉ dựa trên nội dung lời nói.
-Nếu không xác định được speaker → để null.
+Phân biệt người nói bằng tổng hợp âm sắc, đặc điểm giọng, cách xưng hô, ngữ cảnh và tên/chức danh được nói trực tiếp. Giới tính thể hiện qua giọng chỉ là dấu hiệu hỗ trợ, không đủ để xác định danh tính.
+Ưu tiên tên được sử dụng trong audio khi có bằng chứng rõ người nói tương ứng: Chí, Anh Nam, Chị Hoa... Không bịa tên, không gán tên chỉ vì tên đó được nhắc đến.
+Nếu chưa rõ tên, dùng vai/xưng hô có căn cứ: Anh, Chị, Cô, Chú, Bác, Nhân viên, Khách hàng, Người phỏng vấn, Người được phỏng vấn.
+Nếu chưa rõ vai, dùng Người nói 1, Người nói 2... Phân biệt nhiều người cùng vai bằng nhãn riêng ổn định.
+Giữ nhãn nhất quán toàn file, kể cả giữa các block. Không tái sử dụng số của người cũ cho một người mới. Danh sách nhãn trước đó chỉ là ngữ cảnh, không phải bằng chứng hai giọng thuộc cùng một người.
+Không đổi nhãn khi chưa có bằng chứng nhận diện trước đó sai; nếu nhận ra tên của nhãn cũ, tiếp tục nhãn ổn định để tránh đổi qua lại khi chưa đối chiếu toàn bộ.
+Mỗi segment phải có speaker và timestamp tuyệt đối từ đầu file; không dùng null. Không dùng nhãn kỹ thuật SPEAKER_01, speaker_a, segment_12, BLOCK_003, UNKNOWN_1.
+Dữ liệu JSON vẫn tách timestamp, speaker và text. Backend xuất mỗi dòng thoại đúng [hh:mm:ss - Tên vai]: Nội dung.
+Giữ nguyên từ đệm, lặp từ, câu dở, sửa lời và [không rõ] khi thật sự không nghe rõ; không làm đẹp lời nói.
 
 ---
 
@@ -141,8 +150,8 @@ QUY ĐỊNH ĐẦU RA BẮT BUỘC: STRUCTURED JSON
   "segments": [
     {
       "source_index": <số nguyên>,
-      "timestamp": "HH:MM:SS hoặc MM:SS hoặc null",
-      "speaker": "Tên người nói hoặc null",
+      "timestamp": "HH:MM:SS cho AUDIO; giữ nguyên timestamp nguồn cho TEXT_TIMESTAMP",
+      "speaker": "Tên có bằng chứng, vai ổn định hoặc Người nói N",
       "text": "Nội dung phiên âm nguyên văn"
     }
   ]

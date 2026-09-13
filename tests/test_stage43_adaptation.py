@@ -42,7 +42,7 @@ def test_real_cross_block_learning_with_separate_budgets(tmp_path, monkeypatch, 
 @pytest.fixture
 def planner(tmp_path, monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "mock-key")
-    cfg = replace(load_config(tmp_path), gemini_model="Flash", initial_target_input_tokens=3000,
+    cfg = replace(load_config(tmp_path), gemini_model="Flash", next_target_policy="LEARNED", initial_target_input_tokens=3000,
                   max_duration_seconds=1200, min_duration_seconds=120)
     return DabbAudioOrchestrator(tmp_path / "audio.wav", cfg)
 
