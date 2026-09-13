@@ -111,6 +111,7 @@ def test_actual_non_lite_fallback_or_model_lock_through_pipeline(tmp_path, monke
         def init(self, model_name, fallback_enabled, **kwargs):
             self.model_name = self.requested_model = model_name
             self.fallback_enabled = fallback_enabled
+            self.fallback_models = ("gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.8-flash")
             self.max_retries = 1
             self.initial_delay_seconds = 0
             def generate_content(model, contents, **kwargs):

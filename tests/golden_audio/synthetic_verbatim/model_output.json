@@ -1,0 +1,21 @@
+{
+  "source_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+  "segments": [
+    {
+      "start_seconds": 10,
+      "speaker": "Người nói 1",
+      "text": "Ờ, anh... anh chưa biết.",
+      "uncertain": false
+    },
+    {
+      "start_seconds": 20,
+      "speaker": "Người nói 2",
+      "text": "cái đó [không rõ] rồi",
+      "uncertain": true
+    }
+  ],
+  "provenance": {
+    "origin": "SYNTHETIC_TEST",
+    "actual_models_used": []
+  }
+}

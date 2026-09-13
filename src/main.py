@@ -179,6 +179,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             max_transient_retries=config.max_transient_retries_per_model,
             fallback_models=config.fallback_models,
             requested_max_output_tokens=config.gemini_max_output_tokens,
+            transcription_thinking_level=config.transcription_thinking_level,
         )
     except GeminiClientError as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
@@ -302,7 +303,9 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                           f"target_after={orchestrator.dabb.current_target_tokens}]", end="", flush=True)
                     if failure_type == FailureType.SIZE_FAILURE:
                         details = dict(metadata)
-                        print(f" [OUTPUT_LIMIT] block_id={block_id} actual_model={details.get('actual_model')} physical_duration={adaptive_slice.current_duration_seconds} finish_reason={details.get('finish_reason')} prompt_tokens={details.get('input_tokens')} output_tokens={details.get('output_tokens')} max_output_tokens={details.get('configured_max_output_tokens')} dabb_target_input_tokens={target_before} size_retry_count={size_retry_count}", flush=True)
+                        print(f" [OUTPUT_LIMIT] block_id={block_id} actual_model={details.get('actual_model')} physical_duration={adaptive_slice.current_duration_seconds} finish_reason={details.get('finish_reason')} prompt_tokens={details.get('input_tokens')} output_tokens={details.get('output_tokens')} configured_max_output_tokens={details.get('configured_max_output_tokens', 'UNSET')} effective_max_output_tokens={details.get('effective_max_output_tokens', 'PROVIDER_DEFAULT')} model_output_token_limit={details.get('model_output_token_limit', 'UNDISCOVERED')} thinking_level={details.get('thinking_level', 'UNAVAILABLE')} thought_tokens={details.get('thought_tokens')} visible_output_tokens={details.get('output_tokens')} thought_to_visible_ratio={details.get('thought_to_visible_ratio', 'UNAVAILABLE')} dabb_target_input_tokens={target_before} size_retry_count={size_retry_count}", flush=True)
+                        if adaptive_slice.current_duration_seconds <= min(config.min_duration_seconds, config.emergency_size_min_block_seconds) + 1e-9:
+                            raise BlockBuilderError("EMERGENCY_SIZE_FLOOR_EXHAUSTED BLOCK_SIZE_EXHAUSTED") from exc
                         if size_retry_count >= size_limit:
                             print(f"[SIZE_RETRY_EXHAUSTED] block_id={block_id} size_retry_count={size_retry_count} size_retry_limit={size_limit} last_duration={adaptive_slice.current_duration_seconds} next_candidate_duration={max(config.min_duration_seconds, min(orchestrator.current_block_duration_seconds, adaptive_slice.current_duration_seconds * config.block_shrink_factor))}", flush=True)
                             raise TranscriptionError(f"SIZE_RETRIES_EXHAUSTED: block={block_id} size_failures={size_retry_count} size_limit={size_limit} total_attempts={total_attempts}: {exc}") from exc
@@ -445,6 +448,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 "validation_attempt_count": v_attempt,
                 "structural_retry_count": structural_retry_count,
                 "size_retry_count": size_retry_count,
+                "generation_config_retry_count": getattr(gemini_client, "generation_config_retry_count", 0),
                 "coverage_generation_count": coverage_generation,
                 "physical_generation_count": adaptive_slice.generation,
                 "validation_attempt": v_attempt,
@@ -487,6 +491,8 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
         )
         orchestrator.cleanup_slices()
         return 1
+    finally:
+        gemini_client.log_model_summary()
 
     # -------------------------------------------------------------
     # Step 4: Render outputs (TXT, DOCX, SRT)

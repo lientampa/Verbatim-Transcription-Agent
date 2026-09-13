@@ -1,0 +1,34 @@
+{
+  "schema_version": "1",
+  "fixture_id": "synthetic_verbatim",
+  "language": "vi",
+  "source_mode": "AUDIO",
+  "source": {
+    "fingerprint_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "duration_seconds": 40
+  },
+  "review": {
+    "status": "SYNTHETIC_TEST",
+    "notes": "Evaluator test only. No audio, no human review, no acoustic qualification."
+  },
+  "categories": [
+    "fillers",
+    "repetitions",
+    "false_starts",
+    "uncertain_speech"
+  ],
+  "segments": [
+    {
+      "start_seconds": 10,
+      "speaker": "Người nói 1",
+      "text": "Ờ, anh... anh chưa biết.",
+      "uncertain": false
+    },
+    {
+      "start_seconds": 20,
+      "speaker": "Người nói 2",
+      "text": "cái đó [không rõ] rồi",
+      "uncertain": true
+    }
+  ]
+}

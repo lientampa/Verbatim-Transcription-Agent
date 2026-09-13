@@ -500,10 +500,16 @@ class DabbAudioOrchestrator:
         old = attempt_slice.source_block
         old_duration = old.end_time_seconds - old.start_time_seconds
         factor = self.config.block_shrink_factor if reduction_factor is None else reduction_factor
-        duration = max(self.config.min_duration_seconds, min(
-            self.current_block_duration_seconds, old_duration * factor))
+        normal_min = self.config.min_duration_seconds
+        emergency_min = min(normal_min, self.config.emergency_size_min_block_seconds)
+        emergency = reason == "SIZE_FAILURE" and old_duration <= normal_min + 1e-9
+        floor = emergency_min if emergency else normal_min
+        duration = max(floor, min(self.current_block_duration_seconds, old_duration * factor))
         if duration >= old_duration - 1e-9:
-            raise BlockBuilderError("MIN_BLOCK_REACHED BLOCK_SIZE_EXHAUSTED: cannot reduce current audio interval further")
+            code = "EMERGENCY_SIZE_FLOOR_EXHAUSTED" if emergency else "MIN_BLOCK_REACHED"
+            raise BlockBuilderError(f"{code} BLOCK_SIZE_EXHAUSTED: cannot reduce current audio interval further")
+        if emergency:
+            print(f" [EMERGENCY_SIZE_SHRINK] from_duration={old_duration} to_duration={duration} normal_min={normal_min} emergency_min={emergency_min}", flush=True)
         end = to_us(old.start_time_seconds + duration) / UNITS_PER_SECOND
         duration = end - old.start_time_seconds
         path = self._get_audio_builder(max(10, int(duration))).slice_time_range(

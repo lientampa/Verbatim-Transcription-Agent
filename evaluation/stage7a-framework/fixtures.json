@@ -1,0 +1,240 @@
+[
+  {
+    "fixture_id": "synthetic_verbatim",
+    "review_status": "SYNTHETIC_TEST",
+    "duration_seconds": 40,
+    "source_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+    "reference_segments": 2,
+    "model_segments": 2,
+    "config": {
+      "alignment_max_time_delta_seconds": 15,
+      "alignment_min_text_similarity": 0.35,
+      "alignment_max_group": 3,
+      "golden_timestamp_tolerance_seconds": 1.0,
+      "fillers": [
+        "ờ",
+        "ừ",
+        "ừm",
+        "ờm",
+        "à"
+      ]
+    },
+    "text": {
+      "strict_wer": {
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_count": 9,
+        "error_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 9,
+          "available": true
+        }
+      },
+      "relaxed_wer": {
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_count": 9,
+        "error_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 9,
+          "available": true
+        }
+      },
+      "cer": {
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_count": 46,
+        "error_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 46,
+          "available": true
+        }
+      }
+    },
+    "verbatim": {
+      "filler": {
+        "reference_count": 1,
+        "model_count": 1,
+        "match_count": 1,
+        "precision": {
+          "value": 1.0,
+          "numerator": 1,
+          "denominator": 1,
+          "available": true
+        },
+        "recall": {
+          "value": 1.0,
+          "numerator": 1,
+          "denominator": 1,
+          "available": true
+        }
+      },
+      "repetition": {
+        "reference_count": 1,
+        "model_count": 1,
+        "match_count": 1,
+        "precision": {
+          "value": 1.0,
+          "numerator": 1,
+          "denominator": 1,
+          "available": true
+        },
+        "recall": {
+          "value": 1.0,
+          "numerator": 1,
+          "denominator": 1,
+          "available": true
+        }
+      },
+      "false_start": {
+        "reference_count": 1,
+        "model_count": 1,
+        "match_count": 1,
+        "precision": {
+          "value": 1.0,
+          "numerator": 1,
+          "denominator": 1,
+          "available": true
+        },
+        "recall": {
+          "value": 1.0,
+          "numerator": 1,
+          "denominator": 1,
+          "available": true
+        }
+      }
+    },
+    "omission": {
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 9,
+      "available": true
+    },
+    "insertion": {
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 9,
+      "available": true
+    },
+    "alignment": [
+      {
+        "reference_indices": [
+          0
+        ],
+        "model_indices": [
+          0
+        ],
+        "resolved": true
+      },
+      {
+        "reference_indices": [
+          1
+        ],
+        "model_indices": [
+          1
+        ],
+        "resolved": true
+      }
+    ],
+    "timestamp": {
+      "count": 2,
+      "errors": [
+        0,
+        0
+      ],
+      "median": 0.0,
+      "p90": 0,
+      "max": 0,
+      "within_1s_rate": {
+        "value": 1.0,
+        "numerator": 2,
+        "denominator": 2,
+        "available": true
+      },
+      "within_2s_rate": {
+        "value": 1.0,
+        "numerator": 2,
+        "denominator": 2,
+        "available": true
+      },
+      "within_5s_rate": {
+        "value": 1.0,
+        "numerator": 2,
+        "denominator": 2,
+        "available": true
+      },
+      "within_tolerance_rate": {
+        "value": 1.0,
+        "numerator": 2,
+        "denominator": 2,
+        "available": true
+      }
+    },
+    "speaker": {
+      "speaker_attributed_segments": 2,
+      "speaker_correct_segments": 2,
+      "speaker_accuracy": {
+        "value": 1.0,
+        "numerator": 2,
+        "denominator": 2,
+        "available": true
+      },
+      "anonymous_mapping": {
+        "Người nói 1": "Người nói 1",
+        "Người nói 2": "Người nói 2"
+      },
+      "speaker_fragmentation": 0,
+      "speaker_swap": 0,
+      "under_identified_count": 0,
+      "unsupported_named_labels": []
+    },
+    "uncertainty": {
+      "reference_count": 1,
+      "model_count": 1,
+      "match_count": 1,
+      "precision": {
+        "value": 1.0,
+        "numerator": 1,
+        "denominator": 1,
+        "available": true
+      },
+      "recall": {
+        "value": 1.0,
+        "numerator": 1,
+        "denominator": 1,
+        "available": true
+      }
+    },
+    "golden_speech_coverage": {
+      "value": 1.0,
+      "numerator": 9,
+      "denominator": 9,
+      "available": true
+    },
+    "proper_names": {
+      "name_reference_count": 0,
+      "name_exact_match_count": 0,
+      "name_error_count": 0,
+      "name_accuracy": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      }
+    },
+    "review_queue": [],
+    "provenance": {
+      "origin": "SYNTHETIC_TEST",
+      "actual_models_used": []
+    },
+    "execution_origin": "OFFLINE_STORED_CANONICAL",
+    "evaluation_status": "PASS"
+  }
+]

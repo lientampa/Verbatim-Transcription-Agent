@@ -1,0 +1,59 @@
+{
+  "framework_status": "PASS",
+  "golden_corpus_status": "PARTIAL",
+  "live_status": "NOT_RUN",
+  "acoustic_qualification": "UNAVAILABLE",
+  "release_candidate_readiness": "PARTIAL",
+  "reason": "NO_HUMAN_REVIEWED_GOLDEN_FIXTURES",
+  "fixture_count": 0,
+  "human_reviewed_fixture_count": 0,
+  "synthetic_fixture_count": 0,
+  "top_review_flags": {},
+  "readiness_matrix": {
+    "pipeline_execution": "NOT_RUN",
+    "committed_coverage": "NOT_RUN",
+    "text_fidelity": "UNAVAILABLE",
+    "verbatim_preservation": "UNAVAILABLE",
+    "speaker_attribution": "UNAVAILABLE",
+    "timestamp_accuracy": "UNAVAILABLE",
+    "uncertainty_handling": "UNAVAILABLE",
+    "long_audio_e2e": "NOT_RUN",
+    "resume_e2e": "PARTIAL"
+  },
+  "config": {
+    "alignment_max_time_delta_seconds": 15.0,
+    "alignment_min_text_similarity": 0.35,
+    "alignment_max_group": 3,
+    "golden_timestamp_tolerance_seconds": 1.0,
+    "fillers": [
+      "ờ",
+      "ừ",
+      "ừm",
+      "ờm",
+      "à"
+    ]
+  },
+  "thresholds": {
+    "status": "PARTIAL",
+    "profile": "evaluation-only",
+    "configured": {
+      "MAX_STRICT_WER": null,
+      "MAX_RELAXED_WER": null,
+      "MAX_CER": null,
+      "MIN_GOLDEN_SPEECH_COVERAGE": null,
+      "MIN_SPEAKER_ACCURACY": null,
+      "MAX_MEDIAN_TIMESTAMP_ERROR_SECONDS": null,
+      "MIN_UNCERTAINTY_PRECISION": null
+    },
+    "decisions": {
+      "MAX_STRICT_WER": "DISABLED",
+      "MAX_RELAXED_WER": "DISABLED",
+      "MAX_CER": "DISABLED",
+      "MIN_GOLDEN_SPEECH_COVERAGE": "DISABLED",
+      "MIN_SPEAKER_ACCURACY": "DISABLED",
+      "MAX_MEDIAN_TIMESTAMP_ERROR_SECONDS": "DISABLED",
+      "MIN_UNCERTAINTY_PRECISION": "DISABLED"
+    }
+  },
+  "errors": []
+}

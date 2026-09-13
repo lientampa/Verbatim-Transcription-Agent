@@ -5,6 +5,8 @@ from google.genai.types import Model
 
 from src.gemini_client import GeminiClient, GeminiClientError, GeminiTranscribeError
 from src.model_policy import PREFERRED_MODEL_CHAIN, ModelDisallowedError, is_model_allowed
+# Legacy generateContent-only fake SDK: Transcribe endpoint is absent here.
+PREFERRED_MODEL_CHAIN = tuple(m for m in PREFERRED_MODEL_CHAIN if m != "gemini-3.5-transcribe")
 from tests.test_stage43_adaptation import ProviderError
 
 

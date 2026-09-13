@@ -153,7 +153,7 @@ def test_later_slice_keeps_absolute_offset_and_tail_continuity(tmp_path, monkeyp
 
 
 @pytest.mark.parametrize("minimum,attempts,expected_calls,reason", [
-    (360, 5, 2, "BLOCK_SIZE_EXHAUSTED"),
+    (360, 10, 6, "EMERGENCY_SIZE_FLOOR_EXHAUSTED"),
     (60, 2, 2, "SIZE_RETRIES_EXHAUSTED"),
 ])
 def test_exhaustion_is_bounded_and_uncommitted(tmp_path, monkeypatch, minimum, attempts, expected_calls, reason):

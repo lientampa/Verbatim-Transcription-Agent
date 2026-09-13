@@ -1,7 +1,7 @@
 """Configuration management for Vietnamese Verbatim Transcription Agent."""
 
 import os
-from src.model_policy import allowed_models, require_model_allowed, ModelDisallowedError
+from src.model_policy import allowed_models, require_model_allowed, ModelDisallowedError, PREFERRED_MODEL_CHAIN, PRIMARY_MODEL
 from dataclasses import dataclass
 from pathlib import Path
 from dotenv import load_dotenv
@@ -64,6 +64,8 @@ class AppConfig:
     srt_estimated_duration: float = 4.0
     size_retry_limit: int | None = None
     gemini_max_output_tokens: int | None = None
+    transcription_thinking_level: str = "minimal"
+    emergency_size_min_block_seconds: float = 60.0
     allow_lite_models: bool = False
     strict_speaker_format: bool = True
     model_fallback_enabled: bool = True
@@ -88,7 +90,7 @@ class AppConfig:
     max_transient_retries_per_model: int = 2
     provider_fallback_policy: str = "SPEED_FIRST"
     max_provider_backoff_seconds: float = 5.0
-    fallback_models: tuple[str, ...] = ("gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash")
+    fallback_models: tuple[str, ...] = PREFERRED_MODEL_CHAIN
 
 
 
@@ -115,6 +117,12 @@ def load_config(base_dir: Path | None = None) -> AppConfig:
         if env_path.exists():
             load_dotenv(dotenv_path=env_path, override=True)
 
+    thinking_level = os.getenv("TRANSCRIPTION_THINKING_LEVEL", "minimal").strip().lower()
+    if thinking_level not in ("minimal", "low", "medium", "high"):
+        raise ConfigurationError("Invalid TRANSCRIPTION_THINKING_LEVEL")
+    emergency_floor = float(os.getenv("EMERGENCY_SIZE_MIN_BLOCK_SECONDS", "60"))
+    if not 1 <= emergency_floor <= 120:
+        raise ConfigurationError("EMERGENCY_SIZE_MIN_BLOCK_SECONDS must be in 1..120")
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not api_key or api_key == "YOUR_API_KEY_HERE":
         raise ConfigurationError(
@@ -123,9 +131,9 @@ def load_config(base_dir: Path | None = None) -> AppConfig:
             "See .env.example for reference."
         )
 
-    model_name = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
+    model_name = os.getenv("GEMINI_MODEL", PRIMARY_MODEL).strip()
     if not model_name:
-        model_name = "gemini-3.8-flash"
+        model_name = PRIMARY_MODEL
 
     allow_lite_models = False  # Product hard ban; environment cannot opt in.
     try:
@@ -246,6 +254,8 @@ def load_config(base_dir: Path | None = None) -> AppConfig:
         srt_min_duration=float(os.getenv("SRT_MIN_DURATION", "0.1")),
         srt_estimated_duration=float(os.getenv("SRT_ESTIMATED_DURATION", "4")),
         size_retry_limit=max(0, int(os.environ["SIZE_RETRY_LIMIT"])) if os.getenv("SIZE_RETRY_LIMIT") else None,
+        transcription_thinking_level=thinking_level,
+        emergency_size_min_block_seconds=emergency_floor,
         gemini_max_output_tokens=max(1, int(os.environ["GEMINI_MAX_OUTPUT_TOKENS"])) if os.getenv("GEMINI_MAX_OUTPUT_TOKENS") else None,
-        fallback_models=tuple(allowed_models((m.strip() for m in os.getenv("FALLBACK_MODELS", "gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash").split(",") if m.strip()), allow_lite_models)),
+        fallback_models=tuple(allowed_models((m.strip() for m in os.getenv("FALLBACK_MODELS", ",".join(PREFERRED_MODEL_CHAIN)).split(",") if m.strip()), allow_lite_models)),
     )

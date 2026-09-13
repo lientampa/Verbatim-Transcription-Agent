@@ -6,6 +6,8 @@ from google.genai.types import Model
 
 from src.gemini_client import GeminiClient
 from src.model_policy import PREFERRED_MODEL_CHAIN
+# Legacy generateContent-only fake SDK: Transcribe endpoint is absent here.
+PREFERRED_MODEL_CHAIN = tuple(m for m in PREFERRED_MODEL_CHAIN if m != "gemini-3.5-transcribe")
 from tests.test_stage43_adaptation import ProviderError
 from tests.test_stage4_audio_retry import run_audio_case
 
@@ -150,9 +152,10 @@ def test_actual_model_output_cap_is_rebuilt_from_discovery(monkeypatch):
     monkeypatch.setattr("src.gemini_client.genai.Client", lambda **kw: SimpleNamespace(models=SimpleNamespace(list=lambda: models, generate_content=generate_content)))
     client = GeminiClient("mock-key", requested_max_output_tokens=4000)
     client.generate_transcription("asset", "verbatim")
-    assert seen == [("gemini-3.8-flash",4000),("gemini-3.5-flash",2000)]
-    assert client.last_response_metadata["configured_max_output_tokens"] == 2000
-    assert client.last_response_metadata["provider_output_token_limit"] == 2000
+    assert seen == [("gemini-3.5-flash",2000),("gemini-3.8-flash",4000)]
+    assert client.last_response_metadata["configured_max_output_tokens"] == 4000
+    assert client.last_response_metadata["effective_max_output_tokens"] == 4000
+    assert client.last_response_metadata["provider_output_token_limit"] == 8000
 
 
 def test_coverage_then_size_preserves_size_allowance(tmp_path, monkeypatch):

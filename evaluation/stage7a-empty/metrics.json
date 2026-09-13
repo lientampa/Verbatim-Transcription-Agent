@@ -1,0 +1,406 @@
+{
+  "reviewed_reference_comparison": {
+    "fixture_count": 0,
+    "duration_seconds": 0,
+    "reference_segments": 0,
+    "model_segments": 0,
+    "text": {
+      "strict_wer": {
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_count": 0,
+        "error_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      },
+      "relaxed_wer": {
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_count": 0,
+        "error_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      },
+      "cer": {
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_count": 0,
+        "error_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      }
+    },
+    "verbatim": {
+      "filler": {
+        "reference_count": 0,
+        "model_count": 0,
+        "match_count": 0,
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      },
+      "repetition": {
+        "reference_count": 0,
+        "model_count": 0,
+        "match_count": 0,
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      },
+      "false_start": {
+        "reference_count": 0,
+        "model_count": 0,
+        "match_count": 0,
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      }
+    },
+    "omission": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "available": false,
+      "reason": "ZERO_DENOMINATOR"
+    },
+    "insertion": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "available": false,
+      "reason": "ZERO_DENOMINATOR"
+    },
+    "golden_speech_coverage": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "available": false,
+      "reason": "ZERO_DENOMINATOR"
+    },
+    "speaker_accuracy": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "available": false,
+      "reason": "ZERO_DENOMINATOR"
+    },
+    "timestamp": {
+      "count": 0,
+      "errors": [],
+      "median": null,
+      "p90": null,
+      "max": null,
+      "within_1s_rate": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      },
+      "within_2s_rate": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      },
+      "within_5s_rate": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      },
+      "within_tolerance_rate": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      }
+    },
+    "uncertainty": {
+      "reference_count": 0,
+      "model_count": 0,
+      "match_count": 0,
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      }
+    },
+    "proper_names": {
+      "name_reference_count": 0,
+      "name_exact_match_count": 0,
+      "name_error_count": 0,
+      "name_accuracy": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      }
+    },
+    "critical_review_count": 0,
+    "high_review_count": 0
+  },
+  "synthetic_framework_tests": {
+    "fixture_count": 0,
+    "duration_seconds": 0,
+    "reference_segments": 0,
+    "model_segments": 0,
+    "text": {
+      "strict_wer": {
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_count": 0,
+        "error_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      },
+      "relaxed_wer": {
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_count": 0,
+        "error_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      },
+      "cer": {
+        "substitutions": 0,
+        "deletions": 0,
+        "insertions": 0,
+        "reference_count": 0,
+        "error_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      }
+    },
+    "verbatim": {
+      "filler": {
+        "reference_count": 0,
+        "model_count": 0,
+        "match_count": 0,
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      },
+      "repetition": {
+        "reference_count": 0,
+        "model_count": 0,
+        "match_count": 0,
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      },
+      "false_start": {
+        "reference_count": 0,
+        "model_count": 0,
+        "match_count": 0,
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        },
+        "recall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "available": false,
+          "reason": "ZERO_DENOMINATOR"
+        }
+      }
+    },
+    "omission": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "available": false,
+      "reason": "ZERO_DENOMINATOR"
+    },
+    "insertion": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "available": false,
+      "reason": "ZERO_DENOMINATOR"
+    },
+    "golden_speech_coverage": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "available": false,
+      "reason": "ZERO_DENOMINATOR"
+    },
+    "speaker_accuracy": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "available": false,
+      "reason": "ZERO_DENOMINATOR"
+    },
+    "timestamp": {
+      "count": 0,
+      "errors": [],
+      "median": null,
+      "p90": null,
+      "max": null,
+      "within_1s_rate": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      },
+      "within_2s_rate": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      },
+      "within_5s_rate": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      },
+      "within_tolerance_rate": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      }
+    },
+    "uncertainty": {
+      "reference_count": 0,
+      "model_count": 0,
+      "match_count": 0,
+      "precision": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      },
+      "recall": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      }
+    },
+    "proper_names": {
+      "name_reference_count": 0,
+      "name_exact_match_count": 0,
+      "name_error_count": 0,
+      "name_accuracy": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "available": false,
+        "reason": "ZERO_DENOMINATOR"
+      }
+    },
+    "critical_review_count": 0,
+    "high_review_count": 0
+  }
+}

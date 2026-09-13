@@ -1,7 +1,9 @@
 """Gemini API client wrapper for file upload and content generation."""
 
 import time
-from src.model_policy import allowed_models, require_model_allowed, PREFERRED_MODEL_CHAIN, effective_model_chain
+from src.model_policy import allowed_models, require_model_allowed, PREFERRED_MODEL_CHAIN, effective_model_chain, PRIMARY_MODEL
+from src.provider_adapters import capabilities, GeminiGenerateContentAdapter, TranscriptionModelAdapter, ProviderAdapterError
+from src.runtime_models import RuntimeModels
 import logging
 import re
 from pathlib import Path
@@ -46,7 +48,7 @@ def retry_decision(client, exc, retry_index, fallback_available, retry_budget=No
     """One bounded retry policy for uploads and generation; no sleeping here."""
     policy = getattr(client, "fallback_policy", "PREFER_WAIT")
     policy = {"PREFER_WAIT": "WAIT_FIRST", "LOCK_MODEL": "MODEL_LOCK"}.get(policy, policy)
-    code = getattr(exc, "code", None)
+    code = getattr(exc, "code", getattr(exc, "status_code", None))
     if code is None:
         match = re.search(r"\b(429|503)\b", str(exc))
         code = int(match.group()) if match else None
@@ -56,7 +58,7 @@ def retry_decision(client, exc, retry_index, fallback_available, retry_budget=No
     budget = getattr(client, "max_transient_retries", max(0, client.max_retries - 1))
     if retry_budget is not None:
         budget = min(budget, retry_budget)
-    transient = code in (429, 503) or isinstance(exc, (ConnectionError, TimeoutError, OSError))
+    transient = code in (429, 503) if code is not None else isinstance(exc, (ConnectionError, TimeoutError, OSError))
     delay = provider_delay if provider_delay is not None else local
     within_wait = provider_delay is None or provider_delay <= getattr(client, "max_backoff_seconds", 30.0)
     locked = policy == "MODEL_LOCK" or not getattr(client, "fallback_enabled", True)
@@ -113,7 +115,7 @@ class GeminiClient:
     def __init__(
         self,
         api_key: str,
-        model_name: str = "gemini-3.8-flash",
+        model_name: str = PRIMARY_MODEL,
         max_retries: int = 3,
         initial_delay_seconds: float = 1.0,
         timeout_seconds: int = 300,
@@ -126,10 +128,14 @@ class GeminiClient:
         max_transient_retries: int = 2,
         fallback_models: tuple[str, ...] = PREFERRED_MODEL_CHAIN,
         requested_max_output_tokens: int | None = None,
+        transcription_thinking_level: str = "minimal",
     ) -> None:
         if not api_key:
             raise GeminiClientError("API key must be provided to initialize GeminiClient.")
         require_model_allowed(model_name, allow_lite_models)
+        if transcription_thinking_level not in ("minimal", "low", "medium", "high"):
+            raise GeminiClientError("Invalid TRANSCRIPTION_THINKING_LEVEL")
+        self.transcription_thinking_level = transcription_thinking_level
         self.allow_lite_models = False
         self.model_name = model_name
         self.requested_model = model_name
@@ -150,23 +156,110 @@ class GeminiClient:
         self.client = genai.Client(api_key=api_key)
         try:
             discovered = list(self.client.models.list())
-            self.effective_model_chain = effective_model_chain(discovered)
+            self.adapters = {"generate_content": GeminiGenerateContentAdapter(), "transcribe": TranscriptionModelAdapter()}
+            self.adapter_preflight = TranscriptionModelAdapter.preflight(self.client)
+            self.effective_model_chain = effective_model_chain(discovered, self.adapter_preflight[0])
             self.model_output_limits = {m.name.removeprefix("models/"): m.output_token_limit for m in discovered if m.name}
             self.requested_max_output_tokens = requested_max_output_tokens
         except Exception as exc:
             raise GeminiClientError("MODEL_DISCOVERY_FAILED: availability could not be verified") from exc
         locked = not fallback_enabled or fallback_policy in ("MODEL_LOCK", "LOCK_MODEL")
+        if not locked:
+            self.requested_model = PRIMARY_MODEL
         if locked:
             self.effective_model_chain = tuple(m for m in self.effective_model_chain if m == model_name)
-        print(f"[MODEL_POLICY] lite_allowed=false preferred_chain={list(PREFERRED_MODEL_CHAIN)} effective_chain={list(self.effective_model_chain)}", flush=True)
-        if not self.effective_model_chain:
-            print("[MODEL_FALLBACK_EXHAUSTED] reason=NO_ELIGIBLE_NON_LITE_MODEL", flush=True)
-            raise GeminiClientError("NO_ELIGIBLE_MODEL: NO_ELIGIBLE_NON_LITE_MODEL")
-        self.model_name = self.effective_model_chain[0]
+        self.preferred_chain = PREFERRED_MODEL_CHAIN
+        self.discovered_chain = tuple(m for m in self.preferred_chain if any(d.name and d.name.removeprefix("models/") == m for d in discovered))
+        self._runtime_models = RuntimeModels(self.preferred_chain, self.discovered_chain)
+        self._preflight()
+        print(f"[MODEL_POLICY] lite_allowed=false primary={PRIMARY_MODEL} preferred_chain={list(PREFERRED_MODEL_CHAIN)} effective_chain={list(self.effective_model_chain)}", flush=True)
+        if not self.runtime_eligible_chain:
+            raise GeminiClientError("NO_ELIGIBLE_MODEL: " + self._exhaustion())
+        self.model_name = self.runtime_eligible_chain[0]
         self.fallback_models = self.effective_model_chain
         if self.model_name != self.requested_model:
             self._sticky_fallback_reason = "DISCOVERED_PREFERRED_ORDER"
 
+
+    def _registry(self):
+        if not hasattr(self, "_runtime_models"):
+            plan = getattr(self, "effective_model_chain", None) or tuple(allowed_models(
+                [getattr(self, "requested_model", getattr(self, "model_name", PRIMARY_MODEL))] + list(getattr(self, "fallback_models", PREFERRED_MODEL_CHAIN))))
+            self._runtime_models = RuntimeModels(plan, plan)
+        health = getattr(self, "model_health", None)
+        if health:
+            for model, profile in health.profiles.items():
+                if profile.degraded and (model not in self._runtime_models.states or not self._runtime_models.states[model].quarantined):
+                    self._runtime_models.mark(model, "CIRCUIT_OPEN", "MODEL_HEALTH_CIRCUIT_OPEN", True)
+        return self._runtime_models
+
+    @property
+    def runtime_eligible_chain(self):
+        registry = self._registry()
+        return tuple(m for m in registry.preferred if self._eligible(m, current=self.model_name if hasattr(self, "model_name") else None))
+
+    def _eligible(self, model, current=None):
+        registry = self._registry()
+        health = getattr(self, "model_health", None)
+        return registry.eligible(model) and (not health or health.eligible(model, current=current))
+
+    def _preflight(self):
+        registry = self._runtime_models
+        for model in self.discovered_chain:
+            if capabilities(model).provider_adapter == "transcribe":
+                supported, reason = self.adapter_preflight
+                if not supported:
+                    registry.mark(model, "ADAPTER_UNAVAILABLE", "MODEL_ADAPTER_UNAVAILABLE", True, True, reason)
+                    continue
+            elif not callable(getattr(self.client.models, "generate_content", None)):
+                registry.mark(model, "ADAPTER_UNAVAILABLE", "MODEL_ADAPTER_UNAVAILABLE", True, True, "GENERATE_CONTENT_ENDPOINT_UNAVAILABLE")
+                continue
+            if model not in self.effective_model_chain:
+                registry.mark(model, "ADAPTER_UNAVAILABLE", "MODEL_ADAPTER_UNAVAILABLE", True,
+                              detail="ENDPOINT_UNSUPPORTED_OR_MODEL_LOCK")
+                continue
+            lookup = getattr(self.client.models, "get", None)
+            if callable(lookup):
+                try:
+                    lookup(model=model)  # Cheap metadata only; no audio, generation or upload.
+                    registry.mark(model, "DISCOVERED_UNVERIFIED", "MODEL_METADATA_ACCESS_CONFIRMED")
+                except Exception as exc:
+                    code = getattr(exc, "code", getattr(exc, "status_code", None))
+                    if code in (403, 404):
+                        registry.mark(model, "UNAVAILABLE", "MODEL_UNAVAILABLE", True, True, f"HTTP_{code}")
+                    else:
+                        registry.mark(model, "DISCOVERED_UNVERIFIED", "PREFLIGHT_ACCESS_UNVERIFIED", detail=type(exc).__name__)
+        print(f"[MODEL_PREFLIGHT] states={registry.snapshot()}", flush=True)
+        print(f"[RUNTIME_MODEL_CHAIN] discovered={list(self.discovered_chain)} eligible={list(self.runtime_eligible_chain)}", flush=True)
+
+    def _record_failure(self, model, exc, decision):
+        code = decision["error_code"]
+        registry = self._registry()
+        if code in (403, 404):
+            reason = "MODEL_UNAVAILABLE"
+            registry.mark(model, "UNAVAILABLE", reason, True, True, f"HTTP_{code}")
+        elif isinstance(exc, ProviderAdapterError) and code is None:
+            reason = "MODEL_ADAPTER_FAILURE"
+            registry.mark(model, "ADAPTER_UNAVAILABLE", reason, True, True, getattr(exc, "reason", str(exc)).split(":")[0])
+        else:
+            blocked = decision["action"] != "RETRY_SAME_MODEL"
+            reason = f"PROVIDER_{code}" if code else decision["failure_reason"]
+            if blocked and code == 503:
+                reason += "_RETRY_EXHAUSTED"
+            registry.mark(model, "QUOTA_LIMITED" if code == 429 else "TRANSIENT_FAILURE", reason, blocked)
+        return reason
+
+    def _exhaustion(self):
+        snapshot = self._registry().snapshot()
+        print(f"[MODEL_FALLBACK_EXHAUSTED] exclusions={snapshot}", flush=True)
+        return "NO_ELIGIBLE_NON_LITE_MODEL: " + "; ".join(f"{model}={state['reason']}" for model, state in snapshot.items())
+
+    def log_model_summary(self):
+        states = self._registry().snapshot()
+        used = list(dict.fromkeys(m.get("actual_model") for m in getattr(self, "call_history", []) if m.get("actual_model")))
+        skipped = {m:s["reason"] for m,s in states.items() if s["blocked"] and m not in used}
+        quarantined = {m:s["reason"] for m,s in states.items() if s["quarantined"]}
+        print(f"[JOB_MODEL_SUMMARY] primary_model={PRIMARY_MODEL} actual_models_used={used} models_skipped={skipped} models_quarantined={quarantined} states={states}", flush=True)
 
     def upload_audio(self, audio_path: Path) -> Any:
         """Upload an audio file to the Gemini Files API.
@@ -231,23 +324,78 @@ class GeminiClient:
             return self.upload_audio(audio_path)
         return refreshed
 
+    @staticmethod
+    def minimum_thinking_level(model):
+        return capabilities(model).preferred_transcription_thinking_level
+
+    def generation_config(self, model, base):
+        profile = capabilities(model)
+        if profile.provider_adapter == "transcribe":
+            return None
+        minimum = self.minimum_thinking_level(model)
+        level = getattr(self, "transcription_thinking_level", "minimal")
+        if model in getattr(self, "_thinking_recovered_models", set()) or level == "minimal":
+            level = minimum
+        requested = getattr(self, "requested_max_output_tokens", None)
+        discovered = getattr(self, "model_output_limits", {}).get(model)
+        supported = discovered if type(discovered) is int and discovered > 0 else None
+        effective = min(requested, supported) if requested is not None and supported else requested or supported
+        return base.model_copy(update={
+            "max_output_tokens": effective,
+            "thinking_config": types.ThinkingConfig(thinking_level=level) if minimum else types.ThinkingConfig(thinking_budget=0) if model == "gemini-2.5-flash" else None,
+            "automatic_function_calling": types.AutomaticFunctionCallingConfig(disable=True),
+            "tools": None,
+        })
+
+    def _call_with_config_recovery(self, model, asset, prompt, base):
+        config = self.generation_config(model, base)
+        try:
+            return self._call_model(model, asset, prompt, config)
+        except GeminiSizeError as exc:
+            minimum = self.minimum_thinking_level(model)
+            level = getattr(getattr(config, "thinking_config", None), "thinking_level", None)
+            level = getattr(level, "value", level)
+            if (exc.metadata.get("finish_reason") != "MAX_TOKENS" or not minimum or
+                    str(level).lower() == minimum or getattr(self, "generation_config_retry_count", 0) >= 1):
+                raise
+            self.generation_config_retry_count = getattr(self, "generation_config_retry_count", 0) + 1
+            self._thinking_recovered_models = getattr(self, "_thinking_recovered_models", set()) | {model}
+            print(f" [GENERATION_CONFIG_RETRY] same_physical_block=true from_thinking_level={level} to_thinking_level={minimum} generation_config_retry_count={self.generation_config_retry_count}", flush=True)
+            return self._call_model(model, asset, prompt, self.generation_config(model, base))
+
     def _call_model(self, model: str, gemini_file: Any, user_prompt: str, config: Any) -> str | None:
         """Helper to invoke models.generate_content and extract transcript text."""
         require_model_allowed(model, getattr(self, "allow_lite_models", False))
         if hasattr(self, "effective_model_chain") and model not in self.effective_model_chain:
             raise GeminiTranscribeError("NO_ELIGIBLE_MODEL: model not discovered/supported")
+        if hasattr(self, "_runtime_models") and not self._runtime_models.eligible(model):
+            raise GeminiTranscribeError("MODEL_NOT_RUNTIME_ELIGIBLE: " + model)
+        self.actual_capabilities = capabilities(model)
         requested = getattr(self, "requested_model", getattr(self, "model_name", model))
         attempt = getattr(self, "_provider_attempt", 0) + 1
         self._provider_attempt = attempt
         block_match = re.search(r'- block_id: "([^"]+)"', user_prompt)
         self.last_response_metadata = {
-            "requested_model": requested, "actual_model": model,
+            "primary_model": PRIMARY_MODEL, "requested_model": requested, "actual_model": model,
+            "fallback_index": PREFERRED_MODEL_CHAIN.index(model) if model in PREFERRED_MODEL_CHAIN else None,
+            "runtime_model_state": self._registry().states.get(model).state if model in self._registry().states else "ELIGIBLE",
             "fallback_used": model != requested,
             "backoff_before_call_seconds": getattr(self, "_backoff_before_call", 0.0),
             "fallback_reason": (getattr(self, "_fallback_reason", None) or
                                 getattr(self, "_sticky_fallback_reason", None)) if model != requested else None,
             "attempt": attempt, "provider_attempt": attempt, "retry_after_seconds": None, "provider_retry_after_seconds": None, "block_id": block_match.group(1) if block_match else None,
         }
+        thinking = getattr(getattr(config, "thinking_config", None), "thinking_level", None)
+        self.last_response_metadata.update(
+            configured_max_output_tokens=getattr(self, "requested_max_output_tokens", None) or "UNSET",
+            effective_max_output_tokens=(getattr(config, "max_output_tokens", None) or "PROVIDER_DEFAULT") if config is not None else "UNSUPPORTED_BY_ADAPTER",
+            model_output_token_limit=getattr(self, "model_output_limits", {}).get(model) or "UNDISCOVERED",
+            thinking_level=str(getattr(thinking, "value", thinking)).lower() if thinking else "NOT_APPLICABLE",
+            generation_config_retry_count=getattr(self, "generation_config_retry_count", 0),
+            provider_adapter=self.actual_capabilities.provider_adapter,
+            thinking_budget=getattr(getattr(config, "thinking_config", None), "thinking_budget", None))
+        print(" [GENERATION_CONFIG] " + " ".join(f"{k}={self.last_response_metadata[k]}" for k in
+            ("block_id", "actual_model", "thinking_level", "effective_max_output_tokens", "model_output_token_limit")), flush=True)
         self._backoff_before_call = 0.0
         if not hasattr(self, "call_history"):
             self.call_history = []
@@ -256,8 +404,10 @@ class GeminiClient:
         console_metadata["fallback_reason"] = str(console_metadata["fallback_reason"])[:180] if console_metadata["fallback_reason"] else None
         print(f" [MODEL_CALL {console_metadata}]", end="", flush=True)
         try:
-            response = self.client.models.generate_content(
-                model=model, contents=[gemini_file, user_prompt], config=config)
+            adapter = getattr(self, "adapters", {}).get(self.actual_capabilities.provider_adapter)
+            if adapter is None:
+                adapter = TranscriptionModelAdapter() if self.actual_capabilities.provider_adapter == "transcribe" else GeminiGenerateContentAdapter()
+            response = adapter.generate(self.client, model, gemini_file, user_prompt, config)
         except Exception as exc:
             self.last_response_metadata.update(provider_error_code=getattr(exc, "code", None),
                                                provider_error_message=str(exc), retry_after_seconds=structured_retry_after(exc), provider_retry_after_seconds=structured_retry_after(exc),
@@ -275,7 +425,7 @@ class GeminiClient:
             "output_tokens": getattr(usage, "candidates_token_count", None),
             "total_tokens": getattr(usage, "total_token_count", None),
             "thought_tokens": getattr(usage, "thoughts_token_count", None),
-            "configured_max_output_tokens": getattr(config, "max_output_tokens", None),
+            "visible_output_tokens": getattr(usage, "candidates_token_count", None),
         })
 
         # 1. Try extracting text from candidates parts
@@ -285,6 +435,13 @@ class GeminiClient:
             reason = getattr(reason, "value", reason)
             self.last_response_metadata["finish_reason"] = reason
             if reason == "MAX_TOKENS":
+                visible = self.last_response_metadata.get("output_tokens")
+                thoughts = self.last_response_metadata.get("thought_tokens")
+                ratio = thoughts / visible if isinstance(thoughts, (int, float)) and isinstance(visible, (int, float)) and visible > 0 else None
+                pressure = isinstance(thoughts, (int, float)) and thoughts > 0 and isinstance(visible, (int, float)) and thoughts >= 4 * max(visible, 1)
+                self.last_response_metadata.update(thought_to_visible_ratio=ratio,
+                    max_tokens_classification="REASONING_OUTPUT_PRESSURE" if pressure else "OUTPUT_SIZE_PRESSURE")
+                print(f" [MAX_TOKENS_CLASSIFICATION] type={self.last_response_metadata['max_tokens_classification']} thought_tokens={thoughts} output_tokens={visible} ratio={ratio if ratio is not None else 'UNAVAILABLE'}", flush=True)
                 parts = getattr(getattr(candidate, "content", None), "parts", None) or []
                 self.last_response_metadata["response_text_characters"] = sum(len(getattr(p, "text", None) or "") for p in parts if not getattr(p, "thought", False))
                 diagnostic = {key: self.last_response_metadata.get(key) for key in (
@@ -312,23 +469,24 @@ class GeminiClient:
         health = self.model_health
         requested = getattr(self, "requested_model", self.model_name)
         if not getattr(self, "fallback_enabled", True) or getattr(self, "fallback_policy", "SPEED_FIRST") in ("LOCK_MODEL", "MODEL_LOCK"):
-            raise GeminiTranscribeError("MODEL_OUTPUT_UNAVAILABLE: model locked and output circuit open")
+            raise GeminiTranscribeError("MODEL_OUTPUT_UNAVAILABLE: model locked and output circuit open; " + self._exhaustion())
         require_model_allowed(requested, getattr(self, "allow_lite_models", False))
         plan = allowed_models([requested] + list(getattr(self, "fallback_models", ())), getattr(self, "allow_lite_models", False))
         plan = list(getattr(self, "effective_model_chain", plan))
         current = self.model_name
         start = plan.index(current) + 1 if current in plan else len(plan)
         for model in plan[start:]:
-            if health.eligible(model):
+            if self._eligible(model):
                 reason = f"MODEL_HEALTH_CIRCUIT_OPEN:{current}"
                 self.model_name = model
+                self.actual_capabilities = capabilities(model)
                 self._sticky_fallback_reason = reason
                 if not hasattr(self, "_selection_reasons"):
                     self._selection_reasons = {}
                 self._selection_reasons[model] = reason
                 print(f" [MODEL_HEALTH_SWITCH from={current} to={model}]", flush=True)
                 return model
-        raise GeminiTranscribeError(f"MODEL_OUTPUT_UNAVAILABLE NO_ELIGIBLE_FALLBACK_MODEL NO_ELIGIBLE_NON_LITE_MODEL: no eligible model after {current}; provider={health.provider_state}")
+        raise GeminiTranscribeError("MODEL_OUTPUT_UNAVAILABLE NO_ELIGIBLE_FALLBACK_MODEL: " + self._exhaustion())
 
     def generate_transcription(
         self,
@@ -375,6 +533,7 @@ class GeminiClient:
         block_key = block_match.group(1) if block_match else None
         if block_key is None or block_key != getattr(self, "_attempt_block", None):
             self._provider_attempt = 0
+            self.generation_config_retry_count = 0
         self._attempt_block = block_key
         health = getattr(self, "model_health", None)
         if health:
@@ -383,26 +542,24 @@ class GeminiClient:
         if not hasattr(self, "_selection_reasons"):
             self._selection_reasons = {}
         for index, model in enumerate(plan[start:]):
-            if health and not health.eligible(model, current=self.model_name):
+            if not self._eligible(model, current=self.model_name):
                 continue
             self._fallback_reason = str(last_err)[:180] if index else self._selection_reasons.get(model, self._fallback_reason)
             self._selection_reasons[model] = self._fallback_reason
             self._sticky_fallback_reason = self._fallback_reason
             self._backoff_before_call = 0.0
             self.model_name = model
+            self.actual_capabilities = capabilities(model)
             hook = getattr(self, "on_model_selected", None)
             if hook:
                 hook(model, self._fallback_reason)
             if health:
                 health.visited.add(model)
-            requested_cap = getattr(self, "requested_max_output_tokens", None)
-            supported_cap = getattr(self, "model_output_limits", {}).get(model)
-            actual_cap = min(requested_cap, supported_cap) if requested_cap is not None and isinstance(supported_cap, int) and supported_cap > 0 else requested_cap
-            model_config = config.model_copy(update={"max_output_tokens": actual_cap})
             for attempt in range(1, getattr(self, "max_transient_retries", self.max_retries - 1) + 2):
                 try:
-                    transcript = self._call_model(model, gemini_file, user_prompt, model_config)
+                    transcript = self._call_with_config_recovery(model, gemini_file, user_prompt, config)
                     if transcript:
+                        self._registry().mark(model, "ELIGIBLE", "LAST_CALL_SUCCEEDED")
                         if health:
                             health.provider_state.pop(model, None)
                         return transcript
@@ -411,10 +568,11 @@ class GeminiClient:
                     raise
                 except Exception as exc:
                     last_err = exc
-                    next_model = next((m for m in plan[start + index + 1:] if not health or health.eligible(m)), None)
+                    next_model = next((m for m in plan[start + index + 1:] if self._eligible(m)), None)
                     decision = retry_decision(self, exc, attempt - 1, next_model is not None)
                     decision["failure_reason"] = ("EMPTY_RESPONSE" if "EMPTY_RESPONSE" in str(exc) else
                         f"PROVIDER_{decision['error_code']}" if decision["error_code"] is not None else type(exc).__name__)
+                    decision["failure_reason"] = self._record_failure(model, exc, decision)
                     if health:
                         health.provider_failure(model, decision)
                     self.last_response_metadata.update(decision)
@@ -426,7 +584,6 @@ class GeminiClient:
                     if decision["action"] == "MODEL_FALLBACK":
                         print(f" [MODEL_FALLBACK from={model} to={next_model} reason={decision['failure_reason']} provider_retry_after_seconds={decision['provider_retry_after_seconds']} actual_sleep_seconds=0 policy={decision['policy']}]", flush=True)
                     if decision["action"] == "FAIL_PROVIDER":
-                        print(" [MODEL_FALLBACK_EXHAUSTED reason=NO_ELIGIBLE_NON_LITE_MODEL]", flush=True)
-                        raise GeminiTranscribeError(f"PROVIDER_UNAVAILABLE NO_ELIGIBLE_FALLBACK_MODEL NO_ELIGIBLE_NON_LITE_MODEL: {decision['reason']} code={decision['error_code']}") from exc
+                        raise GeminiTranscribeError("PROVIDER_UNAVAILABLE NO_ELIGIBLE_FALLBACK_MODEL: " + self._exhaustion()) from exc
                     break
-        raise GeminiTranscribeError("NO_ELIGIBLE_NON_LITE_MODEL: provider attempt plan exhausted") from last_err
+        raise GeminiTranscribeError(self._exhaustion()) from last_err
