@@ -1,4 +1,4 @@
-# Vietnamese Verbatim Transcription Agent (Bản thử nghiệm MVP 1)
+# Vietnamese Verbatim Transcription Agent
 
 AI Agent chuyên phiên âm nguyên văn (verbatim transcription) tiếng Việt từ các file ghi âm, sử dụng **Google Gemini Files API** và SDK chính thức `google-genai`.
 
@@ -49,7 +49,7 @@ python --version
 ### Bước 2: Mở thư mục dự án
 Mở terminal tại thư mục chứa dự án:
 ```bash
-cd "d:\ZEC\Vietnamese Verbatim Transcription Agent"
+cd "..\Vietnamese Verbatim Transcription Agent"
 ```
 
 ### Bước 3: Tạo và kích hoạt môi trường ảo (Virtual Environment)
