@@ -125,6 +125,7 @@ class GeminiClient:
         backoff_multiplier: float = 2.0,
         max_transient_retries: int = 2,
         fallback_models: tuple[str, ...] = PREFERRED_MODEL_CHAIN,
+        requested_max_output_tokens: int | None = None,
     ) -> None:
         if not api_key:
             raise GeminiClientError("API key must be provided to initialize GeminiClient.")
@@ -148,7 +149,10 @@ class GeminiClient:
         self.timeout_seconds = timeout_seconds
         self.client = genai.Client(api_key=api_key)
         try:
-            self.effective_model_chain = effective_model_chain(self.client.models.list())
+            discovered = list(self.client.models.list())
+            self.effective_model_chain = effective_model_chain(discovered)
+            self.model_output_limits = {m.name.removeprefix("models/"): m.output_token_limit for m in discovered if m.name}
+            self.requested_max_output_tokens = requested_max_output_tokens
         except Exception as exc:
             raise GeminiClientError("MODEL_DISCOVERY_FAILED: availability could not be verified") from exc
         locked = not fallback_enabled or fallback_policy in ("MODEL_LOCK", "LOCK_MODEL")
@@ -263,6 +267,10 @@ class GeminiClient:
             raise
         usage = getattr(response, "usage_metadata", None)
         self.last_response_metadata.update({
+            "provider_usage_metadata": usage.model_dump(mode="json", exclude_none=True) if hasattr(usage, "model_dump") else (dict(vars(usage)) if usage is not None and hasattr(usage, "__dict__") else None),
+            "physical_duration": getattr(self, "physical_duration", None),
+            "dabb_target_input_tokens": getattr(self, "dabb_target_input_tokens", None),
+            "provider_output_token_limit": getattr(self, "model_output_limits", {}).get(model),
             "input_tokens": getattr(usage, "prompt_token_count", None),
             "output_tokens": getattr(usage, "candidates_token_count", None),
             "total_tokens": getattr(usage, "total_token_count", None),
@@ -387,20 +395,26 @@ class GeminiClient:
                 hook(model, self._fallback_reason)
             if health:
                 health.visited.add(model)
+            requested_cap = getattr(self, "requested_max_output_tokens", None)
+            supported_cap = getattr(self, "model_output_limits", {}).get(model)
+            actual_cap = min(requested_cap, supported_cap) if requested_cap is not None and isinstance(supported_cap, int) and supported_cap > 0 else requested_cap
+            model_config = config.model_copy(update={"max_output_tokens": actual_cap})
             for attempt in range(1, getattr(self, "max_transient_retries", self.max_retries - 1) + 2):
                 try:
-                    transcript = self._call_model(model, gemini_file, user_prompt, config)
+                    transcript = self._call_model(model, gemini_file, user_prompt, model_config)
                     if transcript:
                         if health:
                             health.provider_state.pop(model, None)
                         return transcript
-                    raise GeminiTranscribeError("Gemini returned empty response")
+                    raise GeminiTranscribeError("EMPTY_RESPONSE: Gemini returned empty response")
                 except GeminiSizeError:
                     raise
                 except Exception as exc:
                     last_err = exc
                     next_model = next((m for m in plan[start + index + 1:] if not health or health.eligible(m)), None)
                     decision = retry_decision(self, exc, attempt - 1, next_model is not None)
+                    decision["failure_reason"] = ("EMPTY_RESPONSE" if "EMPTY_RESPONSE" in str(exc) else
+                        f"PROVIDER_{decision['error_code']}" if decision["error_code"] is not None else type(exc).__name__)
                     if health:
                         health.provider_failure(model, decision)
                     self.last_response_metadata.update(decision)
@@ -410,7 +424,7 @@ class GeminiClient:
                         self._backoff_before_call = decision["actual_sleep_seconds"]
                         continue
                     if decision["action"] == "MODEL_FALLBACK":
-                        print(f" [MODEL_FALLBACK from={model} to={next_model} reason={decision['error_code']}_{decision['reason']} provider_retry_after_seconds={decision['provider_retry_after_seconds']} actual_sleep_seconds=0 policy={decision['policy']}]", flush=True)
+                        print(f" [MODEL_FALLBACK from={model} to={next_model} reason={decision['failure_reason']} provider_retry_after_seconds={decision['provider_retry_after_seconds']} actual_sleep_seconds=0 policy={decision['policy']}]", flush=True)
                     if decision["action"] == "FAIL_PROVIDER":
                         print(" [MODEL_FALLBACK_EXHAUSTED reason=NO_ELIGIBLE_NON_LITE_MODEL]", flush=True)
                         raise GeminiTranscribeError(f"PROVIDER_UNAVAILABLE NO_ELIGIBLE_FALLBACK_MODEL NO_ELIGIBLE_NON_LITE_MODEL: {decision['reason']} code={decision['error_code']}") from exc

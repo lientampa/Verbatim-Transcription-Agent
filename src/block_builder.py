@@ -503,7 +503,7 @@ class DabbAudioOrchestrator:
         duration = max(self.config.min_duration_seconds, min(
             self.current_block_duration_seconds, old_duration * factor))
         if duration >= old_duration - 1e-9:
-            raise BlockBuilderError("BLOCK_SIZE_EXHAUSTED: cannot reduce current audio interval further")
+            raise BlockBuilderError("MIN_BLOCK_REACHED BLOCK_SIZE_EXHAUSTED: cannot reduce current audio interval further")
         end = to_us(old.start_time_seconds + duration) / UNITS_PER_SECOND
         duration = end - old.start_time_seconds
         path = self._get_audio_builder(max(10, int(duration))).slice_time_range(
@@ -537,7 +537,7 @@ class DabbAudioOrchestrator:
         """
         # Create a minimal AdaptiveBlock proxy for DABB tracking
         proxy = AdaptiveBlock(
-            block_id="__proxy__",
+            block_id=getattr(self, "current_block_id", "UNASSIGNED_BLOCK"),
             first_source_index=0,
             last_source_index=0,
             segments=[],
@@ -553,7 +553,7 @@ class DabbAudioOrchestrator:
     def on_block_failure(self, failure_type: FailureType) -> bool:
         """Call when a block fails. Returns True if block should be retried smaller."""
         proxy = AdaptiveBlock(
-            block_id="__proxy__",
+            block_id=getattr(self, "current_block_id", "UNASSIGNED_BLOCK"),
             first_source_index=0,
             last_source_index=0,
             segments=[],

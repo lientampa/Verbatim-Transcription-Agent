@@ -176,6 +176,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             backoff_multiplier=config.retry_backoff_multiplier,
             max_transient_retries=config.max_transient_retries_per_model,
             fallback_models=config.fallback_models,
+            requested_max_output_tokens=config.gemini_max_output_tokens,
         )
     except GeminiClientError as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
@@ -239,9 +240,11 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             size_retry_count, structural_retry_count, network_failure_count = 0, 0, 0
             # Independent budgets; the legacy validation setting supplies the
             # default size allowance, never its consumed counter.
-            size_limit = config.validator_max_retries
+            size_limit = config.size_retry_limit if config.size_retry_limit is not None else max(0, config.validator_max_retries - 1)
+            orchestrator.current_block_id = block_id
             def select_model(model, reason):
                 target = orchestrator.select_model(model, reason)
+                gemini_client.dabb_target_input_tokens = orchestrator.dabb.current_target_tokens
                 if adaptive_slice.current_duration_seconds > target + 1e-6:
                     raise ModelReplanRequired(target)
             gemini_client.on_model_selected = select_model
@@ -260,6 +263,8 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                           f"start={block.start_time_seconds} end={block.end_time_seconds} "
                           f"duration={adaptive_slice.current_duration_seconds} slice={block.file_path} "
                           f"upload={last_file_id} action=TRANSCRIBE]", end="", flush=True)
+                    gemini_client.physical_duration = adaptive_slice.current_duration_seconds
+                    gemini_client.dabb_target_input_tokens = orchestrator.dabb.current_target_tokens
                     transcriber.speaker_context = list(dict.fromkeys(s.speaker for s in merger.get_merged_segments() if s.speaker))
                     outcome = transcriber.transcribe_block(
                         gemini_file=gemini_file,
@@ -294,10 +299,13 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                     print(f" [failure_class={failure_type.value} target_before={target_before} "
                           f"target_after={orchestrator.dabb.current_target_tokens}]", end="", flush=True)
                     if failure_type == FailureType.SIZE_FAILURE:
-                        size_retry_count += 1
+                        details = dict(metadata)
+                        print(f" [OUTPUT_LIMIT] block_id={block_id} actual_model={details.get('actual_model')} physical_duration={adaptive_slice.current_duration_seconds} finish_reason={details.get('finish_reason')} prompt_tokens={details.get('input_tokens')} output_tokens={details.get('output_tokens')} max_output_tokens={details.get('configured_max_output_tokens')} dabb_target_input_tokens={target_before} size_retry_count={size_retry_count}", flush=True)
                         if size_retry_count >= size_limit:
+                            print(f"[SIZE_RETRY_EXHAUSTED] block_id={block_id} size_retry_count={size_retry_count} size_retry_limit={size_limit} last_duration={adaptive_slice.current_duration_seconds} next_candidate_duration={max(config.min_duration_seconds, min(orchestrator.current_block_duration_seconds, adaptive_slice.current_duration_seconds * config.block_shrink_factor))}", flush=True)
                             raise TranscriptionError(f"SIZE_RETRIES_EXHAUSTED: block={block_id} size_failures={size_retry_count} size_limit={size_limit} total_attempts={total_attempts}: {exc}") from exc
                         orchestrator.rebuild_audio_block(adaptive_slice)
+                        size_retry_count += 1
                         block = adaptive_slice.source_block
                         gemini_file = None
                         print(f" [action=SHRINK_REBUILD_REUPLOAD size_retry_count={size_retry_count}]", end="", flush=True)
