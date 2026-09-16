@@ -1,0 +1,35 @@
+{
+  "benchmark_id": "GOLDEN_001",
+  "language": "vi",
+  "source_mode": "AUDIO",
+  "fixture_status": "POPULATED",
+  "reference_type": "HUMAN_REVIEWED",
+  "human_timestamp_authority": "PARTIAL",
+  "human_lexical_authority": "PRIMARY",
+  "machine_baseline_version": "BASELINE_001",
+  "paths": {
+    "human": "human.txt",
+    "machine_baseline": "machine_baseline.txt",
+    "audio": "local/audio.m4a",
+    "annotations": "annotations.json"
+  },
+  "source": {
+    "duration_seconds": 868.416,
+    "fingerprint_sha256": "b8ae1d822af7e40e0753aaa56aa30786bca6873ab60b738be5648c0ca2951a45"
+  },
+  "input_sha256": {
+    "human": "6fe3e8e901d6e50d502275dac601bcf6a1338e8b4c79b490a44a104a70b234f3",
+    "machine_baseline": "342477b12d656e37a43c0e5ba974de603d9feb215ad300145c884f4386951759"
+  },
+  "alignment": {
+    "tolerance_seconds": 15.0
+  },
+  "evaluation_status": "OFFLINE_BASELINE_RECORDED",
+  "review": {
+    "lexical_reference_supplied_by": "USER",
+    "audio_adjudication_by_agent": false
+  },
+  "excluded_speaker_labels": [
+    "chú thích"
+  ]
+}

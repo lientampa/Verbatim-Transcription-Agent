@@ -542,7 +542,7 @@ def test_phase20_end_to_end_15_segments(tmp_path, monkeypatch):
     monkeypatch.setattr("src.main.GeminiClient.upload_audio", lambda self, audio_path: mock_file_obj)
     monkeypatch.setattr("src.main.GeminiTranscriber.transcribe_block", mock_transcribe_block)
 
-    exit_code = run_pipeline(force=False, base_dir=tmp_path)
+    exit_code = run_pipeline(force=False, base_dir=tmp_path, prompt_controlled_audio=False)
     assert exit_code == 0
 
     txt_path = tmp_path / "output" / "transcript.txt"

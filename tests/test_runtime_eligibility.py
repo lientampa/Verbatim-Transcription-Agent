@@ -168,7 +168,7 @@ def test_full_exhaustion_preserves_120_checkpoint_and_same_slice(tmp_path,monkey
     result,_,_,_,cp=run_audio_case(tmp_path,monkeypatch,total_duration=600,fail_count=0,setup=setup)
     assert result==1 and cp["next_audio_start_us"]==120000000
     assert len(cp["block_metrics"])==1 and len(cp["confirmed_segments"])==1
-    for reason in ("MODEL_UNAVAILABLE","MODEL_ADAPTER_FAILURE","PROVIDER_429","MODEL_HEALTH_CIRCUIT_OPEN","PROVIDER_503_RETRY_EXHAUSTED"):
+    for reason in ("MODEL_UNAVAILABLE","MODEL_ADAPTER_FAILURE","PROVIDER_429","MODEL_COVERAGE_RETRY_EXHAUSTED","PROVIDER_503_RETRY_EXHAUSTED"):
         assert reason in cp["error_message"]
     assert [m for m,_ in calls]==["gemini-2.5-flash"]*2+["gemini-3.5-transcribe","gemini-3.6-flash"]+["gemini-3.5-flash"]*2+["gemini-3.8-flash"]*3
     assert all(asset is calls[1][1] for _,asset in calls[1:5])

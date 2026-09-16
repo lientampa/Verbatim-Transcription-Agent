@@ -12,6 +12,7 @@ from src.main import run_pipeline
 
 def run_audio_case(tmp_path, monkeypatch, failure="output limit", attempts=3, minimum=60,
                    fail_count=1, fail_block="BLOCK_001", restart=False, setup=None, total_duration=900.0):
+    # Legacy/native retry contract harness; capability selection has independent tests.
     (tmp_path / "audio").mkdir()
     (tmp_path / "audio" / "source.wav").write_bytes(b"source")
     (tmp_path / "prompts").mkdir()
@@ -89,13 +90,13 @@ def run_audio_case(tmp_path, monkeypatch, failure="output limit", attempts=3, mi
             raise KeyboardInterrupt("simulated process interruption after atomic commit")
         monkeypatch.setattr(CheckpointManager, "commit_block", interrupt)
         with pytest.raises(KeyboardInterrupt):
-            run_pipeline(base_dir=tmp_path)
+            run_pipeline(base_dir=tmp_path, prompt_controlled_audio=False)
         monkeypatch.setattr(CheckpointManager, "commit_block", original_commit)
         calls.clear()
         slices.clear()
         uploads.clear()
         fail_count = 0
-    result = run_pipeline(base_dir=tmp_path)
+    result = run_pipeline(base_dir=tmp_path, prompt_controlled_audio=False)
     checkpoint = json.loads(config.checkpoint_file_path.read_text(encoding="utf-8"))
     return result, slices, uploads, calls, checkpoint
 

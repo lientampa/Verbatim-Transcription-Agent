@@ -1,0 +1,126 @@
+{
+  "benchmark_id": "GOLDEN_001",
+  "status": "REFERENCE_GROUNDED_EXAMPLES",
+  "annotations": [
+    {
+      "annotation_id": "G001-E001",
+      "human_text": "Nên nên nên đầu tư.",
+      "machine_text": "Nên nên nên đầu tư.",
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": "LOW",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "MATCH",
+      "expected_online_policy": "ACCEPT",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    },
+    {
+      "annotation_id": "G001-E002",
+      "human_text": "Nó có bọt rồi đó.",
+      "machine_text": "Nó có bột rồi đó.",
+      "primary_error_type": "WORD_SUBSTITUTION",
+      "severity": "MINOR",
+      "semantic_risk": "LOW",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    },
+    {
+      "annotation_id": "G001-E003",
+      "human_text": "qua coi thực tế",
+      "machine_text": "qua xem thực tế",
+      "primary_error_type": "OVER_NORMALIZATION",
+      "severity": "MINOR",
+      "semantic_risk": "LOW",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    },
+    {
+      "annotation_id": "G001-E004",
+      "human_text": "Khách họ cần thực tế hơn.",
+      "machine_text": "Khách họ cần sự thực tế hơn.",
+      "primary_error_type": "WORD_INSERTION",
+      "severity": "MINOR",
+      "semantic_risk": "LOW",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    },
+    {
+      "annotation_id": "G001-E005",
+      "human_text": "Hình như phổ nhĩ quýt thơm.",
+      "machine_text": "Em uống phô mai rứa thôi.",
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    },
+    {
+      "annotation_id": "G001-E006",
+      "human_text": "Dạ em ở Quảng Nam.",
+      "machine_text": "Dạ em Đà Nẵng luôn.",
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "CRITICAL",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    },
+    {
+      "annotation_id": "G001-E007",
+      "human_text": "Phổ Nhĩ quýt",
+      "machine_text": "phổ nhị quất",
+      "primary_error_type": "ENTITY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    },
+    {
+      "annotation_id": "G001-E008",
+      "human_text": "thiềm thừ",
+      "machine_text": "thiểm thử",
+      "primary_error_type": "ENTITY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    },
+    {
+      "annotation_id": "G001-E009",
+      "human_text": "Dạ Tử Đào.",
+      "machine_text": "Dạ từ đào.",
+      "primary_error_type": "ENTITY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    },
+    {
+      "annotation_id": "G001-E010",
+      "human_text": "Nghê với lại",
+      "machine_text": "Nghe bây giờ",
+      "primary_error_type": "ENTITY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication."
+    }
+  ]
+}

@@ -52,7 +52,7 @@ class ModelHealth:
         delay = decision.get("provider_retry_after_seconds")
         if decision.get("error_code") == 429 and delay is not None:
             state["provider_cooldown_until"] = time.monotonic() + delay
-        if decision["action"] != "RETRY_SAME_MODEL":
+        if decision["action"] != "RETRY_SAME_MODEL" and decision.get("error_code") != 429:
             state["provider_retry_exhausted"] = True
         state["last_provider_reason"] = decision["reason"]
 
@@ -89,8 +89,9 @@ class ModelHealth:
                     impossible |= seconds > block.end_time_seconds + 3600 or seconds < block.start_time_seconds - 3600
                 except (ValueError, AttributeError):
                     continue
-        if impossible:
+        if set(result.reason_codes) & {"TIMESTAMP_OUT_OF_RANGE", "TIMESTAMP_ORDER_ERROR"}:
             self.profile(model).timestamp_semantic_failures += 1
+        if impossible:
             return self._strike(model, "REPEATED_TIMESTAMP_SEMANTICS")
         return False
 

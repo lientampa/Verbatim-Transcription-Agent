@@ -2,7 +2,7 @@
 
 import time
 from src.model_policy import allowed_models, require_model_allowed, PREFERRED_MODEL_CHAIN, effective_model_chain, PRIMARY_MODEL
-from src.provider_adapters import capabilities, GeminiGenerateContentAdapter, TranscriptionModelAdapter, ProviderAdapterError
+from src.provider_adapters import capabilities, GeminiGenerateContentAdapter, TranscriptionModelAdapter, ProviderAdapterError, AnnotationSemanticError
 from src.runtime_models import RuntimeModels
 import logging
 import re
@@ -129,6 +129,8 @@ class GeminiClient:
         fallback_models: tuple[str, ...] = PREFERRED_MODEL_CHAIN,
         requested_max_output_tokens: int | None = None,
         transcription_thinking_level: str = "minimal",
+        prompt_controlled_audio: bool = False,
+        schema_path=None,
     ) -> None:
         if not api_key:
             raise GeminiClientError("API key must be provided to initialize GeminiClient.")
@@ -154,6 +156,16 @@ class GeminiClient:
         self.initial_delay_seconds = max(0.1, initial_delay_seconds)
         self.timeout_seconds = timeout_seconds
         self.client = genai.Client(api_key=api_key)
+        self.capability_gate = None
+        self.request_schema = None
+        if prompt_controlled_audio:
+            import json
+            from pathlib import Path
+            from src.provider_capability import CapabilityGate
+            self.request_schema = json.loads(Path(schema_path or Path(__file__).resolve().parents[1] / 'schemas/transcription_result.schema.json').read_text(encoding='utf-8'))
+            options = self.client._api_client._http_options
+            endpoint = str(options.base_url) + '/' + str(options.api_version)
+            self.capability_gate = CapabilityGate(self.client, self.request_schema, endpoint)
         try:
             discovered = list(self.client.models.list())
             self.adapters = {"generate_content": GeminiGenerateContentAdapter(), "transcribe": TranscriptionModelAdapter()}
@@ -172,7 +184,10 @@ class GeminiClient:
         self.discovered_chain = tuple(m for m in self.preferred_chain if any(d.name and d.name.removeprefix("models/") == m for d in discovered))
         self._runtime_models = RuntimeModels(self.preferred_chain, self.discovered_chain)
         self._preflight()
-        print(f"[MODEL_POLICY] lite_allowed=false primary={PRIMARY_MODEL} preferred_chain={list(PREFERRED_MODEL_CHAIN)} effective_chain={list(self.effective_model_chain)}", flush=True)
+        eligible_chain = self.runtime_eligible_chain
+        transient_paths = [p.model for p, e in self.capability_gate.results.items() if e.state == 'UNVERIFIED_TRANSIENT'] if self.capability_gate else []
+        self.effective_primary_model = eligible_chain[0] if eligible_chain else None
+        print(f"[MODEL_POLICY] lite_allowed=false configured_primary={self.requested_model} effective_primary={self.effective_primary_model} configured_chain={list(PREFERRED_MODEL_CHAIN)} eligible_chain={list(eligible_chain)} unverified_transient={transient_paths}", flush=True)
         if not self.runtime_eligible_chain:
             raise GeminiClientError("NO_ELIGIBLE_MODEL: " + self._exhaustion())
         self.model_name = self.runtime_eligible_chain[0]
@@ -189,7 +204,8 @@ class GeminiClient:
         health = getattr(self, "model_health", None)
         if health:
             for model, profile in health.profiles.items():
-                if profile.degraded and (model not in self._runtime_models.states or not self._runtime_models.states[model].quarantined):
+                state = self._runtime_models.states.get(model)
+                if profile.degraded and not (state and (state.quarantined or state.reason in ("MODEL_STRUCTURAL_RETRY_EXHAUSTED", "MODEL_COVERAGE_RETRY_EXHAUSTED"))):
                     self._runtime_models.mark(model, "CIRCUIT_OPEN", "MODEL_HEALTH_CIRCUIT_OPEN", True)
         return self._runtime_models
 
@@ -198,14 +214,18 @@ class GeminiClient:
         registry = self._registry()
         return tuple(m for m in registry.preferred if self._eligible(m, current=self.model_name if hasattr(self, "model_name") else None))
 
-    def _eligible(self, model, current=None):
+    def _eligible(self, model, current=None, *, reprobe=False):
         registry = self._registry()
         health = getattr(self, "model_health", None)
-        return registry.eligible(model) and (not health or health.eligible(model, current=current))
+        eligible = registry.eligible(model) and (not health or health.eligible(model, current=current))
+        gate = getattr(self, 'capability_gate', None)
+        return eligible and (gate is None or gate.check(model, capabilities(model).provider_adapter, reprobe=reprobe).eligible)
 
     def _preflight(self):
         registry = self._runtime_models
         for model in self.discovered_chain:
+            if getattr(self, 'capability_gate', None) is not None:
+                print(f'[MODEL_DISCOVERED] model={model}', flush=True)
             if capabilities(model).provider_adapter == "transcribe":
                 supported, reason = self.adapter_preflight
                 if not supported:
@@ -218,6 +238,9 @@ class GeminiClient:
                 registry.mark(model, "ADAPTER_UNAVAILABLE", "MODEL_ADAPTER_UNAVAILABLE", True,
                               detail="ENDPOINT_UNSUPPORTED_OR_MODEL_LOCK")
                 continue
+            if getattr(self, 'capability_gate', None) is not None:
+                # Metadata access cannot establish generation endpoint access.
+                continue  # runtime_eligible_chain below performs the audio contract probe.
             lookup = getattr(self.client.models, "get", None)
             if callable(lookup):
                 try:
@@ -234,6 +257,11 @@ class GeminiClient:
 
     def _record_failure(self, model, exc, decision):
         code = decision["error_code"]
+        gate = getattr(self, 'capability_gate', None)
+        if gate is not None:
+            gate.invalidate(model, capabilities(model).provider_adapter, code)
+            if code == 404:
+                return 'ENDPOINT_MODEL_NOT_FOUND'  # Gate quarantine is path-scoped, not model-global.
         registry = self._registry()
         if code in (403, 404):
             reason = "MODEL_UNAVAILABLE"
@@ -247,7 +275,38 @@ class GeminiClient:
             if blocked and code == 503:
                 reason += "_RETRY_EXHAUSTED"
             registry.mark(model, "QUOTA_LIMITED" if code == 429 else "TRANSIENT_FAILURE", reason, blocked)
+        if code == 429:
+            delay = decision.get("provider_retry_after_seconds")
+            if delay is None or delay <= 0:
+                delay = getattr(self, "quota_cooldown_seconds", 30.0)
+            registry.states[model].blocked_until = time.monotonic() + delay
         return reason
+
+    def begin_fresh_block(self, block_key):
+        if block_key is None or block_key == getattr(self, "_quota_block", None):
+            return
+        self._quota_block = block_key
+        health = getattr(self, "model_health", None)
+        if health:
+            health.begin_chain(block_key)
+        recovered = []
+        for model, state in self._registry().states.items():
+            if state.reason == "ANNOTATION_SEMANTIC_RETRY_EXHAUSTED" and not state.quarantined:
+                self._runtime_models.mark(model, "ELIGIBLE" if state.proven_callable else "DISCOVERED_UNVERIFIED", "ANNOTATION_FRESH_BLOCK_PROBE")
+                recovered.append(model)
+            if state.state == "QUOTA_LIMITED" and not state.quarantined and state.blocked_until is not None and time.monotonic() >= state.blocked_until:
+                self._runtime_models.mark(model, "ELIGIBLE" if state.proven_callable else "DISCOVERED_UNVERIFIED", "QUOTA_COOLDOWN_EXPIRED")
+                if health:
+                    health.provider_state.pop(model, None)
+                recovered.append(model)
+        if recovered and getattr(self, "fallback_enabled", True) and getattr(self, "fallback_policy", "SPEED_FIRST") not in ("MODEL_LOCK", "LOCK_MODEL"):
+            plan = list(getattr(self, "effective_model_chain", self._registry().preferred))
+            current = plan.index(self.model_name) if self.model_name in plan else len(plan)
+            for model in plan[:current]:
+                if model in recovered and self._eligible(model):
+                    self.model_name = model
+                    self._sticky_fallback_reason = "QUOTA_COOLDOWN_EXPIRED"
+                    break
 
     def _exhaustion(self):
         snapshot = self._registry().snapshot()
@@ -259,7 +318,7 @@ class GeminiClient:
         used = list(dict.fromkeys(m.get("actual_model") for m in getattr(self, "call_history", []) if m.get("actual_model")))
         skipped = {m:s["reason"] for m,s in states.items() if s["blocked"] and m not in used}
         quarantined = {m:s["reason"] for m,s in states.items() if s["quarantined"]}
-        print(f"[JOB_MODEL_SUMMARY] primary_model={PRIMARY_MODEL} actual_models_used={used} models_skipped={skipped} models_quarantined={quarantined} states={states}", flush=True)
+        print(f"[JOB_MODEL_SUMMARY] configured_primary={getattr(self, 'requested_model', PRIMARY_MODEL)} effective_primary={getattr(self, 'effective_primary_model', None)} actual_models_used={used} models_skipped={skipped} models_quarantined={quarantined} states={states}", flush=True)
 
     def upload_audio(self, audio_path: Path) -> Any:
         """Upload an audio file to the Gemini Files API.
@@ -365,12 +424,16 @@ class GeminiClient:
 
     def _call_model(self, model: str, gemini_file: Any, user_prompt: str, config: Any) -> str | None:
         """Helper to invoke models.generate_content and extract transcript text."""
+        self.last_wordinfo_evidence=None
         require_model_allowed(model, getattr(self, "allow_lite_models", False))
         if hasattr(self, "effective_model_chain") and model not in self.effective_model_chain:
             raise GeminiTranscribeError("NO_ELIGIBLE_MODEL: model not discovered/supported")
         if hasattr(self, "_runtime_models") and not self._runtime_models.eligible(model):
             raise GeminiTranscribeError("MODEL_NOT_RUNTIME_ELIGIBLE: " + model)
         self.actual_capabilities = capabilities(model)
+        gate = getattr(self, 'capability_gate', None)
+        if gate is not None and not gate.check(model, self.actual_capabilities.provider_adapter).eligible:
+            raise GeminiTranscribeError('REQUEST_PATH_UNSUPPORTED')
         requested = getattr(self, "requested_model", getattr(self, "model_name", model))
         attempt = getattr(self, "_provider_attempt", 0) + 1
         self._provider_attempt = attempt
@@ -401,6 +464,22 @@ class GeminiClient:
             self.call_history = []
         self.call_history.append(self.last_response_metadata)
         console_metadata = dict(self.last_response_metadata)
+        # Console-only clarification: preserve persisted response metadata contract.
+        console_metadata.pop('primary_model', None)
+        console_metadata.update(configured_primary=requested,
+                                effective_primary=getattr(self, 'effective_primary_model', None))
+        if gate is not None:
+            import hashlib
+            instruction = getattr(config, 'system_instruction', None)
+            attached = isinstance(instruction, str) and bool(instruction.strip())
+            self.last_response_metadata.update(system_instruction_attached=attached,
+                prompt_version=instruction.splitlines()[0] if attached else None,
+                prompt_sha256=hashlib.sha256(instruction.encode('utf-8')).hexdigest() if attached else None,
+                api_method=gate.path(model, self.actual_capabilities.provider_adapter).api_method)
+            if not attached:
+                raise GeminiTranscribeError('SYSTEM_INSTRUCTION_UNSUPPORTED')
+            print('[SYSTEM_INSTRUCTION_DELIVERY] ' + str({k:self.last_response_metadata[k] for k in
+                ('actual_model','provider_adapter','api_method','system_instruction_attached','prompt_version','prompt_sha256')}), flush=True)
         console_metadata["fallback_reason"] = str(console_metadata["fallback_reason"])[:180] if console_metadata["fallback_reason"] else None
         print(f" [MODEL_CALL {console_metadata}]", end="", flush=True)
         try:
@@ -409,12 +488,23 @@ class GeminiClient:
                 adapter = TranscriptionModelAdapter() if self.actual_capabilities.provider_adapter == "transcribe" else GeminiGenerateContentAdapter()
             response = adapter.generate(self.client, model, gemini_file, user_prompt, config)
         except Exception as exc:
+            if getattr(exc,"provider_callable",False):
+                state=self._registry().states.get(model)
+                if state: state.provider_callable=state.proven_callable=True
             self.last_response_metadata.update(provider_error_code=getattr(exc, "code", None),
                                                provider_error_message=str(exc), retry_after_seconds=structured_retry_after(exc), provider_retry_after_seconds=structured_retry_after(exc),
                                                provider_error_details=getattr(exc, "details", None))
             if classify_failure(exc) == FailureType.SIZE_FAILURE:
                 raise GeminiSizeError(str(exc), self.last_response_metadata) from exc
             raise
+        state=self._registry().states.get(model)
+        if state: state.provider_callable=state.proven_callable=True
+        self.last_wordinfo_evidence=getattr(response,"wordinfo_evidence",None)
+        if self.last_wordinfo_evidence is not None:
+            evidence=self.last_wordinfo_evidence
+            self.last_response_metadata.update(coverage_endpoint_seconds=evidence.endpoint,
+                coverage_endpoint_basis="MAX_WORD_END_OFFSET", temporal_order_basis="PROVIDER_TEXT_ORDER",
+                wordinfo_segment_hash=evidence.segment_hash)
         usage = getattr(response, "usage_metadata", None)
         self.last_response_metadata.update({
             "provider_usage_metadata": usage.model_dump(mode="json", exclude_none=True) if hasattr(usage, "model_dump") else (dict(vars(usage)) if usage is not None and hasattr(usage, "__dict__") else None),
@@ -464,9 +554,13 @@ class GeminiClient:
 
         return None
 
-    def advance_after_output_failure(self):
+    def advance_after_output_failure(self, failure_reason=None):
         """Advance once, forward only, to an eligible model; never change media."""
         health = self.model_health
+        if not getattr(self, "model_name", None):
+            raise GeminiTranscribeError("MODEL_OUTPUT_UNAVAILABLE NO_ELIGIBLE_FALLBACK_MODEL: actual model unavailable")
+        if failure_reason:
+            self._registry().mark(self.model_name, "DEGRADED" if failure_reason == "ANNOTATION_SEMANTIC_RETRY_EXHAUSTED" else "CIRCUIT_OPEN", failure_reason, True)
         requested = getattr(self, "requested_model", self.model_name)
         if not getattr(self, "fallback_enabled", True) or getattr(self, "fallback_policy", "SPEED_FIRST") in ("LOCK_MODEL", "MODEL_LOCK"):
             raise GeminiTranscribeError("MODEL_OUTPUT_UNAVAILABLE: model locked and output circuit open; " + self._exhaustion())
@@ -476,15 +570,15 @@ class GeminiClient:
         current = self.model_name
         start = plan.index(current) + 1 if current in plan else len(plan)
         for model in plan[start:]:
-            if self._eligible(model):
-                reason = f"MODEL_HEALTH_CIRCUIT_OPEN:{current}"
+            if self._eligible(model, reprobe=True):
+                reason = failure_reason or f"MODEL_HEALTH_CIRCUIT_OPEN:{current}"
                 self.model_name = model
                 self.actual_capabilities = capabilities(model)
                 self._sticky_fallback_reason = reason
                 if not hasattr(self, "_selection_reasons"):
                     self._selection_reasons = {}
                 self._selection_reasons[model] = reason
-                print(f" [MODEL_HEALTH_SWITCH from={current} to={model}]", flush=True)
+                print(f" [MODEL_HEALTH_SWITCH from={current} to={model} reason={reason}]", flush=True)
                 return model
         raise GeminiTranscribeError("MODEL_OUTPUT_UNAVAILABLE NO_ELIGIBLE_FALLBACK_MODEL: " + self._exhaustion())
 
@@ -515,6 +609,7 @@ class GeminiClient:
             system_instruction=system_instruction,
             temperature=0.0,
             response_mime_type=response_mime_type,
+            response_json_schema=getattr(self, 'request_schema', None),
         )
 
         # One ordered plan per client/job. Once advanced, a candidate is never
@@ -526,6 +621,8 @@ class GeminiClient:
         require_model_allowed(requested, getattr(self, "allow_lite_models", False))
         plan = allowed_models([requested] + ([] if locked else list(fallbacks)), getattr(self, "allow_lite_models", False))
         plan = list(getattr(self, "effective_model_chain", plan))
+        fresh_match = re.search(r'- block_id: "([^"]+)"', user_prompt)
+        self.begin_fresh_block(fresh_match.group(1) if fresh_match else None)
         current = self.model_name if self.model_name in plan and not locked else requested
         start = plan.index(current)
         last_err = None
@@ -550,6 +647,8 @@ class GeminiClient:
             self._backoff_before_call = 0.0
             self.model_name = model
             self.actual_capabilities = capabilities(model)
+            if getattr(self, 'capability_gate', None) is not None:
+                print(f'[MODEL_SELECTED] model={model} adapter={self.actual_capabilities.provider_adapter} eligibility_reason=CAPABILITY_ELIGIBLE routing_reason={self._fallback_reason or "INITIAL_SELECTION"}', flush=True)
             hook = getattr(self, "on_model_selected", None)
             if hook:
                 hook(model, self._fallback_reason)
@@ -564,11 +663,19 @@ class GeminiClient:
                             health.provider_state.pop(model, None)
                         return transcript
                     raise GeminiTranscribeError("EMPTY_RESPONSE: Gemini returned empty response")
+                except AnnotationSemanticError:
+                    raise  # Model-output budget is owned by the orchestration layer.
                 except GeminiSizeError:
                     raise
                 except Exception as exc:
                     last_err = exc
                     next_model = next((m for m in plan[start + index + 1:] if self._eligible(m)), None)
+                    # Re-probe only when existing policy would leave this model.
+                    # Never feed full audio to a transient-unverified fallback.
+                    intent = retry_decision(self, exc, attempt - 1, True)
+                    if intent['action'] == 'MODEL_FALLBACK':
+                        next_model = next((m for m in plan[start + index + 1:]
+                                           if self._eligible(m, reprobe=True)), None)
                     decision = retry_decision(self, exc, attempt - 1, next_model is not None)
                     decision["failure_reason"] = ("EMPTY_RESPONSE" if "EMPTY_RESPONSE" in str(exc) else
                         f"PROVIDER_{decision['error_code']}" if decision["error_code"] is not None else type(exc).__name__)

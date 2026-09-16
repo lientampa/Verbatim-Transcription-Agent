@@ -35,7 +35,9 @@ class RendererValidator:
             h,m,s,ms,eh,em,es,ems = map(int, match.groups())
             start = ((h*60+m)*60+s)*1000+ms
             end = ((eh*60+em)*60+es)*1000+ems
-            if max(m,s,em,es) >= 60 or start < previous_start or end <= start:
+            native_pair=(number>1 and getattr(segments[number-1],"_native_text_order_block",None) and
+                         getattr(segments[number-1],"_native_text_order_block",None)==getattr(segments[number-2],"_native_text_order_block",None))
+            if max(m,s,em,es) >= 60 or (start < previous_start and not native_pair) or end <= start:
                 raise ValueError("RENDER_SRT_TIMING_INVALID")
             previous_start = start
         print(f"[RENDER_TXT] segments={len(segments)} status=PASS")

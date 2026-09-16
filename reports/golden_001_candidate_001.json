@@ -1,0 +1,66 @@
+{
+  "status": "CANDIDATE_INVALID_PROMPT_NOT_APPLIED",
+  "runtime": "D:\\ZEC\\Verbatim-Transcription-Agent\\experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390",
+  "provenance": [
+    {
+      "actual_model": "gemini-2.5-flash",
+      "provider_path": "generate_content",
+      "system_instruction_attached": true,
+      "prompt_version": "VERBATIM_AUDIO_PROMPT_CANDIDATE_001",
+      "prompt_sha256": "135b3fbcd42e15776b29ee8e9d747fb6944140c76fee9c40f27bc50a6078799c",
+      "attached_instruction_sha256": "135b3fbcd42e15776b29ee8e9d747fb6944140c76fee9c40f27bc50a6078799c",
+      "phase": "SELECTED_RUNTIME_CONFIG_BEFORE_UPLOAD",
+      "benchmark": "GOLDEN_001",
+      "candidate": "CANDIDATE_001",
+      "audio_sha256": "b8ae1d822af7e40e0753aaa56aa30786bca6873ab60b738be5648c0ca2951a45",
+      "prompt_file_sha256": "ca41bbc58f8d50c99d1b2d1adfe67a5dc6aaad4ab62d8c81ebce94b3cf9b7596",
+      "schema_sha256": "fbebfac7b470f842fb79c52328af3388a621808d84f8f4d453641f7cdd8c28fa",
+      "schema_version": "1.0",
+      "lite_allowed": false,
+      "runtime_input_files": [
+        "audio\\audio.m4a",
+        "prompts\\system_prompt.txt",
+        "runtime.log",
+        "schemas\\transcription_result.schema.json",
+        "state\\checkpoint.json"
+      ],
+      "human_reference_exposed": false,
+      "baseline_exposed": false,
+      "annotations_exposed": false
+    },
+    {
+      "actual_model": "gemini-2.5-flash",
+      "provider_path": "generate_content",
+      "system_instruction_attached": true,
+      "prompt_version": "VERBATIM_AUDIO_PROMPT_CANDIDATE_001",
+      "prompt_sha256": "135b3fbcd42e15776b29ee8e9d747fb6944140c76fee9c40f27bc50a6078799c",
+      "attached_instruction_sha256": "135b3fbcd42e15776b29ee8e9d747fb6944140c76fee9c40f27bc50a6078799c",
+      "phase": "OUTGOING_TRANSCRIPTION_REQUEST"
+    },
+    {
+      "actual_model": "gemini-3.5-transcribe",
+      "provider_path": "transcribe",
+      "system_instruction_attached": false,
+      "prompt_version": "VERBATIM_AUDIO_PROMPT_CANDIDATE_001",
+      "prompt_sha256": "135b3fbcd42e15776b29ee8e9d747fb6944140c76fee9c40f27bc50a6078799c",
+      "attached_instruction_sha256": null,
+      "phase": "OUTGOING_TRANSCRIPTION_REQUEST"
+    }
+  ],
+  "BASELINE_PROMPT_PROVENANCE": "UNKNOWN",
+  "model_confound": "BASELINE_MODEL_PROVENANCE_UNKNOWN",
+  "EXPERIMENT_INFRASTRUCTURE_CHANGE": "ISOLATED_DELIVERY_GUARDS",
+  "TRANSCRIPTION_PROMPT_CHANGE": "VERBATIM_AUDIO_PROMPT_CANDIDATE_001",
+  "production_promoted": false,
+  "recommendation": "INCONCLUSIVE_MODEL_CONFOUND",
+  "transcription_requests_sent": 1,
+  "transcribe_requests_sent": 0,
+  "candidate_generated": false,
+  "tests": "542 passed in 12.08s",
+  "diff_check": "PASS",
+  "failure_sequence": [
+    "gemini-2.5-flash: prompt attached, HTTP 404",
+    "gemini-3.5-transcribe: prompt absent, aborted before provider request"
+  ],
+  "fixture_hash_verification": "PASS"
+}

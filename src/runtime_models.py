@@ -21,6 +21,10 @@ class ModelState:
     blocked: bool=False
     quarantined: bool=False
     detail: str | None=None
+    blocked_until: float | None=None
+    proven_callable: bool=False
+    provider_callable: bool=False
+    validated_success: bool=False
 
 
 class RuntimeModels:
@@ -32,7 +36,10 @@ class RuntimeModels:
         previous=self.states.get(model)
         if previous and previous.quarantined and not quarantined:
             return  # Only a fresh job can clear confirmed quarantine.
-        self.states[model]=ModelState(state,reason,blocked,quarantined,detail)
+        self.states[model]=ModelState(state,reason,blocked,quarantined,detail,
+                                     proven_callable=reason=="LAST_CALL_SUCCEEDED" or bool(previous and previous.proven_callable),
+                                     provider_callable=reason=="LAST_CALL_SUCCEEDED" or bool(previous and previous.provider_callable),
+                                     validated_success=bool(previous and previous.validated_success))
         if quarantined and (previous is None or not previous.quarantined):
             print(f"[MODEL_QUARANTINE] model={model} scope=JOB reason={reason}",flush=True)
 

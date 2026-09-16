@@ -1,0 +1,723 @@
+{
+  "job_id": "60012234e91142ddb4a48a0b8ccfd7bd",
+  "started_utc": "2026-09-15T15:54:45.210678+00:00",
+  "scope": "AUDIT_ONLY_NO_PRODUCTION_EDITS",
+  "focused_tests": "24 passed in 1.27s",
+  "assertions_changed": false,
+  "discovered": [
+    {
+      "model": "models/gemini-2.5-flash",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-2.5-pro",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-2.5-flash-preview-tts",
+      "actions": [
+        "countTokens",
+        "generateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-2.5-pro-preview-tts",
+      "actions": [
+        "countTokens",
+        "generateContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemma-4-26b-a4b-it",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/gemma-4-31b-it",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/gemini-flash-latest",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-flash-lite-latest",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-pro-latest",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-2.5-flash-lite",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-2.5-flash-image",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3-flash-preview",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.1-pro-preview",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.1-pro-preview-customtools",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.1-flash-lite-preview",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.1-flash-lite",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3-pro-image-preview",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3-pro-image",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/nano-banana-pro-preview",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.1-flash-image-preview",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.1-flash-image",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.1-flash-lite-image",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.5-flash",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.5-flash-lite",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-omni-flash-preview",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/gemini-omni-1.1-flash",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/gemini-3.5-transcribe",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/gemini-3.6-flash",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.7-flash",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.8-flash",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/lyria-3-clip-preview",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/lyria-3-pro-preview",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/lyria-3.5",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/gemini-3.1-flash-tts-preview",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-robotics-er-2-preview",
+      "actions": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-2.5-computer-use-preview-10-2025",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/antigravity-preview-05-2026",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/antigravity-preview-09-2026",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/deep-research-max-preview-04-2026",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/deep-research-preview-04-2026",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/deep-research-pro-preview-12-2025",
+      "actions": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "model": "models/gemini-embedding-001",
+      "actions": [
+        "embedContent",
+        "countTextTokens",
+        "countTokens",
+        "asyncBatchEmbedContent"
+      ]
+    },
+    {
+      "model": "models/gemini-embedding-2-preview",
+      "actions": [
+        "embedContent",
+        "countTextTokens",
+        "countTokens",
+        "asyncBatchEmbedContent"
+      ]
+    },
+    {
+      "model": "models/gemini-embedding-2",
+      "actions": [
+        "embedContent",
+        "countTextTokens",
+        "countTokens",
+        "asyncBatchEmbedContent"
+      ]
+    },
+    {
+      "model": "models/aqa",
+      "actions": [
+        "generateAnswer"
+      ]
+    },
+    {
+      "model": "models/veo-3.1-generate-preview",
+      "actions": [
+        "predictLongRunning"
+      ]
+    },
+    {
+      "model": "models/veo-3.1-fast-generate-preview",
+      "actions": [
+        "predictLongRunning"
+      ]
+    },
+    {
+      "model": "models/veo-3.1-lite-generate-preview",
+      "actions": [
+        "predictLongRunning"
+      ]
+    },
+    {
+      "model": "models/gemini-3.5-transcribe-live",
+      "actions": [
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-2.5-flash-native-audio-latest",
+      "actions": [
+        "countTokens",
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-2.5-flash-native-audio-preview-09-2025",
+      "actions": [
+        "countTokens",
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-2.5-flash-native-audio-preview-12-2025",
+      "actions": [
+        "countTokens",
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.1-flash-live-preview",
+      "actions": [
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-robotics-er-2-streaming-preview",
+      "actions": [
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "model": "models/gemini-3.5-live-translate-preview",
+      "actions": [
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "model": "models/lyria-realtime-exp",
+      "actions": [
+        "bidiGenerateMusic"
+      ]
+    }
+  ],
+  "probe_order": [
+    "gemini-3.8-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash"
+  ],
+  "paths": [
+    {
+      "path": {
+        "model": "gemini-3.8-flash",
+        "adapter": "generate_content",
+        "api_method": "models.generate_content",
+        "endpoint": "https://generativelanguage.googleapis.com//v1beta"
+      },
+      "audio_input": null,
+      "system_instruction": null,
+      "structured_output": null,
+      "schema_compatible": null,
+      "request_endpoint_usable": null,
+      "reason": "TRANSIENT_PROVIDER_FAILURE",
+      "prompt_version": "AUDIO_REQUEST_CONTRACT_PROBE_V1",
+      "prompt_sha256": "d7ad13fbdafb73c6c4a64485e9b0c4f1da0639a8eab9cc9a0d34750664f5ee2e",
+      "provider_error_code": 503,
+      "system_instruction_attached": true,
+      "audio_sha256": "2cb0eef534462ecae3b91ed47024bd0eea02ea692d0c4604d8e552831b641f92",
+      "schema_sha256": "82634b5a408d55148397da367f65a77b85450ba1a82603bd579b13399e4807d6",
+      "eligible": false,
+      "lite": false,
+      "model": "gemini-3.8-flash",
+      "discovered": true,
+      "live_request_attempted": true,
+      "request_evidence": {
+        "live_request_attempted": true,
+        "system_instruction_attached": true,
+        "json_requested": true,
+        "schema_requested": true,
+        "provider_code": 503,
+        "error_type": "ServerError"
+      },
+      "semantic_instruction_compliance": null,
+      "system_instruction_delivery": true
+    },
+    {
+      "path": {
+        "model": "gemini-3.6-flash",
+        "adapter": "generate_content",
+        "api_method": "models.generate_content",
+        "endpoint": "https://generativelanguage.googleapis.com//v1beta"
+      },
+      "audio_input": true,
+      "system_instruction": true,
+      "structured_output": true,
+      "schema_compatible": true,
+      "request_endpoint_usable": true,
+      "reason": "REQUEST_CONTRACT_SUPPORTED",
+      "prompt_version": "AUDIO_REQUEST_CONTRACT_PROBE_V1",
+      "prompt_sha256": "0cbe3d6cd6019ed0d53cf5bb88944713345b794a24dd1d7276b35f977613f2a2",
+      "provider_error_code": null,
+      "system_instruction_attached": true,
+      "audio_sha256": "2cb0eef534462ecae3b91ed47024bd0eea02ea692d0c4604d8e552831b641f92",
+      "schema_sha256": "82634b5a408d55148397da367f65a77b85450ba1a82603bd579b13399e4807d6",
+      "eligible": true,
+      "lite": false,
+      "model": "gemini-3.6-flash",
+      "discovered": true,
+      "live_request_attempted": true,
+      "request_evidence": {
+        "live_request_attempted": true,
+        "system_instruction_attached": true,
+        "json_requested": true,
+        "schema_requested": true,
+        "provider_result": "RESPONSE_RETURNED",
+        "finish_reasons": [
+          "FinishReason.STOP"
+        ]
+      },
+      "semantic_instruction_compliance": true,
+      "system_instruction_delivery": true
+    },
+    {
+      "path": {
+        "model": "gemini-3.5-flash",
+        "adapter": "generate_content",
+        "api_method": "models.generate_content",
+        "endpoint": "https://generativelanguage.googleapis.com//v1beta"
+      },
+      "audio_input": null,
+      "system_instruction": null,
+      "structured_output": null,
+      "schema_compatible": null,
+      "request_endpoint_usable": null,
+      "reason": "CAPABILITY_PROBE_FAILED",
+      "prompt_version": "AUDIO_REQUEST_CONTRACT_PROBE_V1",
+      "prompt_sha256": "05700fb8cd7a1b4fc86a718c99c9f87cd837c20dc88c3e82bdb1899f7d780623",
+      "provider_error_code": 504,
+      "system_instruction_attached": true,
+      "audio_sha256": "2cb0eef534462ecae3b91ed47024bd0eea02ea692d0c4604d8e552831b641f92",
+      "schema_sha256": "82634b5a408d55148397da367f65a77b85450ba1a82603bd579b13399e4807d6",
+      "eligible": false,
+      "lite": false,
+      "model": "gemini-3.5-flash",
+      "discovered": true,
+      "live_request_attempted": true,
+      "request_evidence": {
+        "live_request_attempted": true,
+        "system_instruction_attached": true,
+        "json_requested": true,
+        "schema_requested": true,
+        "provider_code": 504,
+        "error_type": "ServerError"
+      },
+      "semantic_instruction_compliance": null,
+      "system_instruction_delivery": true
+    }
+  ],
+  "git_status_before": " M src/config.py\n M src/coverage_validator.py\n M src/gemini_client.py\n M src/main.py\n M src/model_health.py\n M src/output_merger.py\n M src/output_renderer.py\n M src/provider_adapters.py\n M src/renderer_validator.py\n M src/runtime_models.py\n M src/transcriber.py\n M src/transcript_validator.py\n M tests/test_checkpoint.py\n M tests/test_milestone3_acceptance.py\n M tests/test_runtime_eligibility.py\n M tests/test_stage4_audio_retry.py\n M tests/test_wordinfo_parser.py\n?? .cache/blocks/slices/0166ebfe8232161eaa97bc44d53f339f10bc8ffdb36cb594fdd12b83e193f524.json\n?? .cache/blocks/slices/0166ebfe8232161eaa97bc44d53f339f10bc8ffdb36cb594fdd12b83e193f524.m4a\n?? .cache/blocks/slices/2336affa8c3a877631c835c6d4c0cbb2f1fb4615ed00343e576fc957cae82859.json\n?? .cache/blocks/slices/2336affa8c3a877631c835c6d4c0cbb2f1fb4615ed00343e576fc957cae82859.m4a\n?? .cache/blocks/slices/2dbf054953adf61136a411f2c06d8a8a7242111cb707a6cf66f39e2364c44eeb.json\n?? .cache/blocks/slices/2dbf054953adf61136a411f2c06d8a8a7242111cb707a6cf66f39e2364c44eeb.m4a\n?? .cache/blocks/slices/443c039d0dbbe717c2daaeb0bf415080c2a042bf28c720cee289ee6b0784df68.json\n?? .cache/blocks/slices/443c039d0dbbe717c2daaeb0bf415080c2a042bf28c720cee289ee6b0784df68.m4a\n?? .cache/blocks/slices/46afa4c2198f64285161c928f75f2f31ae0583222d570c4fab12fa1576d1b140.json\n?? .cache/blocks/slices/46afa4c2198f64285161c928f75f2f31ae0583222d570c4fab12fa1576d1b140.m4a\n?? .cache/blocks/slices/49cb2958f6a73f5a3ce4ffd3b7aca62e0d14cac31a04b9c1e26a31de50e263e3.json\n?? .cache/blocks/slices/49cb2958f6a73f5a3ce4ffd3b7aca62e0d14cac31a04b9c1e26a31de50e263e3.m4a\n?? .cache/blocks/slices/4b305864a7ba02343d427d9609c284f0231479cc5c88e383ccae04dcf9bc25f0.json\n?? .cache/blocks/slices/4b305864a7ba02343d427d9609c284f0231479cc5c88e383ccae04dcf9bc25f0.m4a\n?? .cache/blocks/slices/59370a751684ae6c55731b409653d4a1d773ae9361dd8f1872bbc641f4405097.json\n?? .cache/blocks/slices/59370a751684ae6c55731b409653d4a1d773ae9361dd8f1872bbc641f4405097.m4a\n?? .cache/blocks/slices/7291d51e14dc8aee0583fdc74b70e9d96bae1b927afd5778cdb0636028fc1393.json\n?? .cache/blocks/slices/7291d51e14dc8aee0583fdc74b70e9d96bae1b927afd5778cdb0636028fc1393.m4a\n?? .cache/blocks/slices/73fa8f5a393eadc97435425f1188c6cf439714a8f85ccd1bf439d1277cdaf6c5.json\n?? .cache/blocks/slices/73fa8f5a393eadc97435425f1188c6cf439714a8f85ccd1bf439d1277cdaf6c5.m4a\n?? .cache/blocks/slices/75dbc7d7d46f3597198ac01f1fe510c60534d06a71a10a143aa4667040883f8c.json\n?? .cache/blocks/slices/75dbc7d7d46f3597198ac01f1fe510c60534d06a71a10a143aa4667040883f8c.m4a\n?? .cache/blocks/slices/7dbafd6cdeaa518cbab6b6b1b055a33adb60b75422a2b1c08ee86c6c87df0c9d.json\n?? .cache/blocks/slices/7dbafd6cdeaa518cbab6b6b1b055a33adb60b75422a2b1c08ee86c6c87df0c9d.m4a\n?? .cache/blocks/slices/837b0b4e538fefcaaec32390eed92995ba8175a36a95666820e627e55a89f6df.json\n?? .cache/blocks/slices/837b0b4e538fefcaaec32390eed92995ba8175a36a95666820e627e55a89f6df.m4a\n?? .cache/blocks/slices/8be897346cce731582c74ba530203dea7e662f56d32cce6097e2f60509f19d88.json\n?? .cache/blocks/slices/8be897346cce731582c74ba530203dea7e662f56d32cce6097e2f60509f19d88.m4a\n?? .cache/blocks/slices/8fdcabff84d8c4bb092ea6994729d15a7384e9cb3b8425a17554023b62964b48.json\n?? .cache/blocks/slices/8fdcabff84d8c4bb092ea6994729d15a7384e9cb3b8425a17554023b62964b48.m4a\n?? .cache/blocks/slices/a6b1fbf6293ce0e1103d2325a282a6a01b96353668f93a6894e56618249fd35e.json\n?? .cache/blocks/slices/a6b1fbf6293ce0e1103d2325a282a6a01b96353668f93a6894e56618249fd35e.m4a\n?? .cache/blocks/slices/ab728637161b1ec633c76cdd77d3212935b5e98517034b69ec970118b7733df5.json\n?? .cache/blocks/slices/ab728637161b1ec633c76cdd77d3212935b5e98517034b69ec970118b7733df5.m4a\n?? .cache/blocks/slices/b92756315ccd7828281ff19940922d0709aa7083cc737cdb0bbe91ff8e0cdd48.json\n?? .cache/blocks/slices/b92756315ccd7828281ff19940922d0709aa7083cc737cdb0bbe91ff8e0cdd48.m4a\n?? .cache/blocks/slices/bba13bffdeae2c001a74f7d2d5c43c8b538e1bc782a53a04dc3af828acbc19ff.json\n?? .cache/blocks/slices/bba13bffdeae2c001a74f7d2d5c43c8b538e1bc782a53a04dc3af828acbc19ff.m4a\n?? .cache/blocks/slices/c2c0235b64a5940a7e1475b89a333b1af44487f1780722e59e59b5c9980467d5.json\n?? .cache/blocks/slices/c2c0235b64a5940a7e1475b89a333b1af44487f1780722e59e59b5c9980467d5.m4a\n?? .cache/blocks/slices/e5cd52f6c5b31243235d4b06bad245e7b9b649a46d470d007253fa57a7553b24.json\n?? .cache/blocks/slices/e5cd52f6c5b31243235d4b06bad245e7b9b649a46d470d007253fa57a7553b24.m4a\n?? .cache/blocks/slices/ef4c049e8aa6b4c5d70eaf1fd434abe424bb7d4b03011660d17487c3a54656e9.json\n?? .cache/blocks/slices/ef4c049e8aa6b4c5d70eaf1fd434abe424bb7d4b03011660d17487c3a54656e9.m4a\n?? .cache/blocks/slices/fe5ae3e69cf22c7acc80cfec2b327677d7705b1da91a39f9d02cf46b241cd20a.json\n?? .cache/blocks/slices/fe5ae3e69cf22c7acc80cfec2b327677d7705b1da91a39f9d02cf46b241cd20a.m4a\n?? docs/annotation-coverage-fallback-hotfix.md\n?? docs/golden-001-benchmark.md\n?? docs/structural-fallback-quota-hotfix.md\n?? docs/transcribe-temporal-endpoint-hotfix.md\n?? experiments/\n?? reports/\n?? src/capability_audit.py\n?? src/golden_benchmark/\n?? src/provider_capability.py\n?? tests/golden/\n?? tests/golden_audio/golden_001/\n?? tests/test_annotation_coverage_fallback.py\n?? tests/test_candidate_001.py\n?? tests/test_golden_benchmark.py\n?? tests/test_provider_capability.py\n?? tests/test_structural_fallback_quota.py\n?? tests/test_temporal_wordinfo.py\n",
+  "protected_hashes_before": {
+    "src\\adaptive_block_builder.py": "28e20d8a30e764c81df76d839a8e2942476f04b3587349ca665708fb227a4b13",
+    "src\\audio_manager.py": "471ff9cefeab1eb7dc401e242aeaec85a9ce87ba4c988eafa65aec790b9a3ca3",
+    "src\\audio_review.py": "d8d79b20f4b40271a4b44a30c0902c11abaf69c0a5c66a22a84e24a2fdb8fc47",
+    "src\\block_builder.py": "dbe8c59657e0b81e117b714bc9cc8526e18859c5f168ee5a65380ca039fbd7a0",
+    "src\\capability_audit.py": "ce18ae04384dfcec378de6578b4d7c9e8f568ccf02c8f633aaae20be03c7cbb8",
+    "src\\checkpoint.py": "565ebc0e5a790ee13c3c08b8370f5af5b4404b4726e17923809ac54d22cc6f82",
+    "src\\config.py": "581b67c6ea0eed92b3e7d87c9b1711d01426ed8fe11807d371ad5899da4de624",
+    "src\\control_router.py": "89f1cc9bce45c67a02d678ef99d5ca051b21dc52be369b25968ba2aa53802c26",
+    "src\\coverage_validator.py": "1d3f8cf5dd614ea5855d7ddc6f113402a13c73f2e103a280ebc4174fff1f9114",
+    "src\\evaluate_golden.py": "b0a8cc7f8185f9241d972461d60c95116680ce293e77de55b5aed9849baf7dc4",
+    "src\\failure_classifier.py": "00dcbedc76019acc17d381f88d7b8b9c5bcc90ccaccd275f8daeb72c4edc5890",
+    "src\\fidelity_validator.py": "41210c378ed9c10b8e7a29200cccd8a818661c7c22e60d2165eeec93e31e2a48",
+    "src\\gemini_client.py": "f5cf293cadd377bc5bcdcfdac63331b0e7da90affbd3edfd5041934351bb87aa",
+    "src\\main.py": "b3b556f849eb4d793bd759039cf3403e06d768eec4afbbed7db0e623f6a57698",
+    "src\\model_health.py": "9c3ac26a5b930ad1e7ee7f1fdacb064635761e4b9a12993ec76ee652f1d99b64",
+    "src\\model_policy.py": "e1d5fb5a7ad80513ba3e15a5e73d4675f4a3fe486c6efc342d21f9d54c7d047a",
+    "src\\output_merger.py": "f42d745ee7d554cb6cb7f2dd08d53d2bc92bd0fb51f06289d12b24c052bd53bf",
+    "src\\output_renderer.py": "049ab811ecbc94714659a39f4d4f70eaa8ecda966aa0d45437a0b89f581f3e04",
+    "src\\provider_adapters.py": "24ed777991a24cb442629cc15bb8d987a0836966685879c47f5df9f3c4e1348c",
+    "src\\provider_capability.py": "7c7c6f18cab040d2a4bf1208d2140505cdd37bbb9574935683dc7864c8e52cb3",
+    "src\\renderer_validator.py": "a8a7a52c1da3a39f2592668f7f6865ddb4a2bd2a0fbd60a7526a694740b59bf4",
+    "src\\render_transaction.py": "a5ddc647bf59938842d2b2c71c435f95bc009d52d6aa6f2eabbd695ade421ade",
+    "src\\response_parser.py": "317382e73405678dfd4e9116a6ad10877b7fa1a2968ff4f3f2d3a0a49013d719",
+    "src\\runtime_models.py": "eb18b0d9f6716cb5a01ce9e2cee1b78e7a05e482bdf5811b2d949536e8bbfc05",
+    "src\\source_identity.py": "e1462e786be3376e144268cb7a6d2f0295884892f4a7407f12a67c8a056cb972",
+    "src\\token_estimator.py": "69cca3acd9d2e3dbe8e6a5731bb66deac7cf5f5884cc48bd830822e96505a807",
+    "src\\transcriber.py": "575d81a15e1b558ef4d7bfa2f337b46c5dd1ebdbfc79dc2c4298eb944a4fdea5",
+    "src\\transcript_validator.py": "4809db150e21141d5a59028fae6a583728d3b83ecaedc43b718f4996e1629952",
+    "src\\validator.py": "6e53fee81477324133ed696f6f25bb51bb23ea454d561186ec416220e5cf0ae2",
+    "src\\__init__.py": "74df09ec34fb9cb893f34d0449588bdf3df8e20685550455ff2aed9f0b6dec08",
+    "src\\golden_benchmark\\alignment.py": "b2cb509b5e23a298b37dc7f048338059fae879feac541bf23e33fcb22dedaa42",
+    "src\\golden_benchmark\\contracts.py": "37922d4adcf86a0541b562c757dc2787a02c867c7e8bab335ea37b87cb2806cc",
+    "src\\golden_benchmark\\evaluator.py": "316dcd1084aedb5bfa0c037af3c3a71d83436984763ce7d8efb222872e664186",
+    "src\\golden_benchmark\\__init__.py": "a1db902b7f9066be6395ee8fc3ebf448a00ffd5fa741c4fa0c7221e96f9d36b5",
+    "src\\golden_benchmark\\__main__.py": "061f3d20a02b27d0a2728de4ec952ab7692a438965ba373af33488b0ab93dc0a",
+    "src\\golden_evaluation\\alignment.py": "c35311b51614500b98ead29d2163c72602daee625428d49b5fa66e214aa19375",
+    "src\\golden_evaluation\\evaluator.py": "18806ea723f0fbcd75518e40e9c709f21e8ee376bac128fc67f4fa05342d633c",
+    "src\\golden_evaluation\\fixtures.py": "fe993fcef3be2c1364f76cf03bbea515300578494046e9c23da3d62b3a1236ae",
+    "src\\golden_evaluation\\reporting.py": "75563e335d9c25ee5fb4479684733cd1191158f6da87578132dbf1ed340fa07f",
+    "src\\golden_evaluation\\speaker_metrics.py": "1f0d10c34ec81437ca36d6b4a59282cfd9fc6757623a1116fb8e7966e50c7e54",
+    "src\\golden_evaluation\\text_metrics.py": "1c02d664ef201880363b0793fdac90c682a6a90db0314150c7228722581b3795",
+    "src\\golden_evaluation\\__init__.py": "d98d5b2d666ec1c1a62d16d829a856edf11705f30a88e3d26842367c44b8b780",
+    "tests\\test_annotation_coverage_fallback.py": "bd2e347edea96db02ef8d7f3cb367c34c062a27f5bd6ad4193287ec24afb3b27",
+    "tests\\test_audio_identity.py": "23b1da1a628575fab107a8c9211ea67ad27b428e225a1db6cc655ca31391210f",
+    "tests\\test_block_builder.py": "e0580483ae935234c15aa3a1ca909831514a62767f6d49491f1b9cc7a3fb3603",
+    "tests\\test_candidate_001.py": "caa8d872fd33351c69aac4cf068fa960cef010443551be8cb0f9291e1c70f873",
+    "tests\\test_checkpoint.py": "6c321e6c473f67142d7d070797773c97fa72b9ab1b5d8145ca2e3c2994ac9deb",
+    "tests\\test_coverage_and_provenance.py": "9084711ecb144dd6a6983e8dac9e047718c13a0c7b1868a623ea60552c697f55",
+    "tests\\test_dynamic_adaptive_block_builder.py": "c5c54beb31162e4fefc71ae36d5cfd423589c69ede18f02a25b9ce5823cb8b46",
+    "tests\\test_fast_retry.py": "26afd2aa6f552fdfda5d0b137211b129e45181a8c991429c5b2152eff5564862",
+    "tests\\test_golden_benchmark.py": "92469ad7107a39e467a9cf837e12628826c0b8430bd4c2a53608c04a0eba82b6",
+    "tests\\test_hotfix_runtime_decision.py": "a54ca28d99801a7200e16b5395f3eeb9424e4cbdf1f25147751cda2be5804aef",
+    "tests\\test_max_first.py": "5cf2ca7b6d3d5acc9a7eda30fced41c53f33d19299aa1c6a149c0bda39c3d410",
+    "tests\\test_milestone3_acceptance.py": "f1350b5795dfc1defda46fa19d5ea4f93262d75d4cdd630a637a0d727b2f3b54",
+    "tests\\test_model_discovery.py": "49646ae3dfd6b26a17e4d0ef1fc99e9cb0332657fd6e938ecdc7b1dde6aa7b98",
+    "tests\\test_model_exclusion.py": "05c3c2c07dd58f23327bb12596771eb017b7ec17dadd94978eb2ef69a73ca713",
+    "tests\\test_model_health.py": "2eb82c87fc6109a3c5fb509eef4156fc31c9146d2c5cb1f918ceeb4df6558108",
+    "tests\\test_provider_capability.py": "864681cd845d3940ffe3b193d7f21ebd07f4bda646b139e110a5e1ad3707f7de",
+    "tests\\test_retry_budget_isolation.py": "4aa02f67c9508fbef7eb5886533b0579949892da90563abb09d0763f606c36bb",
+    "tests\\test_runtime_eligibility.py": "53af4b9192079c642e49504bfd8924ca88e212c7b8c5a976339d493e1f87acb5",
+    "tests\\test_speaker_format.py": "46e0b79fa7248e4cb992d036a73a734882de4641ff42b1a10242d8a29a8ea19e",
+    "tests\\test_stage1_contract.py": "a790e3396883f6e16606e5871def94fc8ab3b878b66312ceeee509043a8e0dd4",
+    "tests\\test_stage21_policy.py": "c90e25fa6b675800f63ff0700c0b4ec3b225ffc7c7752c202dcc3a1ab103c5ea",
+    "tests\\test_stage2_fidelity.py": "5b70d13536b9e707c648a2780fffeffc5dc8090806cdb2925bbb180f0a7700ea",
+    "tests\\test_stage3_structural.py": "93e746cb6975dedc7ff1bd2ff01b387bc74526452377c77f4d3ebb3cdaf36d79",
+    "tests\\test_stage431_safety.py": "f2b1d67982c248150a6979b07df86b4fd7ee9a2f61be41e7205b2f8545dc4b08",
+    "tests\\test_stage43_adaptation.py": "ed121764b52d998fce64a7670ad310211acb78bd064abf32aa3623f85a5198eb",
+    "tests\\test_stage4_audio_retry.py": "8ab5efa7d13b2389b6c733526d9f53638138295f0c968ed23b8c16ddb42b34f3",
+    "tests\\test_stage5_exact_commit.py": "52aa769a0b39e6924e9b754d8d7e797d890273ab170bd6941e9256d5abc8a482",
+    "tests\\test_stage5_resume_identity.py": "c4ad24e1b568f61611019d364a6e488ba8fa8b265c742f1bb9177070a641a67f",
+    "tests\\test_stage6_integrity.py": "fe4be0ed3fd41dcd5ab2bd427c455f3f77d1da8c3e025f61693718d429acab50",
+    "tests\\test_stage7a_evaluator.py": "9936ee249366ab09a7e6146459ac841f658934c61fc60f070328e745d892a8ab",
+    "tests\\test_structural_fallback_quota.py": "1ed97ec76f3c72ce56de15cea3ed10e3794666bfc1f0c26b7f14c399f75415db",
+    "tests\\test_temporal_wordinfo.py": "0459967d347a88e22ba30a3836908ff35504ff044268fd80aead70001c22e765",
+    "tests\\test_thinking_hotfix.py": "ed74f8616f133701e2142600b70572982795486ea3f531eca65e06a2dfeab9b1",
+    "tests\\test_transcribe_adapter.py": "b781049bcbbef98f5cbcf8e684bb8f6cd4efbf6f21ac0e1c6539f58216b267cc",
+    "tests\\test_validator.py": "f50217b0024b2cef85237f330c8fffaec55c6ce848e33653fcd0b60a32af39d1",
+    "tests\\test_wordinfo_parser.py": "de01d8c8da5daa6e1bace7f9cb04cb076768f414bbdb397558c61c1a2ef8118e",
+    "tests\\__init__.py": "7e9af23c4d8769e855436c950c52874ef9d5ac0c36f24531913b3ca965d6860f",
+    "tests\\golden\\golden_001\\annotations.json": "a510263344f8462b7404d27f7e01107c022663d7dc657ec36c8c701a4290f71b",
+    "tests\\golden\\golden_001\\human.txt": "6fe3e8e901d6e50d502275dac601bcf6a1338e8b4c79b490a44a104a70b234f3",
+    "tests\\golden\\golden_001\\machine_baseline.txt": "342477b12d656e37a43c0e5ba974de603d9feb215ad300145c884f4386951759",
+    "tests\\golden\\golden_001\\manifest.json": "8c032c56333e84f705231724f866fe145a7753007b6ec7a45acddbd2cb27740f",
+    "tests\\golden\\golden_001\\README.md": "0e5084583e770e0e434472ec1af192a33c8c2495c2ddc5de74bbe8701ea9729c",
+    "tests\\golden\\golden_001\\local\\.gitignore": "4bb38be6d6d9ef0d2f9bcc339850ff48d821eccfa739369402b354c9ba946ea2",
+    "tests\\golden\\golden_001\\local\\audio.m4a": "b8ae1d822af7e40e0753aaa56aa30786bca6873ab60b738be5648c0ca2951a45",
+    "tests\\golden_audio\\golden_001\\human.docx": "fb570e721270ec062478726d5960e56ca2781a58c9dce3b70ca4227f9e3f0a85",
+    "tests\\golden_audio\\golden_001\\machine_baseline.txt": "342477b12d656e37a43c0e5ba974de603d9feb215ad300145c884f4386951759",
+    "tests\\golden_audio\\golden_001\\manifest.json.txt": "9f8923e672864d1c522b94625b5f41b9992d68eb83f35890885d0e09099eb578",
+    "tests\\golden_audio\\golden_001\\local\\Nguyễn Chí Thanh 3.m4a": "b8ae1d822af7e40e0753aaa56aa30786bca6873ab60b738be5648c0ca2951a45",
+    "tests\\golden_audio\\synthetic_verbatim\\model_output.json": "f9905d4cfb187a04a8e1328e70ec10b89a324cfb78af60733d7571e4fd391359",
+    "tests\\golden_audio\\synthetic_verbatim\\notes.md": "20a13e8470e400d86e8fef2ce8a2125a75dc08d2c4a3adc25e8b2141cafdaf63",
+    "tests\\golden_audio\\synthetic_verbatim\\reference.json": "e75872d14ecd80f4b183bf76c6d8a0871e3748599dfd7206fa6f5ba8da5dd52d",
+    "prompts\\system_prompt.txt": "6761248f10b7dd04d60625c40dd50fa3ca0075e63ebf0f1db58e5575d26ecc87",
+    "schemas\\golden_reference.schema.json": "17e187f37e3ee4356a2defd58adf262ea2e65f0a0dac69d43475f6309645b741",
+    "schemas\\transcription_result.schema.json": "fbebfac7b470f842fb79c52328af3388a621808d84f8f4d453641f7cdd8c28fa",
+    "state\\.gitkeep": "4858659afe00c6157450412c52fe281dd5bb3dc5c9a7d17b79cc263c34d60e3c",
+    "state\\checkpoint.before-force.0711e458b4af42819909002d164435a5.json": "ea038c7a30536b9dcdd91c61e68ebf6c166b4b10e1f4d460543078d23888a2cf",
+    "state\\checkpoint.before-force.0eece2c6a62d41b1954d8f231f3253ab.json": "410cb336ef648dd8cddd9a01b335ba6542d628ffe5bb5c2a7660c067c5853912",
+    "state\\checkpoint.before-force.0f64212045554f08a3d7ceab338133fe.json": "ca65b25c6b66a8227b698fcd0e23f99a13cba0c321bbe5d834d7e10de2f40bd5",
+    "state\\checkpoint.before-force.26b325a34aca4c4aaf578532d415e92c.json": "fabdd044b111a0d5a6ecccb3706b2008513c5ad38da0d4c5348f8dcb7eef44ba",
+    "state\\checkpoint.before-force.2b84b13f138f4a86a6b6a06bb9c51c46.json": "3f18d7c3e998a2f4d9438d3c53286ceb6846ed39b5b7ab1b488ecc079910e2a0",
+    "state\\checkpoint.before-force.431e5e2b3fb2431dbba28d21e72eb637.json": "e095dc66d546902c8336a7021385fb1ff16dab813f6d673011872914794ba769",
+    "state\\checkpoint.before-force.56a253bd2ec24875aada1234243ed3d1.json": "b0805285efffe0d1607cc207db694e6e0c31e5d5e74c1ee7492c4efaae19092c",
+    "state\\checkpoint.before-force.653d17ffa35243d58883ba5bab18ee83.json": "15d75164a2dc8dd1df98b80ab0f96eec999e62d424b7a474686d8313c9ac1ea5",
+    "state\\checkpoint.before-force.824556c08ef948489d73bc58ebbfef68.json": "78ca1434a165f6c8b0947cd041ea1dfe97225f42db2b828d1d279dd80b8da22e",
+    "state\\checkpoint.before-force.8c2caff1cb704a46bec40b338d2ace9e.json": "49e31f425d1b7592b24454f68eeecdd13ab8bc8c3a32aac948eaea896a99967e",
+    "state\\checkpoint.before-force.bdb7011f735a488992d6a8f1dd5dcdd4.json": "c060679aa9c5db08ca14f4563cd26b8b2c18d63205b3ffc16943114aa4c17c08",
+    "state\\checkpoint.before-force.c90ee214545a47059e7a11c36e86b5b6.json": "dcbf78bfc7d9194fa19849710d9e7238fbb43d3d495a1e58877b9daafd216e1e",
+    "state\\checkpoint.before-force.cf18487e023e4691a01d2505b302e04d.json": "be841bee051bf1e9dabbd7019181d9c19dc0897c8363dda9f11179936320fa17",
+    "state\\checkpoint.before-force.eb5093f4071d4c6b92afb7221151764e.json": "7d7728a75d1ba137b3c94e1e681b7d317466e9458037db3f245d54b9632e0742",
+    "state\\checkpoint.json": "d55942eab078a37f0dcb740a4543c8fe5e0e2acbc54c6cbe5efb5644dc70569d",
+    "experiments\\candidate_001\\.gitignore": "fdcd0183a4babd894e7cce83ec87bd24f385c424cc83571009ed07ab34722d9f",
+    "experiments\\candidate_001\\README.md": "ba871e70b412e27d21a4f911dc0855f89c6d04d3edd5d10e7742a714d786cd13",
+    "experiments\\candidate_001\\run.py": "ba01686b67ffe48f7a8e18faa25f63d7d5e8756739ce128845587810ba818c03",
+    "experiments\\candidate_001\\system_prompt.txt": "ca41bbc58f8d50c99d1b2d1adfe67a5dc6aaad4ab62d8c81ebce94b3cf9b7596",
+    "experiments\\candidate_001\\runtime\\327487d0ba2742aa81bb95284b8e5661\\result.json": "738adf5af5e46d46c0953678270980837d388019bc8a6a752e2ec344ec8d78bb",
+    "experiments\\candidate_001\\runtime\\327487d0ba2742aa81bb95284b8e5661\\runtime.log": "59a4e04d83ce22e9a3cea0da7c823859fe966258d253f3c198f31da01ac6c3e8",
+    "experiments\\candidate_001\\runtime\\327487d0ba2742aa81bb95284b8e5661\\audio\\audio.m4a": "b8ae1d822af7e40e0753aaa56aa30786bca6873ab60b738be5648c0ca2951a45",
+    "experiments\\candidate_001\\runtime\\327487d0ba2742aa81bb95284b8e5661\\prompts\\system_prompt.txt": "ca41bbc58f8d50c99d1b2d1adfe67a5dc6aaad4ab62d8c81ebce94b3cf9b7596",
+    "experiments\\candidate_001\\runtime\\327487d0ba2742aa81bb95284b8e5661\\schemas\\transcription_result.schema.json": "fbebfac7b470f842fb79c52328af3388a621808d84f8f4d453641f7cdd8c28fa",
+    "experiments\\candidate_001\\runtime\\327487d0ba2742aa81bb95284b8e5661\\state\\checkpoint.json": "e1e4a993f57f5368ced911124866bdd56ccb340117393e36097b7d6cdd83b655",
+    "experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390\\provenance.json": "4ea363b5ed02ed1f624e4bb04f6409fd6e38ec3c9cc2f8a85efd9a16b04d4201",
+    "experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390\\result.json": "5375bf9a451c1daf9ad4fbcf558fa0fba16eeb2d65eb1becb3fac4d1bfd323e9",
+    "experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390\\runtime.log": "231bd18e4361af50faf83874b1c5ac540f366a554c637e37e7e58be893e3349d",
+    "experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390\\.cache\\blocks\\slices\\696f6bdae940e4a4cb88387b40fc17a7df8d8cff44997ed995d6d8e29e8a5bb5.json": "6e1e6cdd0bb29c9849873e75f5a7e089f48b1f21d03e9f5938a702064619f7a9",
+    "experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390\\.cache\\blocks\\slices\\696f6bdae940e4a4cb88387b40fc17a7df8d8cff44997ed995d6d8e29e8a5bb5.m4a": "5c2410eaf3fa7682b0ab7d507a068010145d994d55192077ce98a54609466a22",
+    "experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390\\audio\\audio.m4a": "b8ae1d822af7e40e0753aaa56aa30786bca6873ab60b738be5648c0ca2951a45",
+    "experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390\\prompts\\system_prompt.txt": "ca41bbc58f8d50c99d1b2d1adfe67a5dc6aaad4ab62d8c81ebce94b3cf9b7596",
+    "experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390\\schemas\\transcription_result.schema.json": "fbebfac7b470f842fb79c52328af3388a621808d84f8f4d453641f7cdd8c28fa",
+    "experiments\\candidate_001\\runtime\\51accc7f8cae4ee8a056291150c2a390\\state\\checkpoint.json": "a9cc8e9eec091a3232308a3b3a793f6e9ba3752ff9f7bc92d05da5752c40f51e",
+    "experiments\\candidate_001\\runtime\\f3dcab487ee248d38efbeac59b23147a\\provenance.json": "d736f48b4fc245cda35fe07fa4c59efff1efec736abcea8bd2ecefd3a13c7ab6",
+    "experiments\\candidate_001\\runtime\\f3dcab487ee248d38efbeac59b23147a\\result.json": "7ecb1cb50b4f5e2cca5b8558b068de212dd1fb8002c6387de67b5a905cfaa793",
+    "experiments\\candidate_001\\runtime\\f3dcab487ee248d38efbeac59b23147a\\runtime.log": "c297aef52f2ba1d6f9c45c3447907f624207cc893fb1c676b0e6501dfa04e8d6",
+    "experiments\\candidate_001\\runtime\\f3dcab487ee248d38efbeac59b23147a\\audio\\audio.m4a": "b8ae1d822af7e40e0753aaa56aa30786bca6873ab60b738be5648c0ca2951a45",
+    "experiments\\candidate_001\\runtime\\f3dcab487ee248d38efbeac59b23147a\\prompts\\system_prompt.txt": "ca41bbc58f8d50c99d1b2d1adfe67a5dc6aaad4ab62d8c81ebce94b3cf9b7596",
+    "experiments\\candidate_001\\runtime\\f3dcab487ee248d38efbeac59b23147a\\schemas\\transcription_result.schema.json": "fbebfac7b470f842fb79c52328af3388a621808d84f8f4d453641f7cdd8c28fa",
+    "experiments\\candidate_001\\runtime\\f3dcab487ee248d38efbeac59b23147a\\state\\checkpoint.json": "869cd31b284bcfde1e7faf58e8c353f7948f2f4a849f54db604cc7bfcfb74ea9"
+  },
+  "completed_utc": "2026-09-15T15:55:25.618676+00:00",
+  "readiness": "CANDIDATE_001_PROVIDER_VERIFIED — CANDIDATE RUN PERMITTED",
+  "protected_files_changed": [],
+  "git_status_after": " M src/config.py\n M src/coverage_validator.py\n M src/gemini_client.py\n M src/main.py\n M src/model_health.py\n M src/output_merger.py\n M src/output_renderer.py\n M src/provider_adapters.py\n M src/renderer_validator.py\n M src/runtime_models.py\n M src/transcriber.py\n M src/transcript_validator.py\n M tests/test_checkpoint.py\n M tests/test_milestone3_acceptance.py\n M tests/test_runtime_eligibility.py\n M tests/test_stage4_audio_retry.py\n M tests/test_wordinfo_parser.py\n?? .cache/blocks/slices/0166ebfe8232161eaa97bc44d53f339f10bc8ffdb36cb594fdd12b83e193f524.json\n?? .cache/blocks/slices/0166ebfe8232161eaa97bc44d53f339f10bc8ffdb36cb594fdd12b83e193f524.m4a\n?? .cache/blocks/slices/2336affa8c3a877631c835c6d4c0cbb2f1fb4615ed00343e576fc957cae82859.json\n?? .cache/blocks/slices/2336affa8c3a877631c835c6d4c0cbb2f1fb4615ed00343e576fc957cae82859.m4a\n?? .cache/blocks/slices/2dbf054953adf61136a411f2c06d8a8a7242111cb707a6cf66f39e2364c44eeb.json\n?? .cache/blocks/slices/2dbf054953adf61136a411f2c06d8a8a7242111cb707a6cf66f39e2364c44eeb.m4a\n?? .cache/blocks/slices/443c039d0dbbe717c2daaeb0bf415080c2a042bf28c720cee289ee6b0784df68.json\n?? .cache/blocks/slices/443c039d0dbbe717c2daaeb0bf415080c2a042bf28c720cee289ee6b0784df68.m4a\n?? .cache/blocks/slices/46afa4c2198f64285161c928f75f2f31ae0583222d570c4fab12fa1576d1b140.json\n?? .cache/blocks/slices/46afa4c2198f64285161c928f75f2f31ae0583222d570c4fab12fa1576d1b140.m4a\n?? .cache/blocks/slices/49cb2958f6a73f5a3ce4ffd3b7aca62e0d14cac31a04b9c1e26a31de50e263e3.json\n?? .cache/blocks/slices/49cb2958f6a73f5a3ce4ffd3b7aca62e0d14cac31a04b9c1e26a31de50e263e3.m4a\n?? .cache/blocks/slices/4b305864a7ba02343d427d9609c284f0231479cc5c88e383ccae04dcf9bc25f0.json\n?? .cache/blocks/slices/4b305864a7ba02343d427d9609c284f0231479cc5c88e383ccae04dcf9bc25f0.m4a\n?? .cache/blocks/slices/59370a751684ae6c55731b409653d4a1d773ae9361dd8f1872bbc641f4405097.json\n?? .cache/blocks/slices/59370a751684ae6c55731b409653d4a1d773ae9361dd8f1872bbc641f4405097.m4a\n?? .cache/blocks/slices/7291d51e14dc8aee0583fdc74b70e9d96bae1b927afd5778cdb0636028fc1393.json\n?? .cache/blocks/slices/7291d51e14dc8aee0583fdc74b70e9d96bae1b927afd5778cdb0636028fc1393.m4a\n?? .cache/blocks/slices/73fa8f5a393eadc97435425f1188c6cf439714a8f85ccd1bf439d1277cdaf6c5.json\n?? .cache/blocks/slices/73fa8f5a393eadc97435425f1188c6cf439714a8f85ccd1bf439d1277cdaf6c5.m4a\n?? .cache/blocks/slices/75dbc7d7d46f3597198ac01f1fe510c60534d06a71a10a143aa4667040883f8c.json\n?? .cache/blocks/slices/75dbc7d7d46f3597198ac01f1fe510c60534d06a71a10a143aa4667040883f8c.m4a\n?? .cache/blocks/slices/7dbafd6cdeaa518cbab6b6b1b055a33adb60b75422a2b1c08ee86c6c87df0c9d.json\n?? .cache/blocks/slices/7dbafd6cdeaa518cbab6b6b1b055a33adb60b75422a2b1c08ee86c6c87df0c9d.m4a\n?? .cache/blocks/slices/837b0b4e538fefcaaec32390eed92995ba8175a36a95666820e627e55a89f6df.json\n?? .cache/blocks/slices/837b0b4e538fefcaaec32390eed92995ba8175a36a95666820e627e55a89f6df.m4a\n?? .cache/blocks/slices/8be897346cce731582c74ba530203dea7e662f56d32cce6097e2f60509f19d88.json\n?? .cache/blocks/slices/8be897346cce731582c74ba530203dea7e662f56d32cce6097e2f60509f19d88.m4a\n?? .cache/blocks/slices/8fdcabff84d8c4bb092ea6994729d15a7384e9cb3b8425a17554023b62964b48.json\n?? .cache/blocks/slices/8fdcabff84d8c4bb092ea6994729d15a7384e9cb3b8425a17554023b62964b48.m4a\n?? .cache/blocks/slices/a6b1fbf6293ce0e1103d2325a282a6a01b96353668f93a6894e56618249fd35e.json\n?? .cache/blocks/slices/a6b1fbf6293ce0e1103d2325a282a6a01b96353668f93a6894e56618249fd35e.m4a\n?? .cache/blocks/slices/ab728637161b1ec633c76cdd77d3212935b5e98517034b69ec970118b7733df5.json\n?? .cache/blocks/slices/ab728637161b1ec633c76cdd77d3212935b5e98517034b69ec970118b7733df5.m4a\n?? .cache/blocks/slices/b92756315ccd7828281ff19940922d0709aa7083cc737cdb0bbe91ff8e0cdd48.json\n?? .cache/blocks/slices/b92756315ccd7828281ff19940922d0709aa7083cc737cdb0bbe91ff8e0cdd48.m4a\n?? .cache/blocks/slices/bba13bffdeae2c001a74f7d2d5c43c8b538e1bc782a53a04dc3af828acbc19ff.json\n?? .cache/blocks/slices/bba13bffdeae2c001a74f7d2d5c43c8b538e1bc782a53a04dc3af828acbc19ff.m4a\n?? .cache/blocks/slices/c2c0235b64a5940a7e1475b89a333b1af44487f1780722e59e59b5c9980467d5.json\n?? .cache/blocks/slices/c2c0235b64a5940a7e1475b89a333b1af44487f1780722e59e59b5c9980467d5.m4a\n?? .cache/blocks/slices/e5cd52f6c5b31243235d4b06bad245e7b9b649a46d470d007253fa57a7553b24.json\n?? .cache/blocks/slices/e5cd52f6c5b31243235d4b06bad245e7b9b649a46d470d007253fa57a7553b24.m4a\n?? .cache/blocks/slices/ef4c049e8aa6b4c5d70eaf1fd434abe424bb7d4b03011660d17487c3a54656e9.json\n?? .cache/blocks/slices/ef4c049e8aa6b4c5d70eaf1fd434abe424bb7d4b03011660d17487c3a54656e9.m4a\n?? .cache/blocks/slices/fe5ae3e69cf22c7acc80cfec2b327677d7705b1da91a39f9d02cf46b241cd20a.json\n?? .cache/blocks/slices/fe5ae3e69cf22c7acc80cfec2b327677d7705b1da91a39f9d02cf46b241cd20a.m4a\n?? docs/annotation-coverage-fallback-hotfix.md\n?? docs/golden-001-benchmark.md\n?? docs/structural-fallback-quota-hotfix.md\n?? docs/transcribe-temporal-endpoint-hotfix.md\n?? experiments/\n?? reports/\n?? src/capability_audit.py\n?? src/golden_benchmark/\n?? src/provider_capability.py\n?? tests/golden/\n?? tests/golden_audio/golden_001/\n?? tests/test_annotation_coverage_fallback.py\n?? tests/test_candidate_001.py\n?? tests/test_golden_benchmark.py\n?? tests/test_provider_capability.py\n?? tests/test_structural_fallback_quota.py\n?? tests/test_temporal_wordinfo.py\n",
+  "git_diff_check": {
+    "exit_code": 0,
+    "output": "warning: in the working copy of 'src/gemini_client.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'src/main.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_stage4_audio_retry.py', LF will be replaced by CRLF the next time Git touches it\n"
+  },
+  "candidate_run": {
+    "runtime": "experiments/candidate_001/runtime/fbb66207d79144eaae06acb2675220b0",
+    "status": "INCOMPLETE_PROCESS_ENDED_WITHOUT_FINAL_RESULT",
+    "actual_model": "gemini-3.6-flash",
+    "configuration_changed": false,
+    "cause": "UNKNOWN",
+    "confirmed_blocks": 0,
+    "next_audio_start_us": 0,
+    "quality_metrics": null,
+    "process_alive": false
+  },
+  "evidence_separation": "MODEL_DISCOVERED != MODEL_REQUESTABLE != MODEL_CONTRACT_VERIFIED != MODEL_QUALITY_VERIFIED",
+  "audit_execution": "Existing CapabilityGate invoked in user-requested discovery-filtered order; no module edits; native/2.5 not reprobed in audit.",
+  "git_status_unchanged": true,
+  "files_changed_this_task": [
+    "reports/provider_capability_audit.json",
+    "reports/provider_capability_audit.md"
+  ],
+  "generated_candidate_artifacts": "experiments/candidate_001/runtime/fbb66207d79144eaae06acb2675220b0 (new isolated runtime only)"
+}

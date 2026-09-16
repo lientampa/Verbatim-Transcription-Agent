@@ -88,6 +88,7 @@ class AppConfig:
     retry_max_delay_seconds: float = 8.0
     retry_backoff_multiplier: float = 2.0
     max_transient_retries_per_model: int = 2
+    quota_cooldown_seconds: float = 30.0
     provider_fallback_policy: str = "SPEED_FIRST"
     max_provider_backoff_seconds: float = 5.0
     fallback_models: tuple[str, ...] = PREFERRED_MODEL_CHAIN
@@ -209,6 +210,7 @@ def load_config(base_dir: Path | None = None) -> AppConfig:
         checkpoint_file_path=state_dir / "checkpoint.json",
         schema_path=base_dir / "schemas" / "transcription_result.schema.json",
         retry_max_attempts=max(1, retry_max_attempts),
+        quota_cooldown_seconds=max(1.0, min(300.0, float(os.getenv("QUOTA_COOLDOWN_SECONDS", "30")))),
         retry_initial_delay_seconds=max(0.1, retry_initial_delay_seconds),
         timeout_seconds=max(10, timeout_seconds),
         block_duration_seconds=max(30, block_duration_seconds),

@@ -1,0 +1,5044 @@
+{
+  "offline_fidelity_decision": "FAIL_CRITICAL_REFERENCE_ERROR",
+  "alignment": [
+    {
+      "human": [],
+      "machine": [
+        0
+      ],
+      "resolved": false
+    },
+    {
+      "human": [
+        0,
+        1
+      ],
+      "machine": [
+        1
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        2,
+        3
+      ],
+      "machine": [
+        2
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        4
+      ],
+      "machine": [
+        3
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        5
+      ],
+      "machine": [
+        4
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        6
+      ],
+      "machine": [
+        5
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        7,
+        8,
+        9
+      ],
+      "machine": [
+        6
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        10
+      ],
+      "machine": [
+        7
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        11
+      ],
+      "machine": [
+        8
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        12
+      ],
+      "machine": [
+        9
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        13
+      ],
+      "machine": [
+        10
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        14
+      ],
+      "machine": [
+        11
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        15
+      ],
+      "machine": [
+        12
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        16
+      ],
+      "machine": [
+        13
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        17
+      ],
+      "machine": [
+        14
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        18
+      ],
+      "machine": [
+        15
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        19
+      ],
+      "machine": [
+        16
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        20
+      ],
+      "machine": [
+        17
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        21
+      ],
+      "machine": [
+        18,
+        19
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        22
+      ],
+      "machine": [
+        20
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        23
+      ],
+      "machine": [
+        21
+      ],
+      "resolved": true
+    },
+    {
+      "human": [],
+      "machine": [
+        22
+      ],
+      "resolved": false
+    },
+    {
+      "human": [
+        24
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        25,
+        26,
+        27
+      ],
+      "machine": [
+        23
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        28
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        29
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        30,
+        31,
+        32
+      ],
+      "machine": [
+        24
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        33
+      ],
+      "machine": [
+        25
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        34
+      ],
+      "machine": [
+        26
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        35,
+        36,
+        37
+      ],
+      "machine": [
+        27
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        38,
+        39,
+        40
+      ],
+      "machine": [
+        28
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        41,
+        42,
+        43
+      ],
+      "machine": [
+        29
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        44,
+        45
+      ],
+      "machine": [
+        30
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        46
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        47
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        48
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        49
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        50
+      ],
+      "machine": [
+        31,
+        32,
+        33
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        51
+      ],
+      "machine": [
+        34
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        52
+      ],
+      "machine": [
+        35,
+        36
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        53
+      ],
+      "machine": [
+        37
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        54,
+        55
+      ],
+      "machine": [
+        38
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        56,
+        57
+      ],
+      "machine": [
+        39
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        58
+      ],
+      "machine": [
+        40,
+        41,
+        42
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        59
+      ],
+      "machine": [
+        43,
+        44
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        60
+      ],
+      "machine": [
+        45,
+        46
+      ],
+      "resolved": true
+    },
+    {
+      "human": [],
+      "machine": [
+        47
+      ],
+      "resolved": false
+    },
+    {
+      "human": [
+        61
+      ],
+      "machine": [
+        48,
+        49
+      ],
+      "resolved": true
+    },
+    {
+      "human": [],
+      "machine": [
+        50
+      ],
+      "resolved": false
+    },
+    {
+      "human": [
+        62
+      ],
+      "machine": [
+        51,
+        52,
+        53
+      ],
+      "resolved": true
+    },
+    {
+      "human": [],
+      "machine": [
+        54
+      ],
+      "resolved": false
+    },
+    {
+      "human": [],
+      "machine": [
+        55
+      ],
+      "resolved": false
+    },
+    {
+      "human": [],
+      "machine": [
+        56
+      ],
+      "resolved": false
+    },
+    {
+      "human": [],
+      "machine": [
+        57
+      ],
+      "resolved": false
+    },
+    {
+      "human": [
+        63
+      ],
+      "machine": [
+        58,
+        59,
+        60
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        64
+      ],
+      "machine": [
+        61
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        65
+      ],
+      "machine": [
+        62,
+        63
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        66
+      ],
+      "machine": [
+        64
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        67
+      ],
+      "machine": [
+        65
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        68
+      ],
+      "machine": [
+        66,
+        67
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        69
+      ],
+      "machine": [
+        68
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        70
+      ],
+      "machine": [
+        69
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        71
+      ],
+      "machine": [
+        70
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        72
+      ],
+      "machine": [
+        71
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        73
+      ],
+      "machine": [
+        72
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        74
+      ],
+      "machine": [
+        73
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        75
+      ],
+      "machine": [
+        74
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        76
+      ],
+      "machine": [
+        75
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        77,
+        78,
+        79
+      ],
+      "machine": [
+        76
+      ],
+      "resolved": true
+    },
+    {
+      "human": [],
+      "machine": [
+        77
+      ],
+      "resolved": false
+    },
+    {
+      "human": [],
+      "machine": [
+        78
+      ],
+      "resolved": false
+    },
+    {
+      "human": [],
+      "machine": [
+        79
+      ],
+      "resolved": false
+    },
+    {
+      "human": [
+        80
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        81
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        82
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        83
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        84
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        85
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        86
+      ],
+      "machine": [
+        80
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        87
+      ],
+      "machine": [
+        81
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        88
+      ],
+      "machine": [
+        82
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        89
+      ],
+      "machine": [
+        83
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        90
+      ],
+      "machine": [
+        84
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        91
+      ],
+      "machine": [
+        85
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        92
+      ],
+      "machine": [
+        86,
+        87,
+        88
+      ],
+      "resolved": true
+    },
+    {
+      "human": [],
+      "machine": [
+        89
+      ],
+      "resolved": false
+    },
+    {
+      "human": [
+        93,
+        94
+      ],
+      "machine": [
+        90
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        95,
+        96
+      ],
+      "machine": [
+        91
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        97
+      ],
+      "machine": [
+        92
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        98
+      ],
+      "machine": [
+        93,
+        94,
+        95
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        99
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        100
+      ],
+      "machine": [
+        96
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        101
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        102
+      ],
+      "machine": [
+        97
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        103
+      ],
+      "machine": [
+        98
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        104,
+        105
+      ],
+      "machine": [
+        99
+      ],
+      "resolved": true
+    },
+    {
+      "human": [],
+      "machine": [
+        100
+      ],
+      "resolved": false
+    },
+    {
+      "human": [],
+      "machine": [
+        101
+      ],
+      "resolved": false
+    },
+    {
+      "human": [],
+      "machine": [
+        102
+      ],
+      "resolved": false
+    },
+    {
+      "human": [
+        106
+      ],
+      "machine": [
+        103
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        107
+      ],
+      "machine": [
+        104
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        108
+      ],
+      "machine": [
+        105
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        109
+      ],
+      "machine": [
+        106
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        110
+      ],
+      "machine": [
+        107,
+        108,
+        109
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        111,
+        112
+      ],
+      "machine": [
+        110
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        113
+      ],
+      "machine": [
+        111
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        114,
+        115
+      ],
+      "machine": [
+        112
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        116
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        117
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        118,
+        119
+      ],
+      "machine": [
+        113
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        120
+      ],
+      "machine": [],
+      "resolved": false
+    },
+    {
+      "human": [
+        121
+      ],
+      "machine": [
+        114,
+        115,
+        116
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        122
+      ],
+      "machine": [
+        117
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        123
+      ],
+      "machine": [
+        118
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        124,
+        125,
+        126
+      ],
+      "machine": [
+        119
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        127,
+        128
+      ],
+      "machine": [
+        120
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        129
+      ],
+      "machine": [
+        121
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        130
+      ],
+      "machine": [
+        122
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        131
+      ],
+      "machine": [
+        123
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        132
+      ],
+      "machine": [
+        124
+      ],
+      "resolved": true
+    },
+    {
+      "human": [
+        133,
+        134
+      ],
+      "machine": [
+        125
+      ],
+      "resolved": true
+    }
+  ],
+  "automatic_group_classifications": [
+    {
+      "group": 0,
+      "primary_error_type": "WORD_INSERTION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Gì?"
+    },
+    {
+      "group": 1,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ]. Nên nên nên đầu tư.",
+      "machine_text": "Nên nên nên đầu tư."
+    },
+    {
+      "group": 2,
+      "primary_error_type": "WORD_OMISSION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ Nên đầu tư đi.",
+      "machine_text": "Nên đầu tư đi."
+    },
+    {
+      "group": 3,
+      "primary_error_type": "WORD_OMISSION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ, em cũng nói, nhưng mà ổng thì ổng chưa có thời gian, tại vì có một mình ổng làm chứ mấy.",
+      "machine_text": "Dạ. Em cũng nói nhưng mà ổng thì ổng chưa có thời gian, tại vì có mình ổng làm chứ mấy."
+    },
+    {
+      "group": 4,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ừ.",
+      "machine_text": "Ừ."
+    },
+    {
+      "group": 5,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Còn em thì em chỉ lơ quơ lơ quơ vài thứ thôi.",
+      "machine_text": "Còn em thì em chỉ [không rõ] quơ quơ bài thứ thôi."
+    },
+    {
+      "group": 6,
+      "primary_error_type": "WORD_OMISSION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Để anh xem có đội nào ở Đà Nẵng này mà nó hỗ trợ được không. Dạ. Nên đầu tư cái đấy, xong rồi mình gửi cho khách người ta dễ hình dung.",
+      "machine_text": "Để anh xem có đội nào ở Đà Nẵng này mà nó hỗ trợ được không. Nên đầu tư cái đấy, xong rồi mình gửi cho khách người ta dễ hình dung."
+    },
+    {
+      "group": 7,
+      "primary_error_type": "MINOR_ORTHOGRAPHIC",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ Đúng rồi,",
+      "machine_text": "Dạ đúng rồi."
+    },
+    {
+      "group": 8,
+      "primary_error_type": "MINOR_ORTHOGRAPHIC",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ừ",
+      "machine_text": "Ừ."
+    },
+    {
+      "group": 9,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Mấy bữa em cũng kêu ổng á chớ, nhưng mà ổng không có thời gian, cho nên thôi. Với lại khách cũng toàn nhắn tin qua Zalo không à.",
+      "machine_text": "Mấy cái video ổng làm đó chứ mà ổng có thời gian nên thôi. Với lại khách cũng toàn nhắn tin qua Zalo không à."
+    },
+    {
+      "group": 10,
+      "primary_error_type": "WORD_OMISSION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ừ, xong mình gửi ảnh à.",
+      "machine_text": "Ừ, xong mình gửi ảnh?"
+    },
+    {
+      "group": 11,
+      "primary_error_type": "MINOR_ORTHOGRAPHIC",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ. Mình gửi ảnh, ảnh trực tiếp chỗ mình làm, mình làm xong mình chụp ấy, làm như rứa nó cũng ok.",
+      "machine_text": "Dạ, mình gửi ảnh ảnh trực tiếp chỗ mình làm, mình làm xong mình chụp ấy. Làm như rứa nó cũng ok."
+    },
+    {
+      "group": 12,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ừ.",
+      "machine_text": "Ừ ừ. Đấy đấy đấy đấy."
+    },
+    {
+      "group": 13,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Hơn nữa, Khách họ cần thực tế hơn.",
+      "machine_text": "Khách họ cần sự thực tế hơn."
+    },
+    {
+      "group": 14,
+      "primary_error_type": "WORD_INSERTION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ừ ừ ừ.",
+      "machine_text": "Ừ ừ ừ ừ."
+    },
+    {
+      "group": 15,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Có nhiều khách họ đòi qua coi thực tế nữa, mà giờ chẳng lẽ mình qua mình nhờ nhờ khách cũ mở cửa ra.",
+      "machine_text": "Có nhiều khách họ đòi qua xem thực tế nữa mà giờ chẳng lẽ mình qua mình ờ nhờ nhờ khách cũ mở cửa ra."
+    },
+    {
+      "group": 16,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ừ ừ ừ.",
+      "machine_text": "Ừ ừ ừ."
+    },
+    {
+      "group": 17,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Con lấy cái nào?",
+      "machine_text": "Con lấy cái nào?"
+    },
+    {
+      "group": 18,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Nó có bọt rồi đó anh ơi. Nó có bọt rồi đó.",
+      "machine_text": "Nó có bột rồi đó anh ạ. Nó có bột rồi đó. Uống cái này uống [không rõ]."
+    },
+    {
+      "group": 19,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "em em lại kiếm gói trà, hồng trà cho hắn uồng hà.",
+      "machine_text": "Em em làm lại trà mật gừng táo ong táo đỏ trong vườn à?"
+    },
+    {
+      "group": 20,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ừ.",
+      "machine_text": "Ừ."
+    },
+    {
+      "group": 21,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Em uống phô mai rứa thôi."
+    },
+    {
+      "group": 22,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Hình như phổ nhĩ quýt thơm.",
+      "machine_text": ""
+    },
+    {
+      "group": 23,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Thế gọi lần này đổi qua Lê La trà đi. [không rõ] có Phổ Nhĩ quýt. à đây.",
+      "machine_text": "Đi gọi [không rõ] lấy lê trà đi."
+    },
+    {
+      "group": 24,
+      "primary_error_type": "WORD_OMISSION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Gì.",
+      "machine_text": ""
+    },
+    {
+      "group": 25,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "chuyện chi.",
+      "machine_text": ""
+    },
+    {
+      "group": 26,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Thì đó. chuyện chi. tự nhiên đứng dậy? [không rõ] ờ Tự nhiên ò. Biết chỗ nào mà lấy.",
+      "machine_text": "Gì? Đứng dậy. Chi đó? Đứng dậy, tự nhiên đứng dậy. Tự nhiên [không rõ]. Biết đường nào mà lần."
+    },
+    {
+      "group": 27,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Anh lấy anh lấy  cái gói chi mà phụ nữ uống",
+      "machine_text": "Anh anh để anh để cho anh cái cái gói gắm a phụ nữ là ổn a."
+    },
+    {
+      "group": 28,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Em có Phổ Nhĩ Quýt nha",
+      "machine_text": "Nó có bổ huyết mà."
+    },
+    {
+      "group": 29,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Cho cho Phổ Nhĩ Quýt cho con bé uống long đờm ra cũng tốt ấy. Cho nó thông… con nhỏ uống trà được mà. Dạ được. Lấy mấy quả?",
+      "machine_text": "Cho phổ nhị quất cho em bé uống long đờm ra cũng tốt đấy. Cho nó thông. Con nhỏ uống trà được mà."
+    },
+    {
+      "group": 30,
+      "primary_error_type": "NUMBER_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Cho em 5 quả đi anh. Bốn quả đủ trăm hỉ. Dạ được. Anh cho bao nhiêu cũng được. [không rõ]",
+      "machine_text": "Dạ được. Lấy mấy quả? Cho em năm quả đi anh. Bốn quả đủ 100 em? Dạ được. [không rõ] Anh cho bao nhiêu cũng được. Dạ thích."
+    },
+    {
+      "group": 31,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Bữa nào ấy rồi anh gọi anh anh chở vợ sang bên kia chơi. Vâng. Anh uống trà hả",
+      "machine_text": "Bây giờ em qua ấy là anh anh anh cho qua bên kia chơi. Vâng. Em qua sang thăm xưởng nhà anh nhé. À ok. Vâng."
+    },
+    {
+      "group": 32,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "em sang thăm Anh",
+      "machine_text": "Em qua bên kia lấy đi."
+    },
+    {
+      "group": 33,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "sang thăm xưởng nhà anh nhá.",
+      "machine_text": ""
+    },
+    {
+      "group": 34,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "À ok.  thế để anh qua bên nớ rồi rồi.",
+      "machine_text": ""
+    },
+    {
+      "group": 35,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Tại vì em chơi.",
+      "machine_text": ""
+    },
+    {
+      "group": 36,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Em đi lại phương tiện bằng chi",
+      "machine_text": ""
+    },
+    {
+      "group": 37,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Em em đang mượn xe máy, nhưng mà mấy bữa em sẽ cũng sẽ mang cái xe điện em vào. Em ra ngoài kia đi xe điện. Đi xe điện sướng hơn? Xe điện nó nhẹ mà sướng. Nói chung là sướng hơn hẳn đấy. Tiết kiệm rồi mọi thứ nó ok á.",
+      "machine_text": "Thì em [không rõ] mua xe máy nhưng mà mấy bữa em sẽ cũng sẽ mang cái xe điện em vào. Em ra ngoài đền đi xe điện. Cái xe điện xính hơn. Anh lấy cái túi này xách đi xíu. Đúng đấy. Cái xe điện nó nhẹ mà sướng, nói chung là sướng hơn hẳn ấy, tiết kiệm rồi mọi thứ nó ok ấy."
+    },
+    {
+      "group": 38,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Anh uống trà nào?",
+      "machine_text": "Anh uống trà nào?"
+    },
+    {
+      "group": 39,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Đó, lên mua trà cái đó cho hắn uống. Nói chung giờ uống ở đâu uống chi cũng uống? Uống trải nghiệm những cái mới",
+      "machine_text": "Đó làm em uống Trà Mây Hai Trăm Bốn. Ừ, cũng thế. Em chưa được uống ở đâu. Còn một ít nữa. Còn ít nhất em đi bên ô thế."
+    },
+    {
+      "group": 40,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Nhưng mà anh có bình ấm không hết rồi, bình ấm dục hết rồi.",
+      "machine_text": "Nhưng mà không có cái bình xách theo. Thấy cái chai bình xách theo người ta dùng hết rồi. Còn cái bình nhỏ con mang đi làm con mang đi nên là..."
+    },
+    {
+      "group": 41,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Thế còn, ấm nước Bên xưởng còn cái ấm đó mà [không rõ] Không thì kể cả có cái bình nước nhà nước lọc nhà mình ấy, mình cho mình cho nước sôi vẫn ok mà anh. Mình cứ ngâm thế.",
+      "machine_text": "Phải để cái cái ly đó. Không thì kể cả có cái bình bình nước nhà bớt nước lọc nhà mình ấy, mình cho mình cho nước sôi vẫn ok mà anh. Mình cứ ngâm thôi."
+    },
+    {
+      "group": 42,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Họ họ họ có họ có họ có bình. hả Anh ơi em mua hai cái ly này nè.",
+      "machine_text": "Không, không có không có bình khác. Anh ơi mua hai cái ly này nè."
+    },
+    {
+      "group": 43,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ly nhỏ hay ly to? Hai cái ly … thôi.",
+      "machine_text": "Ừ. Ly nhỏ hay ly to? Hai cái ly này thôi."
+    },
+    {
+      "group": 44,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Xong rồi anh ngồi thêm mấy phút rồi cũng đi em ạ.",
+      "machine_text": "Dạ, hai cái ly nhỏ thôi. Xong rồi anh ngồi thêm mấy phút rồi cũng đi em ạ."
+    },
+    {
+      "group": 45,
+      "primary_error_type": "WORD_INSERTION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "dạ dạ",
+      "machine_text": "Dạ dạ. Ừ."
+    },
+    {
+      "group": 46,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Con mang ly nhỏ này nghe."
+    },
+    {
+      "group": 47,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ]. Thôi thôi thôi không lấy [không rõ] đâu. [không rõ]",
+      "machine_text": "Á, thôi đây cũng được. Để để để lấy cái khay đã."
+    },
+    {
+      "group": 48,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Cho vào khay. Lấy cái khay bẹt á."
+    },
+    {
+      "group": 49,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Thả đi, anh thả ra đi, anh thả cái tay ra nào. [không rõ]. Sao lấy cái ly này ly trơn thôi. [không rõ]?",
+      "machine_text": "Mở ra đi, anh thả ra đi, anh thả cái tay ra nào. Thế làm sao giờ? Lấy cái ly này nhỏ hơn."
+    },
+    {
+      "group": 50,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Khác đấy, lấy trong khay đấy. Xong lấy ly này nè."
+    },
+    {
+      "group": 51,
+      "primary_error_type": "WORD_INSERTION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Ừ."
+    },
+    {
+      "group": 52,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Đi chơi thôi."
+    },
+    {
+      "group": 53,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Lấy cái chén này vào thì nó dễ, lấy cái chén này thì nó"
+    },
+    {
+      "group": 54,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Lấy cái chơi thế thôi đơn giản. Lấy rồi? Ba lấy rồi.  ok nhá.",
+      "machine_text": "Mấy cái kia trơn thế nó không đơn giản. Khác nhau, ba lá rồi. Có túi tối. Ba lá rồi. Ok nha."
+    },
+    {
+      "group": 55,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Anh trả tám ngàn hai hai hai đây nha.",
+      "machine_text": "Em trả em trả anh hai hai em đó nè."
+    },
+    {
+      "group": 56,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Lấy hai cái hộp bỏ hai cái hộp đấy. Lấy hai cái hộp.",
+      "machine_text": "Dạ. Em có gói hàng gì bỏ hai cái hộp đấy. Đây hai cái hộp."
+    },
+    {
+      "group": 57,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Rồi, ba lấy hai cái ly rồi, xíu con xách về, ok, đây cái nắp đậy của con đây. Xách về đi.",
+      "machine_text": "Rồi, ba bán hai cái ly này. Rồi, xíu con xách về. Ok, đây, niêm phong của con đây. Rời xách về đi."
+    },
+    {
+      "group": 58,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Xách về chứ không phải đập đâu nghe.",
+      "machine_text": "Xách về không mày đập vô nghe."
+    },
+    {
+      "group": 59,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Xách về.  xách về",
+      "machine_text": "Xách về. Đi đứng đàng hoàng, đi xách về. Nghe."
+    },
+    {
+      "group": 60,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dễ thương nhỉ? Ba bữa chị Vân có cho bộ ấm trà về.",
+      "machine_text": "Dễ thương vậy."
+    },
+    {
+      "group": 61,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Đồ men sứ.",
+      "machine_text": "Đồ mẹ anh xử nó."
+    },
+    {
+      "group": 62,
+      "primary_error_type": "NUMBER_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ừ, chị thích đồ men sứ. Ơ sao anh dục cái bao rồi.",
+      "machine_text": "Ở 50 cái bao rồi."
+    },
+    {
+      "group": 63,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Lấy cái hộp. Em dô lấy hai cái hộp bỏ dô là được rồi [không rõ]",
+      "machine_text": "Lấy cái hộp. Mình dùng lấy hai cái hộp bỏ vô là được rồi."
+    },
+    {
+      "group": 64,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Đi đi đi ngó nào. Đi ngó nào.",
+      "machine_text": "Đi đi đi ngó nào. Đi ngó nào."
+    },
+    {
+      "group": 65,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Bể đồ đó nghe.",
+      "machine_text": "Về vô đó con nghe."
+    },
+    {
+      "group": 66,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ngó cẩn thận nha.",
+      "machine_text": "Ngó cẩn thận nha."
+    },
+    {
+      "group": 67,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Bể một cái bình là mất một tháng lương đó con nghe.",
+      "machine_text": "Để một cái bên là bật một thẳng lớn lên con nghe."
+    },
+    {
+      "group": 68,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Đên đây, đên đây mẹ làm. Đến đây mẹ làm. [không rõ] Vâng, vi [không rõ] trà anh. Mật khẩu 1 3 4 5 6 hai lần. Ba. [không rõ].",
+      "machine_text": "Đưa đây đưa đây mẹ nào. Đưa đây mẹ nào. Ờ vì con trà mật ong một ca năm sáu hai lần."
+    },
+    {
+      "group": 69,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Bỏ vô năm, bỏ số sáu đi."
+    },
+    {
+      "group": 70,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Vẽ nào."
+    },
+    {
+      "group": 71,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Không được không được."
+    },
+    {
+      "group": 72,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ]. Bố nó kệ con, kệ nó.",
+      "machine_text": ""
+    },
+    {
+      "group": 73,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ]",
+      "machine_text": ""
+    },
+    {
+      "group": 74,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Coi chừng bể đó nha [không rõ]",
+      "machine_text": ""
+    },
+    {
+      "group": 75,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ]",
+      "machine_text": ""
+    },
+    {
+      "group": 76,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ].",
+      "machine_text": ""
+    },
+    {
+      "group": 77,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ]",
+      "machine_text": ""
+    },
+    {
+      "group": 78,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Rồi em đã nghe.",
+      "machine_text": "Đây em đã về đây."
+    },
+    {
+      "group": 79,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ dạ [không rõ].",
+      "machine_text": "Dạ dạ."
+    },
+    {
+      "group": 80,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Thôi thế tầm trong vòng một tháng rưỡi nữa là anh chạy qua [không rõ]",
+      "machine_text": "Nào đây đây vâng gặp sáu ếch chín. trong vòng một tháng rưỡi trở lại sẽ sẽ nhiều. Rồi trong bây giờ tới giờ để chị em thấy"
+    },
+    {
+      "group": 81,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": ". [không rõ] em sẽ nhắn em hẹn anh. Đó. Xong rồi em chạy qua, chạy qua",
+      "machine_text": "xong rồi em sẽ qua"
+    },
+    {
+      "group": 82,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "anh thì qua lúc nào cũng được,",
+      "machine_text": "Rồi đây qua đây qua anh thì lúc nào cũng được."
+    },
+    {
+      "group": 83,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ] Để em chạy qua. Ok anh.",
+      "machine_text": "Để em sẽ qua anh."
+    },
+    {
+      "group": 84,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Bữa nào em mà có không gian trà thì em lại mời anh đến. Em cũng đang nhắm nhắm.",
+      "machine_text": "Ok vâng. Bữa nào em mà có không gian trà thì em mời anh đến. Ok. Em cũng đang nhắm nhắm."
+    },
+    {
+      "group": 85,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Vâng ok."
+    },
+    {
+      "group": 86,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ] À đấy thì đúng là lúc nào anh rảnh việc mà hẹn anh kia gặp nhau. Thì anh em mình ngồi đâu đấy uống trà hoặc đến đây. Vâng.",
+      "machine_text": "À đấy thì đúng là lúc nào anh rảnh việc mà hẹn anh kia gặp nhau. Rồi em ngồi đâu để uống trà đến đây."
+    },
+    {
+      "group": 87,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ] Thấy mọi thứ nó thoải mái như thế này có thể chơi lúc nào cũng được. Vâng vâng. Ok anh.",
+      "machine_text": "Không để nói chung là Vâng vâng ok anh."
+    },
+    {
+      "group": 88,
+      "primary_error_type": "WORD_SUBSTITUTION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Vậy nghe.",
+      "machine_text": "Ok nghe."
+    },
+    {
+      "group": 89,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Em xin phép về trước ạ.",
+      "machine_text": "Em xin phép về trước ạ. Nha anh nha. Dạ rồi ok."
+    },
+    {
+      "group": 90,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Chào em. Nhé em nhé.",
+      "machine_text": ""
+    },
+    {
+      "group": 91,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Bye bye Sumo.",
+      "machine_text": "Bye bye Sumo."
+    },
+    {
+      "group": 92,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Thơm gió thơm gió. Đá lông nheo.  [không rõ]",
+      "machine_text": ""
+    },
+    {
+      "group": 93,
+      "primary_error_type": "WORD_SUBSTITUTION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Bạn sinh tháng mấy? Bạn này.",
+      "machine_text": "Bạn sinh tháng mấy? Bạn đẻ"
+    },
+    {
+      "group": 94,
+      "primary_error_type": "NUMBER_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ 30 tháng 4.",
+      "machine_text": "Dạ 30 tháng tư."
+    },
+    {
+      "group": 95,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "À em cũng 30 tháng 4. 30/4. Giải phóng miền Nam.[không rõ]",
+      "machine_text": "À em 30 tháng tư."
+    },
+    {
+      "group": 96,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "À chờ ba tiếng là tới giờ."
+    },
+    {
+      "group": 97,
+      "primary_error_type": "PHRASE_INSERTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Nhật báo là cái Việt Nam mừng luôn."
+    },
+    {
+      "group": 98,
+      "primary_error_type": "WORD_INSERTION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "",
+      "machine_text": "Dạ."
+    },
+    {
+      "group": 99,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Chứ còn gốc quê ở đâu?",
+      "machine_text": "Chúc bà gốc quê ở đâu?"
+    },
+    {
+      "group": 100,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ em là ở đây.",
+      "machine_text": "Dạ em là ở đây."
+    },
+    {
+      "group": 101,
+      "primary_error_type": "MINOR_ORTHOGRAPHIC",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "À ở đây, Đà Nẵng.",
+      "machine_text": "À ở đây Đà Nẵng."
+    },
+    {
+      "group": 102,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ em ở Quảng Nam.",
+      "machine_text": "Dạ em Đà Nẵng luôn."
+    },
+    {
+      "group": 103,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Anh thì ở Nam Định. Sinh ra ở Hà Nội nhưng mà gốc thì Nam Định. À. Xong kiểu ông nội đưa hết con cháu lên Hà Nội.",
+      "machine_text": "Anh thì ở Nam Định. Sinh ra ở Hà Nội gốc Nam Định. À. Xong kiểu ông nội đưa hết con cháu lên Hà Nội."
+    },
+    {
+      "group": 104,
+      "primary_error_type": "UNCERTAINTY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "[không rõ]. Đó là nguyên combo đó hả anh.",
+      "machine_text": "Sinh viên combo đó hả?"
+    },
+    {
+      "group": 105,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ừ combo.",
+      "machine_text": "Sinh viên combo."
+    },
+    {
+      "group": 106,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Đẹp đấy. Nguyên cái combo đó là bao nhiêu anh?",
+      "machine_text": "Sinh viên combo đó là bao nhiêu anh?"
+    },
+    {
+      "group": 107,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Thì một cái bộ như ri thì",
+      "machine_text": ""
+    },
+    {
+      "group": 108,
+      "primary_error_type": "NUMBER_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Coi cái bếp đó kìa, có cái bếp thì 3 triệu mấy.",
+      "machine_text": ""
+    },
+    {
+      "group": 109,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ Bếp này là phải mấy triệu.",
+      "machine_text": "Và chị khoái. Bếp này là mấy triệu?"
+    },
+    {
+      "group": 110,
+      "primary_error_type": "PHRASE_OMISSION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Bếp này là ba triệu.",
+      "machine_text": ""
+    },
+    {
+      "group": 111,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ em bái bai anh.",
+      "machine_text": "Rồi em bye anh nào. Rồi rồi. Bye anh."
+    },
+    {
+      "group": 112,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Anh anh thấy cái bạn thiềm thừ ngoài này có cái từ đằng sau là Từ Đào à?",
+      "machine_text": "Anh anh thấy cái bạn thiểm thử ngoài này có cái từ đằng sau là từ đào à?"
+    },
+    {
+      "group": 113,
+      "primary_error_type": "WORD_SUBSTITUTION",
+      "severity": "MINOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ Tử Đào.",
+      "machine_text": "Dạ từ đào."
+    },
+    {
+      "group": 114,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Tử Đào à? Là chất đất. Ờ anh đang định hỏi dịch ra nghĩa là gì? Chất đất. Tử Đào.",
+      "machine_text": "Từ đào à? Từ à chất đất. Ờ anh đang đi hỏi là dịch ra nghĩa là gì? Chất đất. Từ đào."
+    },
+    {
+      "group": 115,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Nghê với lại thiềm thư là một hả em? Hay là hai khác nhau? Thiềm Thừ, Nghê à?",
+      "machine_text": "Nghe bây giờ thiểm thử là một là em hay là hai khác nhau? Nghe à?"
+    },
+    {
+      "group": 116,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ờ.",
+      "machine_text": "Ờ."
+    },
+    {
+      "group": 117,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Nghê là con con trâu mà.",
+      "machine_text": "Nghe là con cao mà."
+    },
+    {
+      "group": 118,
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Ờ. Anh tưởng nghê nó cũng kiểu kiểu giống con thiềm thừ.",
+      "machine_text": "Ờ anh tưởng nghe nó cũng tựa kiểu giống con thiểm thử."
+    },
+    {
+      "group": 119,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Dạ.",
+      "machine_text": "Dạ."
+    },
+    {
+      "group": 120,
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": null,
+      "evidence": "OFFLINE_ONLY_LEXICAL_COMPARISON",
+      "human_text": "Anh chưa rõ lắm. Em nuôi hai bạn này đẹp.",
+      "machine_text": "Anh chưa rõ lắm. Em nuôi hai bạn này đẹp."
+    }
+  ],
+  "reviewed_examples": [
+    {
+      "annotation_id": "G001-E001",
+      "human_text": "Nên nên nên đầu tư.",
+      "machine_text": "Nên nên nên đầu tư.",
+      "primary_error_type": "EXACT_MATCH",
+      "severity": "INFO",
+      "semantic_risk": "LOW",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "MATCH",
+      "expected_online_policy": "ACCEPT",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        1
+      ],
+      "machine_segments": [
+        1
+      ]
+    },
+    {
+      "annotation_id": "G001-E002",
+      "human_text": "Nó có bọt rồi đó.",
+      "machine_text": "Nó có bột rồi đó.",
+      "primary_error_type": "WORD_SUBSTITUTION",
+      "severity": "MINOR",
+      "semantic_risk": "LOW",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        21
+      ],
+      "machine_segments": [
+        18
+      ]
+    },
+    {
+      "annotation_id": "G001-E003",
+      "human_text": "qua coi thực tế",
+      "machine_text": "qua xem thực tế",
+      "primary_error_type": "OVER_NORMALIZATION",
+      "severity": "MINOR",
+      "semantic_risk": "LOW",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        18
+      ],
+      "machine_segments": [
+        15
+      ]
+    },
+    {
+      "annotation_id": "G001-E004",
+      "human_text": "Khách họ cần thực tế hơn.",
+      "machine_text": "Khách họ cần sự thực tế hơn.",
+      "primary_error_type": "WORD_INSERTION",
+      "severity": "MINOR",
+      "semantic_risk": "LOW",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        16
+      ],
+      "machine_segments": [
+        13
+      ]
+    },
+    {
+      "annotation_id": "G001-E005",
+      "human_text": "Hình như phổ nhĩ quýt thơm.",
+      "machine_text": "Em uống phô mai rứa thôi.",
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        24
+      ],
+      "machine_segments": [
+        22
+      ]
+    },
+    {
+      "annotation_id": "G001-E006",
+      "human_text": "Dạ em ở Quảng Nam.",
+      "machine_text": "Dạ em Đà Nẵng luôn.",
+      "primary_error_type": "PHRASE_SUBSTITUTION",
+      "severity": "CRITICAL",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        109
+      ],
+      "machine_segments": [
+        106
+      ]
+    },
+    {
+      "annotation_id": "G001-E007",
+      "human_text": "Phổ Nhĩ quýt",
+      "machine_text": "phổ nhị quất",
+      "primary_error_type": "ENTITY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        26
+      ],
+      "machine_segments": [
+        27
+      ]
+    },
+    {
+      "annotation_id": "G001-E008",
+      "human_text": "thiềm thừ",
+      "machine_text": "thiểm thử",
+      "primary_error_type": "ENTITY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        122,
+        131
+      ],
+      "machine_segments": [
+        117,
+        120,
+        123
+      ]
+    },
+    {
+      "annotation_id": "G001-E009",
+      "human_text": "Dạ Tử Đào.",
+      "machine_text": "Dạ từ đào.",
+      "primary_error_type": "ENTITY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        123
+      ],
+      "machine_segments": [
+        118
+      ]
+    },
+    {
+      "annotation_id": "G001-E010",
+      "human_text": "Nghê với lại",
+      "machine_text": "Nghe bây giờ",
+      "primary_error_type": "ENTITY_ERROR",
+      "severity": "MAJOR",
+      "semantic_risk": "HIGH",
+      "evidence_scope": "USER_SUPPLIED_REFERENCE_COMPARISON",
+      "expected_offline_decision": "ERROR",
+      "expected_online_policy": "RETRY_REVIEW_IF_DETECTED",
+      "notes": "One primary label per example; secondary interpretation does not add another count. No independent audio adjudication.",
+      "human_segments": [
+        127
+      ],
+      "machine_segments": [
+        120
+      ]
+    }
+  ],
+  "metrics": {
+    "lexical": {
+      "strict_wer": {
+        "substitutions": 398,
+        "deletions": 115,
+        "insertions": 128,
+        "reference_count": 1134,
+        "error_rate": {
+          "value": 0.5652557319223986,
+          "numerator": 641,
+          "denominator": 1134,
+          "available": true
+        }
+      },
+      "relaxed_wer": {
+        "substitutions": 324,
+        "deletions": 110,
+        "insertions": 131,
+        "reference_count": 1124,
+        "error_rate": {
+          "value": 0.5026690391459074,
+          "numerator": 565,
+          "denominator": 1124,
+          "available": true
+        }
+      }
+    },
+    "aligned_groups": 88,
+    "unmatched_human_segments": 18,
+    "unmatched_machine_segments": 15,
+    "automatic_group_counts": {
+      "WORD_INSERTION": 5,
+      "UNCERTAINTY_ERROR": 24,
+      "WORD_OMISSION": 5,
+      "EXACT_MATCH": 12,
+      "MINOR_ORTHOGRAPHIC": 4,
+      "PHRASE_SUBSTITUTION": 37,
+      "PHRASE_INSERTION": 17,
+      "PHRASE_OMISSION": 10,
+      "NUMBER_ERROR": 4,
+      "WORD_SUBSTITUTION": 3
+    },
+    "annotated_example_counts": {
+      "EXACT_MATCH": 1,
+      "WORD_SUBSTITUTION": 1,
+      "OVER_NORMALIZATION": 1,
+      "WORD_INSERTION": 1,
+      "PHRASE_SUBSTITUTION": 2,
+      "ENTITY_ERROR": 4
+    },
+    "critical_error_count": 1,
+    "high_semantic_risk_count": 6,
+    "uncertainty": {
+      "human": 29,
+      "machine": 6,
+      "adjudication": "Counts are not rewards; confident replacement versus unnecessary uncertainty requires audio review."
+    },
+    "speaker": {
+      "mapping": {
+        "SPEAKER_002": "SPEAKER_002",
+        "SPEAKER_003": "SPEAKER_003",
+        "SPEAKER_005": "SPEAKER_001",
+        "SPEAKER_006": "SPEAKER_004"
+      },
+      "eligible_groups": 55,
+      "errors": 31,
+      "fragmentation_candidates": 5,
+      "merge_candidates": 5,
+      "unmatched_machine_identities": [
+        "SPEAKER_001",
+        "SPEAKER_004",
+        "SPEAKER_007"
+      ],
+      "human_labels": {
+        "SPEAKER_001": "Người nói 3",
+        "SPEAKER_002": "Người nói 2",
+        "SPEAKER_003": "Người nói 1",
+        "SPEAKER_004": "Người nói 4",
+        "SPEAKER_005": "chú thích",
+        "SPEAKER_006": "Người nói 5"
+      },
+      "machine_labels": {
+        "SPEAKER_001": "Chị",
+        "SPEAKER_002": "Anh",
+        "SPEAKER_003": "Người nói 3",
+        "SPEAKER_004": "Người nói 4",
+        "SPEAKER_005": "Người nói 5",
+        "SPEAKER_006": "Người nói 6",
+        "SPEAKER_007": "Người nói 7"
+      },
+      "limitation": "Group-count weighted label permutation; mixed-speaker groups excluded. Candidates require acoustic adjudication; not DER."
+    },
+    "timestamp": {
+      "eligible_groups": 86,
+      "absolute_deltas_seconds": [
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        3,
+        1,
+        2,
+        0,
+        7,
+        2,
+        0,
+        0,
+        0,
+        4,
+        1,
+        1,
+        4,
+        0,
+        3,
+        0,
+        0,
+        0,
+        2,
+        1,
+        1,
+        0,
+        0,
+        0,
+        3,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        4,
+        2,
+        2,
+        1,
+        3,
+        2,
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
+        12,
+        0,
+        4,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "limitation": "Human timing is PARTIAL; deltas are disagreements, not adjudicated machine errors."
+    },
+    "coverage": {
+      "acoustic_coverage": null,
+      "reason": "Not inferred from text or unadjudicated reference timestamps."
+    }
+  },
+  "normalization": "NFC; strict whitespace tokens; relaxed casefold/punctuation. Fillers/repetitions/entities/numbers retained; [không rõ] is one token.",
+  "counting_policy": "WER edits, automatic group classifications and evidence-annotated examples are separate views and must not be summed. One primary label per example; no composite score.",
+  "alignment_config": {
+    "tolerance_seconds": 15.0,
+    "max_group": 3,
+    "min_similarity": 0.15
+  },
+  "benchmark_id": "GOLDEN_001",
+  "source": {
+    "duration_seconds": 868.416,
+    "fingerprint_sha256": "b8ae1d822af7e40e0753aaa56aa30786bca6873ab60b738be5648c0ca2951a45"
+  },
+  "input_sha256": {
+    "human": "6fe3e8e901d6e50d502275dac601bcf6a1338e8b4c79b490a44a104a70b234f3",
+    "machine_baseline": "342477b12d656e37a43c0e5ba974de603d9feb215ad300145c884f4386951759"
+  },
+  "human_segments": [
+    {
+      "index": 0,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "[không rõ].",
+      "seconds": 1,
+      "timestamp_reliable": true,
+      "line": 2
+    },
+    {
+      "index": 1,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Nên nên nên đầu tư.",
+      "seconds": 2,
+      "timestamp_reliable": true,
+      "line": 3
+    },
+    {
+      "index": 2,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ",
+      "seconds": 2,
+      "timestamp_reliable": true,
+      "line": 4
+    },
+    {
+      "index": 3,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Nên đầu tư đi.",
+      "seconds": 3,
+      "timestamp_reliable": true,
+      "line": 5
+    },
+    {
+      "index": 4,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ, em cũng nói, nhưng mà ổng thì ổng chưa có thời gian, tại vì có một mình ổng làm chứ mấy.",
+      "seconds": 4,
+      "timestamp_reliable": true,
+      "line": 6
+    },
+    {
+      "index": 5,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ừ.",
+      "seconds": 8,
+      "timestamp_reliable": true,
+      "line": 7
+    },
+    {
+      "index": 6,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Còn em thì em chỉ lơ quơ lơ quơ vài thứ thôi.",
+      "seconds": 9,
+      "timestamp_reliable": true,
+      "line": 8
+    },
+    {
+      "index": 7,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Để anh xem có đội nào ở Đà Nẵng này mà nó hỗ trợ được không.",
+      "seconds": 12,
+      "timestamp_reliable": true,
+      "line": 9
+    },
+    {
+      "index": 8,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ.",
+      "seconds": 17,
+      "timestamp_reliable": true,
+      "line": 9
+    },
+    {
+      "index": 9,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Nên đầu tư cái đấy, xong rồi mình gửi cho khách người ta dễ hình dung.",
+      "seconds": 18,
+      "timestamp_reliable": true,
+      "line": 10
+    },
+    {
+      "index": 10,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ Đúng rồi,",
+      "seconds": 22,
+      "timestamp_reliable": true,
+      "line": 11
+    },
+    {
+      "index": 11,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ừ",
+      "seconds": 22,
+      "timestamp_reliable": true,
+      "line": 12
+    },
+    {
+      "index": 12,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Mấy bữa em cũng kêu ổng á chớ, nhưng mà ổng không có thời gian, cho nên thôi. Với lại khách cũng toàn nhắn tin qua Zalo không à.",
+      "seconds": 23,
+      "timestamp_reliable": true,
+      "line": 13
+    },
+    {
+      "index": 13,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ừ, xong mình gửi ảnh à.",
+      "seconds": 29,
+      "timestamp_reliable": true,
+      "line": 14
+    },
+    {
+      "index": 14,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ. Mình gửi ảnh, ảnh trực tiếp chỗ mình làm, mình làm xong mình chụp ấy, làm như rứa nó cũng ok.",
+      "seconds": 30,
+      "timestamp_reliable": true,
+      "line": 15
+    },
+    {
+      "index": 15,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ừ.",
+      "seconds": 35,
+      "timestamp_reliable": true,
+      "line": 16
+    },
+    {
+      "index": 16,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Hơn nữa, Khách họ cần thực tế hơn.",
+      "seconds": 35,
+      "timestamp_reliable": true,
+      "line": 17
+    },
+    {
+      "index": 17,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ừ ừ ừ.",
+      "seconds": 38,
+      "timestamp_reliable": true,
+      "line": 18
+    },
+    {
+      "index": 18,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Có nhiều khách họ đòi qua coi thực tế nữa, mà giờ chẳng lẽ mình qua mình nhờ nhờ khách cũ mở cửa ra.",
+      "seconds": 40,
+      "timestamp_reliable": true,
+      "line": 19
+    },
+    {
+      "index": 19,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ừ ừ ừ.",
+      "seconds": 46,
+      "timestamp_reliable": true,
+      "line": 20
+    },
+    {
+      "index": 20,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Con lấy cái nào?",
+      "seconds": 51,
+      "timestamp_reliable": true,
+      "line": 21
+    },
+    {
+      "index": 21,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Nó có bọt rồi đó anh ơi. Nó có bọt rồi đó.",
+      "seconds": 55,
+      "timestamp_reliable": true,
+      "line": 22
+    },
+    {
+      "index": 22,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "em em lại kiếm gói trà, hồng trà cho hắn uồng hà.",
+      "seconds": 62,
+      "timestamp_reliable": true,
+      "line": 23
+    },
+    {
+      "index": 23,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ừ.",
+      "seconds": 65,
+      "timestamp_reliable": true,
+      "line": 24
+    },
+    {
+      "index": 24,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Hình như phổ nhĩ quýt thơm.",
+      "seconds": 66,
+      "timestamp_reliable": true,
+      "line": 25
+    },
+    {
+      "index": 25,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Thế gọi lần này đổi qua Lê La trà đi.",
+      "seconds": 67,
+      "timestamp_reliable": true,
+      "line": 26
+    },
+    {
+      "index": 26,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "[không rõ] có Phổ Nhĩ quýt.",
+      "seconds": 69,
+      "timestamp_reliable": true,
+      "line": 27
+    },
+    {
+      "index": 27,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "à đây.",
+      "seconds": 71,
+      "timestamp_reliable": true,
+      "line": 28
+    },
+    {
+      "index": 28,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Gì.",
+      "seconds": 72,
+      "timestamp_reliable": true,
+      "line": 29
+    },
+    {
+      "index": 29,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "chuyện chi.",
+      "seconds": 73,
+      "timestamp_reliable": true,
+      "line": 30
+    },
+    {
+      "index": 30,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Thì đó.",
+      "seconds": 74,
+      "timestamp_reliable": true,
+      "line": 31
+    },
+    {
+      "index": 31,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "chuyện chi.",
+      "seconds": 75,
+      "timestamp_reliable": true,
+      "line": 32
+    },
+    {
+      "index": 32,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "tự nhiên đứng dậy? [không rõ] ờ Tự nhiên ò. Biết chỗ nào mà lấy.",
+      "seconds": 76,
+      "timestamp_reliable": true,
+      "line": 33
+    },
+    {
+      "index": 33,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Anh lấy anh lấy  cái gói chi mà phụ nữ uống",
+      "seconds": 81,
+      "timestamp_reliable": true,
+      "line": 34
+    },
+    {
+      "index": 34,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Em có Phổ Nhĩ Quýt nha",
+      "seconds": 82,
+      "timestamp_reliable": true,
+      "line": 35
+    },
+    {
+      "index": 35,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Cho cho Phổ Nhĩ Quýt cho con bé uống long đờm ra cũng tốt ấy. Cho nó thông… con nhỏ uống trà được mà.",
+      "seconds": 87,
+      "timestamp_reliable": true,
+      "line": 36
+    },
+    {
+      "index": 36,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ được.",
+      "seconds": 94,
+      "timestamp_reliable": true,
+      "line": 37
+    },
+    {
+      "index": 37,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Lấy mấy quả?",
+      "seconds": 95,
+      "timestamp_reliable": true,
+      "line": 38
+    },
+    {
+      "index": 38,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Cho em 5 quả đi anh.",
+      "seconds": 96,
+      "timestamp_reliable": true,
+      "line": 39
+    },
+    {
+      "index": 39,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Bốn quả đủ trăm hỉ.",
+      "seconds": 98,
+      "timestamp_reliable": true,
+      "line": 40
+    },
+    {
+      "index": 40,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ được. Anh cho bao nhiêu cũng được. [không rõ]",
+      "seconds": 99,
+      "timestamp_reliable": true,
+      "line": 41
+    },
+    {
+      "index": 41,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Bữa nào ấy rồi anh gọi anh anh chở vợ sang bên kia chơi.",
+      "seconds": 109,
+      "timestamp_reliable": true,
+      "line": 42
+    },
+    {
+      "index": 42,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Vâng.",
+      "seconds": 112,
+      "timestamp_reliable": true,
+      "line": 43
+    },
+    {
+      "index": 43,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Anh uống trà hả",
+      "seconds": 113,
+      "timestamp_reliable": true,
+      "line": 44
+    },
+    {
+      "index": 44,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "em sang thăm",
+      "seconds": 113,
+      "timestamp_reliable": true,
+      "line": 45
+    },
+    {
+      "index": 45,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Anh",
+      "seconds": 115,
+      "timestamp_reliable": true,
+      "line": 46
+    },
+    {
+      "index": 46,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "sang thăm xưởng nhà anh nhá.",
+      "seconds": 116,
+      "timestamp_reliable": true,
+      "line": 47
+    },
+    {
+      "index": 47,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "À ok.  thế để anh qua bên nớ rồi rồi.",
+      "seconds": 119,
+      "timestamp_reliable": true,
+      "line": 48
+    },
+    {
+      "index": 48,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Tại vì em chơi.",
+      "seconds": 120,
+      "timestamp_reliable": true,
+      "line": 49
+    },
+    {
+      "index": 49,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Em đi lại phương tiện bằng chi",
+      "seconds": 121,
+      "timestamp_reliable": true,
+      "line": 50
+    },
+    {
+      "index": 50,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Em em đang mượn xe máy, nhưng mà mấy bữa em sẽ cũng sẽ mang cái xe điện em vào. Em ra ngoài kia đi xe điện. Đi xe điện sướng hơn? Xe điện nó nhẹ mà sướng. Nói chung là sướng hơn hẳn đấy. Tiết kiệm rồi mọi thứ nó ok á.",
+      "seconds": 123,
+      "timestamp_reliable": true,
+      "line": 51
+    },
+    {
+      "index": 51,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Anh uống trà nào?",
+      "seconds": 138,
+      "timestamp_reliable": true,
+      "line": 52
+    },
+    {
+      "index": 52,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Đó, lên mua trà cái đó cho hắn uống. Nói chung giờ uống ở đâu uống chi cũng uống? Uống trải nghiệm những cái mới",
+      "seconds": 139,
+      "timestamp_reliable": true,
+      "line": 53
+    },
+    {
+      "index": 53,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Nhưng mà anh có bình ấm không hết rồi, bình ấm dục hết rồi.",
+      "seconds": 146,
+      "timestamp_reliable": true,
+      "line": 54
+    },
+    {
+      "index": 54,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Thế còn, ấm nước Bên xưởng còn cái ấm đó mà [không rõ]",
+      "seconds": 150,
+      "timestamp_reliable": true,
+      "line": 55
+    },
+    {
+      "index": 55,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Không thì kể cả có cái bình nước nhà nước lọc nhà mình ấy, mình cho mình cho nước sôi vẫn ok mà anh. Mình cứ ngâm thế.",
+      "seconds": 155,
+      "timestamp_reliable": true,
+      "line": 56
+    },
+    {
+      "index": 56,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Họ họ họ có họ có họ có bình. hả",
+      "seconds": 162,
+      "timestamp_reliable": true,
+      "line": 57
+    },
+    {
+      "index": 57,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Anh ơi em mua hai cái ly này nè.",
+      "seconds": 164,
+      "timestamp_reliable": true,
+      "line": 58
+    },
+    {
+      "index": 58,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Ly nhỏ hay ly to? Hai cái ly … thôi.",
+      "seconds": 167,
+      "timestamp_reliable": true,
+      "line": 59
+    },
+    {
+      "index": 59,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Xong rồi anh ngồi thêm mấy phút rồi cũng đi em ạ.",
+      "seconds": 174,
+      "timestamp_reliable": true,
+      "line": 60
+    },
+    {
+      "index": 60,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "dạ dạ",
+      "seconds": 176,
+      "timestamp_reliable": true,
+      "line": 61
+    },
+    {
+      "index": 61,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "[không rõ]. Thôi thôi thôi không lấy [không rõ] đâu. [không rõ]",
+      "seconds": 180,
+      "timestamp_reliable": true,
+      "line": 62
+    },
+    {
+      "index": 62,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Thả đi, anh thả ra đi, anh thả cái tay ra nào. [không rõ]. Sao lấy cái ly này ly trơn thôi. [không rõ]?",
+      "seconds": 190,
+      "timestamp_reliable": true,
+      "line": 63
+    },
+    {
+      "index": 63,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Lấy cái chơi thế thôi đơn giản. Lấy rồi? Ba lấy rồi.  ok nhá.",
+      "seconds": 212,
+      "timestamp_reliable": true,
+      "line": 64
+    },
+    {
+      "index": 64,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Anh trả tám ngàn hai hai hai đây nha.",
+      "seconds": 220,
+      "timestamp_reliable": true,
+      "line": 65
+    },
+    {
+      "index": 65,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Lấy hai cái hộp bỏ hai cái hộp đấy. Lấy hai cái hộp.",
+      "seconds": 220,
+      "timestamp_reliable": true,
+      "line": 66
+    },
+    {
+      "index": 66,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Rồi, ba lấy hai cái ly rồi, xíu con xách về, ok, đây cái nắp đậy của con đây. Xách về đi.",
+      "seconds": 225,
+      "timestamp_reliable": true,
+      "line": 67
+    },
+    {
+      "index": 67,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Xách về chứ không phải đập đâu nghe.",
+      "seconds": 231,
+      "timestamp_reliable": true,
+      "line": 68
+    },
+    {
+      "index": 68,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Xách về.  xách về",
+      "seconds": 233,
+      "timestamp_reliable": true,
+      "line": 69
+    },
+    {
+      "index": 69,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dễ thương nhỉ? Ba bữa chị Vân có cho bộ ấm trà về.",
+      "seconds": 242,
+      "timestamp_reliable": true,
+      "line": 70
+    },
+    {
+      "index": 70,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Đồ men sứ.",
+      "seconds": 252,
+      "timestamp_reliable": true,
+      "line": 71
+    },
+    {
+      "index": 71,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Ừ, chị thích đồ men sứ. Ơ sao anh dục cái bao rồi.",
+      "seconds": 253,
+      "timestamp_reliable": true,
+      "line": 72
+    },
+    {
+      "index": 72,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Lấy cái hộp. Em dô lấy hai cái hộp bỏ dô là được rồi [không rõ]",
+      "seconds": 261,
+      "timestamp_reliable": true,
+      "line": 73
+    },
+    {
+      "index": 73,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Đi đi đi ngó nào. Đi ngó nào.",
+      "seconds": 265,
+      "timestamp_reliable": true,
+      "line": 74
+    },
+    {
+      "index": 74,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Bể đồ đó nghe.",
+      "seconds": 267,
+      "timestamp_reliable": true,
+      "line": 75
+    },
+    {
+      "index": 75,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Ngó cẩn thận nha.",
+      "seconds": 270,
+      "timestamp_reliable": true,
+      "line": 76
+    },
+    {
+      "index": 76,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Bể một cái bình là mất một tháng lương đó con nghe.",
+      "seconds": 272,
+      "timestamp_reliable": true,
+      "line": 77
+    },
+    {
+      "index": 77,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Đên đây, đên đây mẹ làm. Đến đây mẹ làm. [không rõ]",
+      "seconds": 280,
+      "timestamp_reliable": true,
+      "line": 78
+    },
+    {
+      "index": 78,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Vâng, vi [không rõ] trà anh. Mật khẩu 1 3 4 5 6 hai lần.",
+      "seconds": 291,
+      "timestamp_reliable": true,
+      "line": 79
+    },
+    {
+      "index": 79,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Ba. [không rõ].",
+      "seconds": 307,
+      "timestamp_reliable": true,
+      "line": 80
+    },
+    {
+      "index": 80,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "[không rõ]. Bố nó kệ con, kệ nó.",
+      "seconds": 370,
+      "timestamp_reliable": true,
+      "line": 81
+    },
+    {
+      "index": 81,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "chú thích",
+      "text": "[không rõ]",
+      "seconds": 410,
+      "timestamp_reliable": true,
+      "line": 82
+    },
+    {
+      "index": 82,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Coi chừng bể đó nha [không rõ]",
+      "seconds": 414,
+      "timestamp_reliable": true,
+      "line": 83
+    },
+    {
+      "index": 83,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "[không rõ]",
+      "seconds": 435,
+      "timestamp_reliable": true,
+      "line": 84
+    },
+    {
+      "index": 84,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "[không rõ].",
+      "seconds": 439,
+      "timestamp_reliable": true,
+      "line": 85
+    },
+    {
+      "index": 85,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "chú thích",
+      "text": "[không rõ]",
+      "seconds": 443,
+      "timestamp_reliable": false,
+      "line": 86
+    },
+    {
+      "index": 86,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Rồi em đã nghe.",
+      "seconds": 462,
+      "timestamp_reliable": true,
+      "line": 87
+    },
+    {
+      "index": 87,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Dạ dạ [không rõ].",
+      "seconds": 463,
+      "timestamp_reliable": true,
+      "line": 88
+    },
+    {
+      "index": 88,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Thôi thế tầm trong vòng một tháng rưỡi nữa là anh chạy qua [không rõ]",
+      "seconds": 469,
+      "timestamp_reliable": true,
+      "line": 89
+    },
+    {
+      "index": 89,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2 ",
+      "text": ". [không rõ] em sẽ nhắn em hẹn anh. Đó. Xong rồi em chạy qua, chạy qua",
+      "seconds": 479,
+      "timestamp_reliable": true,
+      "line": 90
+    },
+    {
+      "index": 90,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3 ",
+      "text": "anh thì qua lúc nào cũng được,",
+      "seconds": 484,
+      "timestamp_reliable": true,
+      "line": 91
+    },
+    {
+      "index": 91,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "[không rõ] Để em chạy qua. Ok anh.",
+      "seconds": 485,
+      "timestamp_reliable": true,
+      "line": 92
+    },
+    {
+      "index": 92,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Bữa nào em mà có không gian trà thì em lại mời anh đến. Em cũng đang nhắm nhắm.",
+      "seconds": 490,
+      "timestamp_reliable": true,
+      "line": 93
+    },
+    {
+      "index": 93,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "[không rõ]",
+      "seconds": 502,
+      "timestamp_reliable": true,
+      "line": 94
+    },
+    {
+      "index": 94,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "À đấy thì đúng là lúc nào anh rảnh việc mà hẹn anh kia gặp nhau. Thì anh em mình ngồi đâu đấy uống trà hoặc đến đây. Vâng.",
+      "seconds": 499,
+      "timestamp_reliable": false,
+      "line": 95
+    },
+    {
+      "index": 95,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "[không rõ] Thấy mọi thứ nó thoải mái như thế này có thể chơi lúc nào cũng được. Vâng vâng.",
+      "seconds": 507,
+      "timestamp_reliable": true,
+      "line": 96
+    },
+    {
+      "index": 96,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ok anh.",
+      "seconds": 511,
+      "timestamp_reliable": true,
+      "line": 97
+    },
+    {
+      "index": 97,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Người nói 3",
+      "text": "Vậy nghe.",
+      "seconds": 512,
+      "timestamp_reliable": true,
+      "line": 98
+    },
+    {
+      "index": 98,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Em xin phép về trước ạ.",
+      "seconds": 512,
+      "timestamp_reliable": true,
+      "line": 99
+    },
+    {
+      "index": 99,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Chào em. Nhé em nhé.",
+      "seconds": 513,
+      "timestamp_reliable": true,
+      "line": 100
+    },
+    {
+      "index": 100,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Bye bye Sumo.",
+      "seconds": 515,
+      "timestamp_reliable": true,
+      "line": 101
+    },
+    {
+      "index": 101,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Thơm gió thơm gió. Đá lông nheo.  [không rõ]",
+      "seconds": 516,
+      "timestamp_reliable": true,
+      "line": 102
+    },
+    {
+      "index": 102,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Bạn sinh tháng mấy? Bạn này.",
+      "seconds": 548,
+      "timestamp_reliable": true,
+      "line": 103
+    },
+    {
+      "index": 103,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ 30 tháng 4.",
+      "seconds": 551,
+      "timestamp_reliable": true,
+      "line": 104
+    },
+    {
+      "index": 104,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "À em cũng 30 tháng 4. 30/4.",
+      "seconds": 553,
+      "timestamp_reliable": true,
+      "line": 105
+    },
+    {
+      "index": 105,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Giải phóng miền Nam.[không rõ]",
+      "seconds": 559,
+      "timestamp_reliable": true,
+      "line": 106
+    },
+    {
+      "index": 106,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Chứ còn gốc quê ở đâu?",
+      "seconds": 584,
+      "timestamp_reliable": true,
+      "line": 107
+    },
+    {
+      "index": 107,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ em là ở đây.",
+      "seconds": 586,
+      "timestamp_reliable": true,
+      "line": 108
+    },
+    {
+      "index": 108,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "À ở đây, Đà Nẵng.",
+      "seconds": 588,
+      "timestamp_reliable": true,
+      "line": 109
+    },
+    {
+      "index": 109,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ em ở Quảng Nam.",
+      "seconds": 589,
+      "timestamp_reliable": true,
+      "line": 110
+    },
+    {
+      "index": 110,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Anh thì ở Nam Định. Sinh ra ở Hà Nội nhưng mà gốc thì Nam Định. À. Xong kiểu ông nội đưa hết con cháu lên Hà Nội.",
+      "seconds": 590,
+      "timestamp_reliable": true,
+      "line": 111
+    },
+    {
+      "index": 111,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "[không rõ].",
+      "seconds": 600,
+      "timestamp_reliable": true,
+      "line": 112
+    },
+    {
+      "index": 112,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Đó là nguyên combo đó hả anh.",
+      "seconds": 612,
+      "timestamp_reliable": true,
+      "line": 113
+    },
+    {
+      "index": 113,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Ừ combo.",
+      "seconds": 613,
+      "timestamp_reliable": true,
+      "line": 114
+    },
+    {
+      "index": 114,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Đẹp đấy.",
+      "seconds": 613,
+      "timestamp_reliable": true,
+      "line": 115
+    },
+    {
+      "index": 115,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Nguyên cái combo đó là bao nhiêu anh?",
+      "seconds": 613,
+      "timestamp_reliable": true,
+      "line": 116
+    },
+    {
+      "index": 116,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Thì một cái bộ như ri thì",
+      "seconds": 618,
+      "timestamp_reliable": true,
+      "line": 117
+    },
+    {
+      "index": 117,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 5",
+      "text": "Coi cái bếp đó kìa, có cái bếp thì 3 triệu mấy.",
+      "seconds": 618,
+      "timestamp_reliable": true,
+      "line": 118
+    },
+    {
+      "index": 118,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ",
+      "seconds": 627,
+      "timestamp_reliable": true,
+      "line": 119
+    },
+    {
+      "index": 119,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Bếp này là phải mấy triệu.",
+      "seconds": 628,
+      "timestamp_reliable": true,
+      "line": 120
+    },
+    {
+      "index": 120,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 5",
+      "text": "Bếp này là ba triệu.",
+      "seconds": 630,
+      "timestamp_reliable": true,
+      "line": 121
+    },
+    {
+      "index": 121,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 1",
+      "text": "Dạ em bái bai anh.",
+      "seconds": 633,
+      "timestamp_reliable": true,
+      "line": 122
+    },
+    {
+      "index": 122,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Anh anh thấy cái bạn thiềm thừ ngoài này có cái từ đằng sau là Từ Đào à?",
+      "seconds": 705,
+      "timestamp_reliable": true,
+      "line": 123
+    },
+    {
+      "index": 123,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 5",
+      "text": "Dạ Tử Đào.",
+      "seconds": 650,
+      "timestamp_reliable": false,
+      "line": 124
+    },
+    {
+      "index": 124,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Tử Đào à?",
+      "seconds": 711,
+      "timestamp_reliable": true,
+      "line": 125
+    },
+    {
+      "index": 125,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 5",
+      "text": "Là chất đất.",
+      "seconds": 712,
+      "timestamp_reliable": true,
+      "line": 126
+    },
+    {
+      "index": 126,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ờ anh đang định hỏi dịch ra nghĩa là gì? Chất đất. Tử Đào.",
+      "seconds": 714,
+      "timestamp_reliable": true,
+      "line": 127
+    },
+    {
+      "index": 127,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Nghê với lại thiềm thư là một hả em? Hay là hai khác nhau?",
+      "seconds": 811,
+      "timestamp_reliable": true,
+      "line": 128
+    },
+    {
+      "index": 128,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 5",
+      "text": "Thiềm Thừ, Nghê à?",
+      "seconds": 816,
+      "timestamp_reliable": true,
+      "line": 129
+    },
+    {
+      "index": 129,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ờ.",
+      "seconds": 817,
+      "timestamp_reliable": true,
+      "line": 130
+    },
+    {
+      "index": 130,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 5",
+      "text": "Nghê là con con trâu mà.",
+      "seconds": 818,
+      "timestamp_reliable": true,
+      "line": 131
+    },
+    {
+      "index": 131,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Ờ. Anh tưởng nghê nó cũng kiểu kiểu giống con thiềm thừ.",
+      "seconds": 820,
+      "timestamp_reliable": true,
+      "line": 132
+    },
+    {
+      "index": 132,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 5",
+      "text": "Dạ.",
+      "seconds": 825,
+      "timestamp_reliable": true,
+      "line": 133
+    },
+    {
+      "index": 133,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Anh chưa rõ lắm.",
+      "seconds": 826,
+      "timestamp_reliable": true,
+      "line": 134
+    },
+    {
+      "index": 134,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Người nói 2",
+      "text": "Em nuôi hai bạn này đẹp.",
+      "seconds": 828,
+      "timestamp_reliable": true,
+      "line": 135
+    }
+  ],
+  "machine_segments": [
+    {
+      "index": 0,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Gì?",
+      "seconds": 1,
+      "timestamp_reliable": true,
+      "line": 1
+    },
+    {
+      "index": 1,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Nên nên nên đầu tư.",
+      "seconds": 2,
+      "timestamp_reliable": true,
+      "line": 2
+    },
+    {
+      "index": 2,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Nên đầu tư đi.",
+      "seconds": 3,
+      "timestamp_reliable": true,
+      "line": 3
+    },
+    {
+      "index": 3,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Dạ. Em cũng nói nhưng mà ổng thì ổng chưa có thời gian, tại vì có mình ổng làm chứ mấy.",
+      "seconds": 4,
+      "timestamp_reliable": true,
+      "line": 4
+    },
+    {
+      "index": 4,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Ừ.",
+      "seconds": 8,
+      "timestamp_reliable": true,
+      "line": 5
+    },
+    {
+      "index": 5,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Còn em thì em chỉ [không rõ] quơ quơ bài thứ thôi.",
+      "seconds": 9,
+      "timestamp_reliable": true,
+      "line": 6
+    },
+    {
+      "index": 6,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Để anh xem có đội nào ở Đà Nẵng này mà nó hỗ trợ được không. Nên đầu tư cái đấy, xong rồi mình gửi cho khách người ta dễ hình dung.",
+      "seconds": 12,
+      "timestamp_reliable": true,
+      "line": 7
+    },
+    {
+      "index": 7,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Dạ đúng rồi.",
+      "seconds": 22,
+      "timestamp_reliable": true,
+      "line": 8
+    },
+    {
+      "index": 8,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Ừ.",
+      "seconds": 23,
+      "timestamp_reliable": true,
+      "line": 9
+    },
+    {
+      "index": 9,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Mấy cái video ổng làm đó chứ mà ổng có thời gian nên thôi. Với lại khách cũng toàn nhắn tin qua Zalo không à.",
+      "seconds": 23,
+      "timestamp_reliable": true,
+      "line": 10
+    },
+    {
+      "index": 10,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Ừ, xong mình gửi ảnh?",
+      "seconds": 29,
+      "timestamp_reliable": true,
+      "line": 11
+    },
+    {
+      "index": 11,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Dạ, mình gửi ảnh ảnh trực tiếp chỗ mình làm, mình làm xong mình chụp ấy. Làm như rứa nó cũng ok.",
+      "seconds": 30,
+      "timestamp_reliable": true,
+      "line": 12
+    },
+    {
+      "index": 12,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Ừ ừ. Đấy đấy đấy đấy.",
+      "seconds": 35,
+      "timestamp_reliable": true,
+      "line": 13
+    },
+    {
+      "index": 13,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Khách họ cần sự thực tế hơn.",
+      "seconds": 36,
+      "timestamp_reliable": true,
+      "line": 14
+    },
+    {
+      "index": 14,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Ừ ừ ừ ừ.",
+      "seconds": 37,
+      "timestamp_reliable": true,
+      "line": 15
+    },
+    {
+      "index": 15,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Có nhiều khách họ đòi qua xem thực tế nữa mà giờ chẳng lẽ mình qua mình ờ nhờ nhờ khách cũ mở cửa ra.",
+      "seconds": 39,
+      "timestamp_reliable": true,
+      "line": 16
+    },
+    {
+      "index": 16,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Ừ ừ ừ.",
+      "seconds": 46,
+      "timestamp_reliable": true,
+      "line": 17
+    },
+    {
+      "index": 17,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Con lấy cái nào?",
+      "seconds": 51,
+      "timestamp_reliable": true,
+      "line": 18
+    },
+    {
+      "index": 18,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Nó có bột rồi đó anh ạ. Nó có bột rồi đó.",
+      "seconds": 55,
+      "timestamp_reliable": true,
+      "line": 19
+    },
+    {
+      "index": 19,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Uống cái này uống [không rõ].",
+      "seconds": 59,
+      "timestamp_reliable": true,
+      "line": 20
+    },
+    {
+      "index": 20,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Em em làm lại trà mật gừng táo ong táo đỏ trong vườn à?",
+      "seconds": 62,
+      "timestamp_reliable": true,
+      "line": 21
+    },
+    {
+      "index": 21,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Ừ.",
+      "seconds": 65,
+      "timestamp_reliable": true,
+      "line": 22
+    },
+    {
+      "index": 22,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Em uống phô mai rứa thôi.",
+      "seconds": 66,
+      "timestamp_reliable": true,
+      "line": 23
+    },
+    {
+      "index": 23,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Đi gọi [không rõ] lấy lê trà đi.",
+      "seconds": 67,
+      "timestamp_reliable": true,
+      "line": 24
+    },
+    {
+      "index": 24,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Gì? Đứng dậy. Chi đó? Đứng dậy, tự nhiên đứng dậy. Tự nhiên [không rõ]. Biết đường nào mà lần.",
+      "seconds": 73,
+      "timestamp_reliable": true,
+      "line": 25
+    },
+    {
+      "index": 25,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Anh anh để anh để cho anh cái cái gói gắm a phụ nữ là ổn a.",
+      "seconds": 81,
+      "timestamp_reliable": true,
+      "line": 26
+    },
+    {
+      "index": 26,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Nó có bổ huyết mà.",
+      "seconds": 85,
+      "timestamp_reliable": true,
+      "line": 27
+    },
+    {
+      "index": 27,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Cho phổ nhị quất cho em bé uống long đờm ra cũng tốt đấy. Cho nó thông. Con nhỏ uống trà được mà.",
+      "seconds": 86,
+      "timestamp_reliable": true,
+      "line": 28
+    },
+    {
+      "index": 28,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Dạ được. Lấy mấy quả? Cho em năm quả đi anh. Bốn quả đủ 100 em? Dạ được. [không rõ] Anh cho bao nhiêu cũng được. Dạ thích.",
+      "seconds": 94,
+      "timestamp_reliable": true,
+      "line": 29
+    },
+    {
+      "index": 29,
+      "speaker_id": "SPEAKER_004",
+      "speaker_display_name": "Người nói 4",
+      "text": "Bây giờ em qua ấy là anh anh anh cho qua bên kia chơi. Vâng. Em qua sang thăm xưởng nhà anh nhé. À ok. Vâng.",
+      "seconds": 109,
+      "timestamp_reliable": true,
+      "line": 30
+    },
+    {
+      "index": 30,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Em qua bên kia lấy đi.",
+      "seconds": 120,
+      "timestamp_reliable": true,
+      "line": 31
+    },
+    {
+      "index": 31,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Thì em [không rõ] mua xe máy nhưng mà mấy bữa em sẽ cũng sẽ mang cái xe điện em vào. Em ra ngoài đền đi xe điện. Cái xe điện xính hơn.",
+      "seconds": 121,
+      "timestamp_reliable": true,
+      "line": 32
+    },
+    {
+      "index": 32,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Anh lấy cái túi này xách đi xíu.",
+      "seconds": 122,
+      "timestamp_reliable": true,
+      "line": 33
+    },
+    {
+      "index": 33,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Đúng đấy. Cái xe điện nó nhẹ mà sướng, nói chung là sướng hơn hẳn ấy, tiết kiệm rồi mọi thứ nó ok ấy.",
+      "seconds": 131,
+      "timestamp_reliable": true,
+      "line": 34
+    },
+    {
+      "index": 34,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Anh uống trà nào?",
+      "seconds": 138,
+      "timestamp_reliable": true,
+      "line": 35
+    },
+    {
+      "index": 35,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Đó làm em uống Trà Mây Hai Trăm Bốn.",
+      "seconds": 139,
+      "timestamp_reliable": true,
+      "line": 36
+    },
+    {
+      "index": 36,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Ừ, cũng thế. Em chưa được uống ở đâu. Còn một ít nữa. Còn ít nhất em đi bên ô thế.",
+      "seconds": 142,
+      "timestamp_reliable": true,
+      "line": 37
+    },
+    {
+      "index": 37,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Nhưng mà không có cái bình xách theo. Thấy cái chai bình xách theo người ta dùng hết rồi. Còn cái bình nhỏ con mang đi làm con mang đi nên là...",
+      "seconds": 146,
+      "timestamp_reliable": true,
+      "line": 38
+    },
+    {
+      "index": 38,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Phải để cái cái ly đó. Không thì kể cả có cái bình bình nước nhà bớt nước lọc nhà mình ấy, mình cho mình cho nước sôi vẫn ok mà anh. Mình cứ ngâm thôi.",
+      "seconds": 154,
+      "timestamp_reliable": true,
+      "line": 39
+    },
+    {
+      "index": 39,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Không, không có không có bình khác. Anh ơi mua hai cái ly này nè.",
+      "seconds": 163,
+      "timestamp_reliable": true,
+      "line": 40
+    },
+    {
+      "index": 40,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Ừ.",
+      "seconds": 166,
+      "timestamp_reliable": true,
+      "line": 41
+    },
+    {
+      "index": 41,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Ly nhỏ hay ly to?",
+      "seconds": 167,
+      "timestamp_reliable": true,
+      "line": 42
+    },
+    {
+      "index": 42,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Hai cái ly này thôi.",
+      "seconds": 168,
+      "timestamp_reliable": true,
+      "line": 43
+    },
+    {
+      "index": 43,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Dạ, hai cái ly nhỏ thôi.",
+      "seconds": 170,
+      "timestamp_reliable": true,
+      "line": 44
+    },
+    {
+      "index": 44,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Xong rồi anh ngồi thêm mấy phút rồi cũng đi em ạ.",
+      "seconds": 173,
+      "timestamp_reliable": true,
+      "line": 45
+    },
+    {
+      "index": 45,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Dạ dạ.",
+      "seconds": 176,
+      "timestamp_reliable": true,
+      "line": 46
+    },
+    {
+      "index": 46,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Ừ.",
+      "seconds": 177,
+      "timestamp_reliable": true,
+      "line": 47
+    },
+    {
+      "index": 47,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Con mang ly nhỏ này nghe.",
+      "seconds": 180,
+      "timestamp_reliable": true,
+      "line": 48
+    },
+    {
+      "index": 48,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Á, thôi đây cũng được.",
+      "seconds": 183,
+      "timestamp_reliable": true,
+      "line": 49
+    },
+    {
+      "index": 49,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Để để để lấy cái khay đã.",
+      "seconds": 185,
+      "timestamp_reliable": true,
+      "line": 50
+    },
+    {
+      "index": 50,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Cho vào khay. Lấy cái khay bẹt á.",
+      "seconds": 188,
+      "timestamp_reliable": true,
+      "line": 51
+    },
+    {
+      "index": 51,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Mở ra đi, anh thả ra đi, anh thả cái tay ra nào.",
+      "seconds": 190,
+      "timestamp_reliable": true,
+      "line": 52
+    },
+    {
+      "index": 52,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Thế làm sao giờ?",
+      "seconds": 195,
+      "timestamp_reliable": true,
+      "line": 53
+    },
+    {
+      "index": 53,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Lấy cái ly này nhỏ hơn.",
+      "seconds": 196,
+      "timestamp_reliable": true,
+      "line": 54
+    },
+    {
+      "index": 54,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Khác đấy, lấy trong khay đấy. Xong lấy ly này nè.",
+      "seconds": 199,
+      "timestamp_reliable": true,
+      "line": 55
+    },
+    {
+      "index": 55,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Ừ.",
+      "seconds": 201,
+      "timestamp_reliable": true,
+      "line": 56
+    },
+    {
+      "index": 56,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Đi chơi thôi.",
+      "seconds": 202,
+      "timestamp_reliable": true,
+      "line": 57
+    },
+    {
+      "index": 57,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Lấy cái chén này vào thì nó dễ, lấy cái chén này thì nó",
+      "seconds": 210,
+      "timestamp_reliable": true,
+      "line": 58
+    },
+    {
+      "index": 58,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Mấy cái kia trơn thế nó không đơn giản.",
+      "seconds": 212,
+      "timestamp_reliable": true,
+      "line": 59
+    },
+    {
+      "index": 59,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Khác nhau, ba lá rồi. Có túi tối.",
+      "seconds": 216,
+      "timestamp_reliable": true,
+      "line": 60
+    },
+    {
+      "index": 60,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Ba lá rồi. Ok nha.",
+      "seconds": 218,
+      "timestamp_reliable": true,
+      "line": 61
+    },
+    {
+      "index": 61,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Em trả em trả anh hai hai em đó nè.",
+      "seconds": 220,
+      "timestamp_reliable": true,
+      "line": 62
+    },
+    {
+      "index": 62,
+      "speaker_id": "SPEAKER_002",
+      "speaker_display_name": "Anh",
+      "text": "Dạ.",
+      "seconds": 222,
+      "timestamp_reliable": true,
+      "line": 63
+    },
+    {
+      "index": 63,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Em có gói hàng gì bỏ hai cái hộp đấy. Đây hai cái hộp.",
+      "seconds": 223,
+      "timestamp_reliable": true,
+      "line": 64
+    },
+    {
+      "index": 64,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Rồi, ba bán hai cái ly này. Rồi, xíu con xách về. Ok, đây, niêm phong của con đây. Rời xách về đi.",
+      "seconds": 226,
+      "timestamp_reliable": true,
+      "line": 65
+    },
+    {
+      "index": 65,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Xách về không mày đập vô nghe.",
+      "seconds": 232,
+      "timestamp_reliable": true,
+      "line": 66
+    },
+    {
+      "index": 66,
+      "speaker_id": "SPEAKER_003",
+      "speaker_display_name": "Người nói 3",
+      "text": "Xách về.",
+      "seconds": 233,
+      "timestamp_reliable": true,
+      "line": 67
+    },
+    {
+      "index": 67,
+      "speaker_id": "SPEAKER_001",
+      "speaker_display_name": "Chị",
+      "text": "Đi đứng đàng hoàng, đi xách về. Nghe.",
+      "seconds": 235,
+      "timestamp_reliable": true,
+      "line": 68
+    },
+    {
+      "index": 68,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Dễ thương vậy.",
+      "seconds": 242,
+      "timestamp_reliable": true,
+      "line": 69
+    },
+    {
+      "index": 69,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Đồ mẹ anh xử nó.",
+      "seconds": 252,
+      "timestamp_reliable": true,
+      "line": 70
+    },
+    {
+      "index": 70,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Ở 50 cái bao rồi.",
+      "seconds": 256,
+      "timestamp_reliable": true,
+      "line": 71
+    },
+    {
+      "index": 71,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Lấy cái hộp. Mình dùng lấy hai cái hộp bỏ vô là được rồi.",
+      "seconds": 261,
+      "timestamp_reliable": true,
+      "line": 72
+    },
+    {
+      "index": 72,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Đi đi đi ngó nào. Đi ngó nào.",
+      "seconds": 266,
+      "timestamp_reliable": true,
+      "line": 73
+    },
+    {
+      "index": 73,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Về vô đó con nghe.",
+      "seconds": 267,
+      "timestamp_reliable": true,
+      "line": 74
+    },
+    {
+      "index": 74,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Ngó cẩn thận nha.",
+      "seconds": 270,
+      "timestamp_reliable": true,
+      "line": 75
+    },
+    {
+      "index": 75,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Để một cái bên là bật một thẳng lớn lên con nghe.",
+      "seconds": 272,
+      "timestamp_reliable": true,
+      "line": 76
+    },
+    {
+      "index": 76,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Đưa đây đưa đây mẹ nào. Đưa đây mẹ nào. Ờ vì con trà mật ong một ca năm sáu hai lần.",
+      "seconds": 280,
+      "timestamp_reliable": true,
+      "line": 77
+    },
+    {
+      "index": 77,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Bỏ vô năm, bỏ số sáu đi.",
+      "seconds": 334,
+      "timestamp_reliable": true,
+      "line": 78
+    },
+    {
+      "index": 78,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Vẽ nào.",
+      "seconds": 424,
+      "timestamp_reliable": true,
+      "line": 79
+    },
+    {
+      "index": 79,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Không được không được.",
+      "seconds": 445,
+      "timestamp_reliable": true,
+      "line": 80
+    },
+    {
+      "index": 80,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Đây em đã về đây.",
+      "seconds": 461,
+      "timestamp_reliable": true,
+      "line": 81
+    },
+    {
+      "index": 81,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Dạ dạ.",
+      "seconds": 462,
+      "timestamp_reliable": true,
+      "line": 82
+    },
+    {
+      "index": 82,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Nào đây đây vâng gặp sáu ếch chín. trong vòng một tháng rưỡi trở lại sẽ sẽ nhiều. Rồi trong bây giờ tới giờ để chị em thấy",
+      "seconds": 465,
+      "timestamp_reliable": true,
+      "line": 83
+    },
+    {
+      "index": 83,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "xong rồi em sẽ qua",
+      "seconds": 481,
+      "timestamp_reliable": true,
+      "line": 84
+    },
+    {
+      "index": 84,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Rồi đây qua đây qua anh thì lúc nào cũng được.",
+      "seconds": 482,
+      "timestamp_reliable": true,
+      "line": 85
+    },
+    {
+      "index": 85,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Để em sẽ qua anh.",
+      "seconds": 486,
+      "timestamp_reliable": true,
+      "line": 86
+    },
+    {
+      "index": 86,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Ok vâng. Bữa nào em mà có không gian trà thì em mời anh đến.",
+      "seconds": 487,
+      "timestamp_reliable": true,
+      "line": 87
+    },
+    {
+      "index": 87,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Ok.",
+      "seconds": 493,
+      "timestamp_reliable": true,
+      "line": 88
+    },
+    {
+      "index": 88,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Em cũng đang nhắm nhắm.",
+      "seconds": 493,
+      "timestamp_reliable": true,
+      "line": 89
+    },
+    {
+      "index": 89,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Vâng ok.",
+      "seconds": 497,
+      "timestamp_reliable": true,
+      "line": 90
+    },
+    {
+      "index": 90,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "À đấy thì đúng là lúc nào anh rảnh việc mà hẹn anh kia gặp nhau. Rồi em ngồi đâu để uống trà đến đây.",
+      "seconds": 498,
+      "timestamp_reliable": true,
+      "line": 91
+    },
+    {
+      "index": 91,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Không để nói chung là Vâng vâng ok anh.",
+      "seconds": 505,
+      "timestamp_reliable": true,
+      "line": 92
+    },
+    {
+      "index": 92,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Ok nghe.",
+      "seconds": 512,
+      "timestamp_reliable": true,
+      "line": 93
+    },
+    {
+      "index": 93,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Em xin phép về trước ạ.",
+      "seconds": 512,
+      "timestamp_reliable": true,
+      "line": 94
+    },
+    {
+      "index": 94,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Nha anh nha.",
+      "seconds": 514,
+      "timestamp_reliable": true,
+      "line": 95
+    },
+    {
+      "index": 95,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Dạ rồi ok.",
+      "seconds": 515,
+      "timestamp_reliable": true,
+      "line": 96
+    },
+    {
+      "index": 96,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Bye bye Sumo.",
+      "seconds": 516,
+      "timestamp_reliable": true,
+      "line": 97
+    },
+    {
+      "index": 97,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Bạn sinh tháng mấy? Bạn đẻ",
+      "seconds": 548,
+      "timestamp_reliable": true,
+      "line": 98
+    },
+    {
+      "index": 98,
+      "speaker_id": "SPEAKER_007",
+      "speaker_display_name": "Người nói 7",
+      "text": "Dạ 30 tháng tư.",
+      "seconds": 550,
+      "timestamp_reliable": true,
+      "line": 99
+    },
+    {
+      "index": 99,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "À em 30 tháng tư.",
+      "seconds": 552,
+      "timestamp_reliable": true,
+      "line": 100
+    },
+    {
+      "index": 100,
+      "speaker_id": "SPEAKER_007",
+      "speaker_display_name": "Người nói 7",
+      "text": "À chờ ba tiếng là tới giờ.",
+      "seconds": 560,
+      "timestamp_reliable": true,
+      "line": 101
+    },
+    {
+      "index": 101,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Nhật báo là cái Việt Nam mừng luôn.",
+      "seconds": 562,
+      "timestamp_reliable": true,
+      "line": 102
+    },
+    {
+      "index": 102,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Dạ.",
+      "seconds": 564,
+      "timestamp_reliable": true,
+      "line": 103
+    },
+    {
+      "index": 103,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Chúc bà gốc quê ở đâu?",
+      "seconds": 584,
+      "timestamp_reliable": true,
+      "line": 104
+    },
+    {
+      "index": 104,
+      "speaker_id": "SPEAKER_007",
+      "speaker_display_name": "Người nói 7",
+      "text": "Dạ em là ở đây.",
+      "seconds": 585,
+      "timestamp_reliable": true,
+      "line": 105
+    },
+    {
+      "index": 105,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "À ở đây Đà Nẵng.",
+      "seconds": 587,
+      "timestamp_reliable": true,
+      "line": 106
+    },
+    {
+      "index": 106,
+      "speaker_id": "SPEAKER_007",
+      "speaker_display_name": "Người nói 7",
+      "text": "Dạ em Đà Nẵng luôn.",
+      "seconds": 588,
+      "timestamp_reliable": true,
+      "line": 107
+    },
+    {
+      "index": 107,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Anh thì ở Nam Định. Sinh ra ở Hà Nội gốc Nam Định.",
+      "seconds": 590,
+      "timestamp_reliable": true,
+      "line": 108
+    },
+    {
+      "index": 108,
+      "speaker_id": "SPEAKER_007",
+      "speaker_display_name": "Người nói 7",
+      "text": "À.",
+      "seconds": 595,
+      "timestamp_reliable": true,
+      "line": 109
+    },
+    {
+      "index": 109,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Xong kiểu ông nội đưa hết con cháu lên Hà Nội.",
+      "seconds": 595,
+      "timestamp_reliable": true,
+      "line": 110
+    },
+    {
+      "index": 110,
+      "speaker_id": "SPEAKER_007",
+      "speaker_display_name": "Người nói 7",
+      "text": "Sinh viên combo đó hả?",
+      "seconds": 612,
+      "timestamp_reliable": true,
+      "line": 111
+    },
+    {
+      "index": 111,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Sinh viên combo.",
+      "seconds": 613,
+      "timestamp_reliable": true,
+      "line": 112
+    },
+    {
+      "index": 112,
+      "speaker_id": "SPEAKER_007",
+      "speaker_display_name": "Người nói 7",
+      "text": "Sinh viên combo đó là bao nhiêu anh?",
+      "seconds": 617,
+      "timestamp_reliable": true,
+      "line": 113
+    },
+    {
+      "index": 113,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Và chị khoái. Bếp này là mấy triệu?",
+      "seconds": 626,
+      "timestamp_reliable": true,
+      "line": 114
+    },
+    {
+      "index": 114,
+      "speaker_id": "SPEAKER_007",
+      "speaker_display_name": "Người nói 7",
+      "text": "Rồi em bye anh nào.",
+      "seconds": 632,
+      "timestamp_reliable": true,
+      "line": 115
+    },
+    {
+      "index": 115,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Rồi rồi.",
+      "seconds": 633,
+      "timestamp_reliable": true,
+      "line": 116
+    },
+    {
+      "index": 116,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Bye anh.",
+      "seconds": 634,
+      "timestamp_reliable": true,
+      "line": 117
+    },
+    {
+      "index": 117,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Anh anh thấy cái bạn thiểm thử ngoài này có cái từ đằng sau là từ đào à?",
+      "seconds": 705,
+      "timestamp_reliable": true,
+      "line": 118
+    },
+    {
+      "index": 118,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Dạ từ đào.",
+      "seconds": 710,
+      "timestamp_reliable": true,
+      "line": 119
+    },
+    {
+      "index": 119,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Từ đào à? Từ à chất đất. Ờ anh đang đi hỏi là dịch ra nghĩa là gì? Chất đất. Từ đào.",
+      "seconds": 711,
+      "timestamp_reliable": true,
+      "line": 120
+    },
+    {
+      "index": 120,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Nghe bây giờ thiểm thử là một là em hay là hai khác nhau? Nghe à?",
+      "seconds": 811,
+      "timestamp_reliable": true,
+      "line": 121
+    },
+    {
+      "index": 121,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Ờ.",
+      "seconds": 818,
+      "timestamp_reliable": true,
+      "line": 122
+    },
+    {
+      "index": 122,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Nghe là con cao mà.",
+      "seconds": 818,
+      "timestamp_reliable": true,
+      "line": 123
+    },
+    {
+      "index": 123,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Ờ anh tưởng nghe nó cũng tựa kiểu giống con thiểm thử.",
+      "seconds": 820,
+      "timestamp_reliable": true,
+      "line": 124
+    },
+    {
+      "index": 124,
+      "speaker_id": "SPEAKER_005",
+      "speaker_display_name": "Người nói 5",
+      "text": "Dạ.",
+      "seconds": 825,
+      "timestamp_reliable": true,
+      "line": 125
+    },
+    {
+      "index": 125,
+      "speaker_id": "SPEAKER_006",
+      "speaker_display_name": "Người nói 6",
+      "text": "Anh chưa rõ lắm. Em nuôi hai bạn này đẹp.",
+      "seconds": 825,
+      "timestamp_reliable": true,
+      "line": 126
+    }
+  ],
+  "human_anomalies": [
+    {
+      "reason": "NON_DIALOGUE_PREFIX",
+      "text": "BẢN PHIÊN ÂM NGUYÊN VĂN"
+    },
+    {
+      "reason": "MISSING_DELIMITER",
+      "index": 12,
+      "line": 13
+    },
+    {
+      "reason": "MISSING_DELIMITER",
+      "index": 24,
+      "line": 25
+    },
+    {
+      "reason": "MISSING_DELIMITER",
+      "index": 65,
+      "line": 66
+    },
+    {
+      "reason": "TIMESTAMP_REFERENCE_ANOMALY",
+      "index": 85,
+      "line": 86,
+      "timestamp": "00:07: 23",
+      "previous_seconds": 439
+    },
+    {
+      "reason": "MISSING_DELIMITER",
+      "index": 89,
+      "line": 90
+    },
+    {
+      "reason": "MISSING_DELIMITER",
+      "index": 90,
+      "line": 91
+    },
+    {
+      "reason": "TIMESTAMP_REFERENCE_ANOMALY",
+      "index": 94,
+      "line": 95,
+      "timestamp": "00:08:19",
+      "previous_seconds": 502
+    },
+    {
+      "reason": "MISSING_DELIMITER",
+      "index": 103,
+      "line": 104
+    },
+    {
+      "reason": "MISSING_DELIMITER",
+      "index": 104,
+      "line": 105
+    },
+    {
+      "reason": "MISSING_DELIMITER",
+      "index": 118,
+      "line": 119
+    },
+    {
+      "reason": "TIMESTAMP_REFERENCE_ANOMALY",
+      "index": 123,
+      "line": 124,
+      "timestamp": "00:10:50",
+      "previous_seconds": 705
+    }
+  ],
+  "machine_anomalies": [],
+  "fidelity_audit": [
+    {
+      "annotation_id": "G001-E001",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "EXACT_MATCH"
+    },
+    {
+      "annotation_id": "G001-E002",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "WORD_SUBSTITUTION"
+    },
+    {
+      "annotation_id": "G001-E003",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "OVER_NORMALIZATION"
+    },
+    {
+      "annotation_id": "G001-E004",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "WORD_INSERTION"
+    },
+    {
+      "annotation_id": "G001-E005",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "PHRASE_SUBSTITUTION"
+    },
+    {
+      "annotation_id": "G001-E006",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "PHRASE_SUBSTITUTION"
+    },
+    {
+      "annotation_id": "G001-E007",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "ENTITY_ERROR"
+    },
+    {
+      "annotation_id": "G001-E008",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "ENTITY_ERROR"
+    },
+    {
+      "annotation_id": "G001-E009",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "ENTITY_ERROR"
+    },
+    {
+      "annotation_id": "G001-E010",
+      "online_without_reference": "ACCEPT",
+      "issues": [],
+      "offline_primary_error": "ENTITY_ERROR"
+    }
+  ]
+}

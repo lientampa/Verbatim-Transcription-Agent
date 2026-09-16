@@ -269,7 +269,7 @@ def test_end_to_end_pipeline_mock(tmp_path: Path, monkeypatch):
     )
 
     # 1. First run: should succeed and create transcript + docx + srt + checkpoint
-    exit_code = run_pipeline(force=False, base_dir=tmp_path)
+    exit_code = run_pipeline(force=False, base_dir=tmp_path, prompt_controlled_audio=False)
     assert exit_code == 0
 
     transcript_path = tmp_path / "output" / "transcript.txt"
@@ -292,10 +292,10 @@ def test_end_to_end_pipeline_mock(tmp_path: Path, monkeypatch):
     assert ckpt["transcript_file"] == "transcript.txt"
 
     # 2. Second run without force: should detect idempotency and return 0
-    exit_code_cached = run_pipeline(force=False, base_dir=tmp_path)
+    exit_code_cached = run_pipeline(force=False, base_dir=tmp_path, prompt_controlled_audio=False)
     assert exit_code_cached == 0
 
     # 3. Third run with force: should re-process successfully
-    exit_code_forced = run_pipeline(force=True, base_dir=tmp_path)
+    exit_code_forced = run_pipeline(force=True, base_dir=tmp_path, prompt_controlled_audio=False)
     assert exit_code_forced == 0
 

@@ -194,6 +194,10 @@ class GeminiTranscriber:
         except (InvalidJSONError, SchemaValidationError, ResponseParserError) as exc:
             raise TranscriptionError(f"Response parsing / schema validation failed: {exc}") from exc
 
+        evidence=getattr(self.gemini_client,"last_wordinfo_evidence",None)
+        native_order=bool(evidence and evidence.matches(block_result,start_offset_seconds,end_offset_seconds))
+        if native_order:
+            block_result._wordinfo_evidence=evidence
         # Structural Validation (Tier 1)
         val_result = self.validator.validate_block_result(
             block_result=block_result,
@@ -203,7 +207,7 @@ class GeminiTranscriber:
                 None if self.fidelity_validator.source_mode == "AUDIO" else first_source_index,
                 None if self.fidelity_validator.source_mode == "AUDIO" else last_source_index,
                 start_offset_seconds, end_offset_seconds,
-                source_mode=self.fidelity_validator.source_mode),
+                source_mode=self.fidelity_validator.source_mode, native_wordinfo_order=native_order),
         )
 
         # Content Fidelity Validation (Tier 2) — always run, even if structural fails

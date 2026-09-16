@@ -39,10 +39,10 @@ def test_real_duration_text_preserved():
     assert out['segments'][0]['text']==raw
     assert out['segments'][0]['timestamp']=='00:00:00'
 
-def test_missing_offsets_and_backwards():
+def test_missing_offsets_and_invalid_bounds():
     d=native(); words=d['steps'][0]['content'][0]['annotations']
-    words[1]['start_offset']='0.5s'
-    with pytest.raises(ProviderAdapterError,match='NON_MONOTONIC_START'):TranscriptionModelAdapter().canonical(d,PROMPT)
+    words[1]['end_offset']='0.5s'
+    with pytest.raises(ProviderAdapterError,match='END_OFFSET_OUT_OF_BOUNDS'):TranscriptionModelAdapter().canonical(d,PROMPT)
     words[0].pop('start_offset')
     with pytest.raises(ProviderAdapterError,match='TIMESTAMP_UNSUPPORTED'):TranscriptionModelAdapter().canonical(d,PROMPT)
 

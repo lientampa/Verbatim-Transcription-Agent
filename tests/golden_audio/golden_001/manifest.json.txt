@@ -1,0 +1,11 @@
+{
+  "benchmark_id": "GOLDEN_001",
+  "language": "vi",
+  "source_mode": "AUDIO",
+  "human_reference": "human.txt",
+  "machine_baseline": "machine_baseline.txt",
+  "local_audio": "local/audio.m4a",
+  "reference_type": "HUMAN_REVIEWED",
+  "human_lexical_authority": "PRIMARY",
+  "human_timestamp_authority": "PARTIAL"
+}

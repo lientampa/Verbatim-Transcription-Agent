@@ -1,3 +1,4 @@
+from src.provider_adapters import AnnotationSemanticError
 """Main CLI orchestration pipeline for Vietnamese Verbatim Transcription Agent (Milestone 3)."""
 
 import sys
@@ -37,13 +38,15 @@ VIETNAMESE VERBATIM TRANSCRIPTION
 ====================================="""
 
 
-def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
+def run_pipeline(force: bool = False, base_dir: Path | None = None, *, prompt_controlled_audio: bool = True) -> int:
     """Execute the end-to-end transcription pipeline with Milestone 3 architecture:
     SOURCE AUDIO -> BLOCK BUILDER -> GEMINI -> STRUCTURED JSON -> SCHEMA -> VALIDATOR -> CHECKPOINT -> MERGER -> RENDERER (TXT, DOCX, SRT).
 
     Args:
         force: If True, bypasses completed checkpoint and re-processes audio.
         base_dir: Optional base directory path for configuration and file resolution.
+        prompt_controlled_audio: Require verified audio/system/schema provider contract.
+            False is an explicit legacy/native-adapter integration mode, not the CLI default.
 
     Returns:
         Exit code: 0 on success, 1 on failure.
@@ -180,6 +183,8 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             fallback_models=config.fallback_models,
             requested_max_output_tokens=config.gemini_max_output_tokens,
             transcription_thinking_level=config.transcription_thinking_level,
+            prompt_controlled_audio=prompt_controlled_audio,
+            schema_path=config.schema_path,
         )
     except GeminiClientError as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
@@ -235,12 +240,31 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             # Transcribe & Validate with retry on FAIL
             validated = False
             last_val_result = None
+            fidelity_result = None
             failure_summary = "Validation failed"
             block_result = None
             last_exc: Exception | None = None
 
             v_attempt, coverage_generation, total_attempts = 1, 1, 0
             size_retry_count, structural_retry_count, network_failure_count = 0, 0, 0
+            structural_by_model = {}
+            coverage_by_model = {}
+            preserve_physical_on_switch = False
+            gemini_client.quota_cooldown_seconds = config.quota_cooldown_seconds
+            def structural_retry(model, reason="MODEL_STRUCTURAL_RETRY_EXHAUSTED"):
+                nonlocal v_attempt, preserve_physical_on_switch
+                structural_by_model[model] = structural_by_model.get(model, 0) + 1
+                print(f"[MODEL_STRUCTURAL_FAILURE] model={model} block_id={block_id} structural_attempt={structural_by_model[model]} limit={config.validator_max_retries}", flush=True)
+                if structural_by_model[model] >= config.validator_max_retries:
+                    preserve_physical_on_switch = True
+                    try:
+                        gemini_client.advance_after_output_failure(reason)
+                    except GeminiTranscribeError as exc:
+                        detail = last_val_result.summary() if last_val_result is not None else str(last_exc)
+                        raise TranscriptionError(f"{exc}; Structural: {detail}; Fidelity: {fidelity_result.summary() if fidelity_result else 'unavailable'}") from exc
+                    v_attempt = 1
+                else:
+                    v_attempt = structural_by_model[model] + 1
             # Independent budgets; the legacy validation setting supplies the
             # default size allowance, never its consumed counter.
             size_limit = config.size_retry_limit if config.size_retry_limit is not None else max(0, config.validator_max_retries - 1)
@@ -248,7 +272,7 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             def select_model(model, reason):
                 target = orchestrator.select_model(model, reason)
                 gemini_client.dabb_target_input_tokens = orchestrator.dabb.current_target_tokens
-                if adaptive_slice.current_duration_seconds > target + 1e-6:
+                if not preserve_physical_on_switch and adaptive_slice.current_duration_seconds > target + 1e-6:
                     raise ModelReplanRequired(target)
             gemini_client.on_model_selected = select_model
             while True:
@@ -325,9 +349,12 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                         time.sleep(config.retry_initial_delay_seconds)
                         continue
                     structural_retry_count += 1
-                    if v_attempt >= config.validator_max_retries:
-                        raise TranscriptionError(f"VALIDATION_RETRIES_EXHAUSTED: block={block_id} validation_attempt={v_attempt}: {exc}") from exc
-                    v_attempt += 1
+                    failed_model = metadata.get("actual_model", getattr(gemini_client, "model_name", None))
+                    if failed_model:
+                        model_health.profile(failed_model).structural_generation_failures += 1
+                    if isinstance(exc, AnnotationSemanticError):
+                        model_health.profile(failed_model).timestamp_semantic_failures += 1
+                    structural_retry(failed_model, "ANNOTATION_SEMANTIC_RETRY_EXHAUSTED" if isinstance(exc, AnnotationSemanticError) else "MODEL_STRUCTURAL_RETRY_EXHAUSTED")
                     time.sleep(config.retry_initial_delay_seconds)
                     continue
 
@@ -336,8 +363,18 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                 actual_model = metadata.get("actual_model")
                 if not last_val_result.is_valid:
                     structural_retry_count += 1
-                if not last_val_result.is_valid and model_health.structural_failure(actual_model, last_val_result, block, block_result):
-                    gemini_client.advance_after_output_failure()
+                if not last_val_result.is_valid and fidelity_result.decision == FidelityDecision.FAIL:
+                    orchestrator.on_block_failure(FailureType.FIDELITY_FAILURE)
+                    failure_summary = f"DETERMINISTIC_FIDELITY_FAILURE: Structural: {last_val_result.summary()}; Fidelity: {fidelity_result.summary()}"
+                    break
+                if not last_val_result.is_valid:
+                    orchestrator.on_block_failure(FailureType.STRUCTURAL_FAILURE)
+                    if model_health.structural_failure(actual_model, last_val_result, block, block_result):
+                        preserve_physical_on_switch = True
+                        gemini_client.advance_after_output_failure("MODEL_STRUCTURAL_RETRY_EXHAUSTED")
+                        v_attempt = 1
+                    else:
+                        structural_retry(actual_model)
                     continue
                 if last_val_result.is_valid and fidelity_result.allows_confirmation:
                     # Provider STOP proves normal generation termination, not audio coverage.
@@ -349,22 +386,33 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
                           f"tail_gap_ratio={coverage.tail_gap_ratio} physical_duration={coverage.physical_duration_seconds} tail_activity={coverage.tail_activity} active_seconds={coverage.active_tail_seconds}]", end="", flush=True)
                     if not coverage.allows_confirmation:
                         failure_summary = f"COVERAGE_FAILURE COVERAGE_UNRESOLVED: {coverage.to_dict()}"
-                        if model_health.coverage_failure(actual_model, coverage):
-                            gemini_client.advance_after_output_failure()
-                            continue
+                        coverage_by_model[actual_model] = coverage_by_model.get(actual_model, 0) + 1
+                        circuit_open = model_health.coverage_failure(actual_model, coverage)
                         if coverage.decision == CoverageDecision.RETRY:
                             orchestrator.on_coverage_failure(adaptive_slice.current_duration_seconds)
-                        if coverage.decision == CoverageDecision.RETRY and coverage_generation < config.coverage_max_generations:
+                        pending_target = max(config.min_duration_seconds, adaptive_slice.current_duration_seconds * config.coverage_shrink_factor)
+                        can_rebuild = (coverage.decision == CoverageDecision.RETRY and not circuit_open
+                                       and coverage_by_model[actual_model] < config.coverage_max_generations
+                                       and pending_target < adaptive_slice.current_duration_seconds - 1e-6)
+                        if can_rebuild:
                             try:
                                 orchestrator.rebuild_audio_block(adaptive_slice, config.coverage_shrink_factor, reason="COVERAGE_FAIL")
-                            except BlockBuilderError as exc:
-                                raise TranscriptionError(f"{failure_summary}; coverage rebuild exhausted: {exc}") from exc
-                            block = adaptive_slice.source_block
-                            gemini_file = None
-                            print(" [COVERAGE_FAILURE action=RETRY_SMALLER_BLOCK]", end="", flush=True)
-                            coverage_generation += 1
-                            continue
-                        break
+                            except BlockBuilderError:
+                                can_rebuild = False
+                            else:
+                                block = adaptive_slice.source_block
+                                gemini_file = None
+                                print(" [COVERAGE_FAILURE action=RETRY_SMALLER_BLOCK]", end="", flush=True)
+                                coverage_generation += 1
+                                continue
+                        print(f"[COVERAGE_RETRY_EXHAUSTED] model={actual_model} coverage_generation={coverage_generation} model_coverage_attempt={coverage_by_model[actual_model]} limit={config.coverage_max_generations} pending_retry_target={pending_target} circuit_open={circuit_open}",flush=True)
+                        preserve_physical_on_switch = True
+                        try:
+                            next_model = gemini_client.advance_after_output_failure("MODEL_COVERAGE_RETRY_EXHAUSTED")
+                        except GeminiTranscribeError as exc:
+                            raise TranscriptionError(f"{failure_summary}; {exc}") from exc
+                        print(f"[COVERAGE_MODEL_FALLBACK] from={actual_model} to={next_model} start={block.start_time_seconds} end={block.end_time_seconds} reason=MODEL_COVERAGE_RETRY_EXHAUSTED",flush=True)
+                        continue
                     renderer.validate_output_fields(block_result.segments)
                     validated = True
                     warn_tag = f" ({len(last_val_result.warnings)} warn)" if last_val_result.warnings else ""
@@ -476,6 +524,8 @@ def run_pipeline(force: bool = False, base_dir: Path | None = None) -> int:
             )
             merger.merge_block_result(block_result)  # Committed speaker context only.
             model_health.success(actual_model, adaptive_slice.current_duration_seconds)
+            if actual_model in gemini_client._registry().states:
+                gemini_client._registry().states[actual_model].validated_success=True
 
     except CheckpointError as exc:
         print(f"[ERROR] Checkpoint commit failed; last persisted state retained: {exc}", file=sys.stderr)

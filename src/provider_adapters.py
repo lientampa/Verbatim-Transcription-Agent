@@ -1,4 +1,5 @@
 """Provider contracts stop here; downstream consumes canonical schema 1.0."""
+import hashlib
 import ast
 import json
 import math
@@ -40,6 +41,28 @@ class ProviderAdapterError(ValueError):
         print(f"[TRANSCRIBE_ADAPTER_ERROR] model=gemini-3.5-transcribe stage={stage} reason={reason} detail={detail}",flush=True)
 
 
+class AnnotationSemanticError(ProviderAdapterError):
+    """Interpretable contract, invalid individual model response."""
+
+
+
+def payload_digest(payload):
+    return hashlib.sha256(json.dumps(payload,ensure_ascii=False,sort_keys=True).encode("utf-8")).hexdigest()
+
+
+@dataclass(frozen=True)
+class WordInfoEvidence:
+    physical_start: float
+    physical_end: float
+    endpoint: float | None
+    payload_hash: str
+    segment_hash: str
+
+    def matches(self, transcript, start, end):
+        return self.physical_start==start and self.physical_end==end and self.payload_hash==payload_digest(transcript.to_dict())
+
+
+
 class GeminiGenerateContentAdapter:
     def generate(self,sdk,model,asset,prompt,config):
         return sdk.models.generate_content(model=model,contents=[asset,prompt],config=config)
@@ -69,9 +92,9 @@ def word_timing(word, physical_start, duration, word_index=0):
         end_raw=field(word,"end_offset")
         end=seconds(end_raw) if end_raw is not None else None
         if not 0<=start<=duration+1e-6:
-            raise ProviderAdapterError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={word_index} START_OFFSET_OUT_OF_BOUNDS")
+            raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={word_index} START_OFFSET_OUT_OF_BOUNDS")
         if end is not None and not start<=end<=duration+1e-6:
-            raise ProviderAdapterError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={word_index} END_OFFSET_OUT_OF_BOUNDS")
+            raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={word_index} END_OFFSET_OUT_OF_BOUNDS")
         return start,end,physical_start+start,None if end is None else physical_start+end
     except ProviderAdapterError:
         def safe(value):
@@ -90,7 +113,7 @@ def absolute_timestamp(timestamp, block_start, block_end, basis="BLOCK_RELATIVE"
         raise ProviderAdapterError("TRANSCRIBE_TIMESTAMP_BASIS_UNSUPPORTED")
     result=timestamp+block_start if basis=="BLOCK_RELATIVE" else timestamp
     if not math.isfinite(result) or not block_start<=result<=block_end+1e-6:
-        raise ProviderAdapterError("TRANSCRIBE_ANNOTATION_INVALID",detail="TIMESTAMP_OUT_OF_PHYSICAL_BOUNDS")
+        raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail="TIMESTAMP_OUT_OF_PHYSICAL_BOUNDS")
     return result
 
 
@@ -138,18 +161,23 @@ class TranscriptionModelAdapter:
             raise ProviderAdapterError("OUTPUT_TRUNCATED: transcription interaction incomplete",stage="PROVIDER_RESPONSE_PARSE")
         if status!="completed":
             raise ProviderAdapterError("TRANSCRIBE_MODEL_FAILURE",stage="PROVIDER_RESPONSE_PARSE",detail=f"status={status}")
-        text=self.canonical(response,prompt)
+        try:
+            text=self.canonical(response,prompt)
+        except ProviderAdapterError as exc:
+            exc.provider_callable=True
+            raise
         usage=field(response,"usage",{})
         normalized_usage=types.GenerateContentResponseUsageMetadata(
             prompt_token_count=field(usage,"total_input_tokens"),
             candidates_token_count=field(usage,"total_output_tokens"),
             thoughts_token_count=field(usage,"total_thought_tokens"),
             total_token_count=field(usage,"total_tokens"))
-        return SimpleNamespace(text=text,usage_metadata=normalized_usage,
+        return SimpleNamespace(text=text,usage_metadata=normalized_usage,wordinfo_evidence=self.evidence,
             candidates=[SimpleNamespace(finish_reason="STOP",content=SimpleNamespace(parts=[SimpleNamespace(text=text,thought=False)]))])
 
     def canonical(self,response,prompt):
         print("[TRANSCRIBE_ADAPTER] stage=CANONICAL_MAPPING",flush=True)
+        self.evidence=None
         identity={}
         for key in ("job_id","session_id","block_id"):
             match=re.search(r'- '+key+r': "([^"\n]+)"',prompt)
@@ -164,7 +192,7 @@ class TranscriptionModelAdapter:
         prior=ast.literal_eval(context.group(1)) if context else []
         next_label=max([int(m.group(1)) for label in prior if isinstance(label,str)
                         for m in [re.fullmatch(r"Người nói (\d+)",label)] if m]+[0])+1
-        speakers={};segments=[];previous=-1
+        speakers={};segments=[];previous=-1;previous_end=None;previous_speaker=None;max_end=None;word_count=0
         print("[TRANSCRIBE_ADAPTER] stage=ANNOTATION_PARSE timestamp_basis=BLOCK_RELATIVE",flush=True)
         for step in field(response,"steps",[]) or []:
             if field(step,"type")!="model_output": continue
@@ -173,7 +201,7 @@ class TranscriptionModelAdapter:
                 words=[w for w in field(content,"annotations",[]) or [] if field(w,"type")=="word_info"]
                 raw=field(content,"text","")
                 if not isinstance(raw,str):
-                    raise ProviderAdapterError("TRANSCRIBE_ANNOTATION_INVALID",detail="CONTENT_TEXT_TYPE")
+                    raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail="CONTENT_TEXT_TYPE")
                 values=[]
                 for index,word in enumerate(words):
                     value=field(word,"text")
@@ -181,38 +209,57 @@ class TranscriptionModelAdapter:
                         left,right=field(word,"start_index"),field(word,"end_index")
                         encoded=raw.encode("utf-8")
                         if type(left) is not int or type(right) is not int or not 0<=left<right<=len(encoded):
-                            raise ProviderAdapterError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={index} MISSING_TEXT_AND_BYTE_SPAN")
+                            raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={index} MISSING_TEXT_AND_BYTE_SPAN")
                         try:
                             value=encoded[left:right].decode("utf-8")
                         except UnicodeDecodeError as exc:
-                            raise ProviderAdapterError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={index} INVALID_UTF8_BYTE_SPAN") from exc
+                            raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={index} INVALID_UTF8_BYTE_SPAN") from exc
                     if not isinstance(value,str) or not value.strip():
-                        raise ProviderAdapterError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={index} WORD_TEXT_TYPE_OR_EMPTY")
+                        raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={index} WORD_TEXT_TYPE_OR_EMPTY")
                     values.append(value)
                 # Locate words in provider text; keep punctuation/pauses between them.
                 spans=[];cursor=0
                 for index,value in enumerate(values):
-                    position=raw.find(value,cursor)
+                    word=words[index]
+                    left,right=field(word,"start_index"),field(word,"end_index")
+                    if left is not None or right is not None:
+                        encoded=raw.encode("utf-8")
+                        if type(left) is not int or type(right) is not int or not 0<=left<right<=len(encoded):
+                            raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail="TEXT_INDEX_BOUNDS")
+                        try:
+                            position=len(encoded[:left].decode("utf-8"))
+                            associated=encoded[left:right].decode("utf-8")
+                        except UnicodeDecodeError as exc:
+                            raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail="TEXT_INDEX_UTF8") from exc
+                        if associated!=value or position<cursor:
+                            raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail="TEXT_INDEX_CORRESPONDENCE")
+                    else:
+                        position=raw.find(value,cursor)
                     if position<0 or any(c.isalnum() for c in raw[cursor:position]):
-                        raise ProviderAdapterError("TRANSCRIBE_ANNOTATIONS_INCOMPLETE",detail="WORD_TEXT_COVERAGE")
+                        raise AnnotationSemanticError("TRANSCRIBE_ANNOTATIONS_INCOMPLETE",detail="WORD_TEXT_COVERAGE")
                     spans.append(position);cursor=position+len(value)
                 if not words or any(c.isalnum() for c in raw[cursor:]):
-                    raise ProviderAdapterError("TRANSCRIBE_ANNOTATIONS_INCOMPLETE",detail="WORD_TEXT_COVERAGE")
+                    raise AnnotationSemanticError("TRANSCRIBE_ANNOTATIONS_INCOMPLETE",detail="WORD_TEXT_COVERAGE")
                 chunks=[raw[0 if i==0 else spans[i]:spans[i+1] if i+1<len(spans) else len(raw)] for i in range(len(spans))]
                 for index,(word,value) in enumerate(zip(words,chunks)):
                     relative,finish,absolute,_=word_timing(word,start,end-start,index)
                     speaker=field(word,"speaker")
                     if speaker is not None and not isinstance(speaker,str):
-                        raise ProviderAdapterError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={index} SPEAKER_TYPE={type(speaker).__name__}")
+                        raise AnnotationSemanticError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={index} SPEAKER_TYPE={type(speaker).__name__}")
                     if not previous<=relative:
-                        raise ProviderAdapterError("TRANSCRIBE_ANNOTATION_INVALID",detail=f"word={index} NON_MONOTONIC_START")
+                        safe_speaker=lambda value: json.dumps(value[:40] if isinstance(value,str) else None,ensure_ascii=True)
+                        print(f"[TRANSCRIBE_TEMPORAL_OVERLAP] word_index={index} previous_start={previous} current_start={relative} previous_end={previous_end} current_end={finish} speaker_previous={safe_speaker(previous_speaker)} speaker_current={safe_speaker(speaker)} delta_seconds={relative-previous} physical_duration={end-start} classification={'CROSS_SPEAKER_OVERLAP' if speaker!=previous_speaker else 'TEXT_AUDIO_ORDER_DIFFERENCE'}",flush=True)
+
+                    word_count+=1
+                    if finish is not None: max_end=finish if max_end is None else max(max_end,finish)
                     previous=relative
+                    previous_end=finish;previous_speaker=speaker
                     # Optional speaker is genuinely unattributed, never inherited from a neighbor.
                     speaker=speaker or None
                     if speaker not in speakers:
                         speakers[speaker]=f"Người nói {next_label}";next_label+=1
                     # Bound utterance groups to keep coverage evidence near their last word.
-                    if segments and segments[-1]["speaker"]==speakers[speaker] and absolute-segments[-1]["_start"]<15:
+                    if segments and segments[-1]["speaker"]==speakers[speaker] and 0<=absolute-segments[-1]["_start"]<15:
                         segments[-1]["text"]+=value
                     else:
                         sec=int(absolute)
@@ -222,5 +269,9 @@ class TranscriptionModelAdapter:
         for segment in segments:
             segment.pop("_start")
             segment["text"]=segment["text"].strip()
-        return json.dumps(dict(schema_version="1.0",**identity,first_source_index=1,
-            last_source_index=len(segments),status="CONFIRMED",segments=segments),ensure_ascii=False)
+        payload=dict(schema_version="1.0",**identity,first_source_index=1,
+            last_source_index=len(segments),status="CONFIRMED",segments=segments)
+        endpoint=None if max_end is None else start+max_end
+        self.evidence=WordInfoEvidence(start,end,endpoint,payload_digest(payload),payload_digest(segments))
+        print(f"[TRANSCRIBE_COVERAGE_ENDPOINT] basis=MAX_WORD_END_OFFSET relative_end={max_end} absolute_end={endpoint} word_count={word_count}",flush=True)
+        return json.dumps(payload,ensure_ascii=False)

@@ -25,6 +25,7 @@ class ExpectedBlockContext:
     audio_end: float | None = None
     timestamp_tolerance: float = 1.0
     source_mode: str = "TEXT_TIMESTAMP"
+    native_wordinfo_order: bool = False
 
 
 @dataclass
@@ -206,7 +207,7 @@ class TranscriptValidator:
                     reject("INVALID_TIMESTAMP", f"segment={seg.source_index}, received={ts!r}, expected=[HH:]MM:SS with valid clock components")
                 else:
                     seconds = sum(value * multiplier for value, multiplier in zip(reversed(values), (1, 60, 3600)))
-                    if previous_seconds is not None and seconds < previous_seconds:
+                    if previous_seconds is not None and seconds < previous_seconds and not (expected_context and expected_context.source_mode == "AUDIO" and expected_context.native_wordinfo_order):
                         reject("TIMESTAMP_ORDER_ERROR", f"segment={seg.source_index}, received={ts!r}, previous_seconds={previous_seconds}")
                     previous_seconds = seconds
                     if expected_context and (seconds < expected_context.audio_start - expected_context.timestamp_tolerance or

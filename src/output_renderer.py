@@ -235,7 +235,9 @@ class OutputRenderer:
             if self.strict_speaker_format:
                 raise ValueError("SRT_START_REQUIRED")
             starts = [t if t is not None else i*self.default_segment_duration_seconds for i,t in enumerate(starts)]
-        if any(b < a for a,b in zip(starts, starts[1:])):
+        if any(b < a and not (getattr(segments[i],"_native_text_order_block",None) and
+                              getattr(segments[i],"_native_text_order_block",None)==getattr(segments[i+1],"_native_text_order_block",None))
+               for i,(a,b) in enumerate(zip(starts, starts[1:]))):
             raise ValueError("SRT_START_ORDER")
         times = []
         for i, start in enumerate(starts):

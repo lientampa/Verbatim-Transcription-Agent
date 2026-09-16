@@ -100,10 +100,14 @@ class OutputMerger:
                 print(f"[MERGE_DUPLICATE_IDENTICAL] block_id={block_id}")
                 continue
             seen[key] = deepcopy(payload)
-            ordered.append((start, end, block_id, payload))
+            from src.provider_adapters import payload_digest
+            provider=metric.get("provider_metadata",{})
+            native_order=(provider.get("provider_adapter")=="transcribe" and provider.get("temporal_order_basis")=="PROVIDER_TEXT_ORDER"
+                          and provider.get("wordinfo_segment_hash")==payload_digest([TranscriptSegment.from_dict(item).to_dict() for item in payload]))
+            ordered.append((start, end, block_id, payload, native_order))
         result = cls(source_mode="AUDIO")
         previous_end, previous_timestamp = 0, -1
-        for number, (start, end, block_id, payload) in enumerate(sorted(ordered, key=lambda r: r[0]), 1):
+        for number, (start, end, block_id, payload, native_order) in enumerate(sorted(ordered, key=lambda r: r[0]), 1):
             if start > previous_end:
                 raise MergeError("MERGE_GAP")
             if start < previous_end:
@@ -116,13 +120,15 @@ class OutputMerger:
             for item in payload:
                 segment = TranscriptSegment.from_dict(deepcopy(item))
                 timestamp = parse_timestamp_to_seconds(segment.timestamp)
-                if timestamp is None or timestamp < previous_timestamp:
+                if timestamp is None or (timestamp < previous_timestamp and not native_order):
                     raise MergeError("MERGE_TIMESTAMP_ORDER")
                 # Match the existing upstream one-second boundary tolerance.
                 if not start / 1_000_000 - 1 <= timestamp <= min(end / 1_000_000 + 1, source_identity["duration_us"] / 1_000_000):
                     raise MergeError("MERGE_TIMESTAMP_OUT_OF_RANGE")
                 if segment.source_index <= previous_ordinal:
                     raise MergeError("MERGE_SEGMENT_ORDER")
+                if native_order:
+                    segment._native_text_order_block=block_id
                 result.add_segment(segment, block_id)
                 previous_timestamp, previous_ordinal = timestamp, segment.source_index
             previous_end = end

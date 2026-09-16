@@ -82,6 +82,10 @@ class CoverageValidator:
                 seconds = sum(v * m for v, m in zip(reversed(parts), (1, 60, 3600)))
                 timestamps.append((seconds, segment.timestamp))
         last, original = max(timestamps) if timestamps else (block.start_time_seconds, None)
+        evidence=getattr(transcript,"_wordinfo_evidence",None)
+        if evidence and evidence.matches(transcript,block.start_time_seconds,block.end_time_seconds) and evidence.endpoint is not None:
+            last=evidence.endpoint
+            original=f"{int(last)//3600:02d}:{int(last)%3600//60:02d}:{int(last)%60:02d}"
         gap = max(0.0, block.end_time_seconds - last)
         duration = block.end_time_seconds - block.start_time_seconds
         if not math.isfinite(duration) or duration <= 0:
